@@ -263,10 +263,6 @@ enum Translations {
         "Bitrate: %d Mbit/s": "Bitrate: %d Mbit/s",
         "Bild": "Picture",
         "Höhere Bitrate = schärfer, braucht aber stabiles WLAN. Bei Rucklern Bitrate senken oder 30 fps wählen.": "Higher bitrate = sharper, but needs stable Wi-Fi. If it stutters, lower the bitrate or choose 30 fps.",
-        "Druckkurve: %.2f (%@)": "Pressure curve: %.2f (%@)",
-        "weicher": "softer",
-        "härter": "harder",
-        "linear": "linear",
         "Mindestdruck: %.2f": "Minimum pressure: %.2f",
         "Neigung X umkehren": "Invert tilt X",
         "Neigung Y umkehren": "Invert tilt Y",
@@ -297,7 +293,6 @@ enum Translations {
         "Taste hinzufügen": "Add key",
         "Neu": "New",
         "Shortcuts": "Shortcuts",
-        "Tasten werden auf dem Mac anhand des aktiven Tastaturlayouts aufgelöst (z. B. QWERTZ).": "Keys are resolved on the Mac using the active keyboard layout (e.g. QWERTZ).",
         "Widerrufen ⌘Z": "Undo ⌘Z",
         "Wiederholen ⇧⌘Z": "Redo ⇧⌘Z",
         "Radierer (E)": "Eraser (E)",
@@ -316,5 +311,29 @@ enum Translations {
 
         // MARK: Wire.swift
         "Leertaste": "Space",
+
+        // MARK: Pressure curve, smoothing, adaptive bitrate, per-app shortcut bars
+        "Art": "Type",
+        "Bitrate automatisch anpassen": "Adjust bitrate automatically",
+        "Die Leiste wechselt automatisch mit der App, die am Mac vorne ist (★ = eigene Leiste). Halte-Tasten (⇧ ⌥ ⌘ ⌃ Leertaste) bleiben gedrückt, solange der Finger darauf liegt – zum Beispiel ⇧ beim Zeichnen gerader Linien. Tasten werden auf dem Mac anhand des aktiven Tastaturlayouts aufgelöst.": "The bar switches automatically with the app that’s in front on the Mac (★ = custom bar). Hold keys (⇧ ⌥ ⌘ ⌃ Space) stay pressed as long as your finger rests on them – for example ⇧ while drawing straight lines. Keys are resolved on the Mac using the active keyboard layout.",
+        "Druck glätten: %d %%": "Pressure smoothing: %d %%",
+        "Druckkurve": "Pressure curve",
+        "Eigene Kurve": "Custom curve",
+        "Eigene Leiste für diese App anlegen": "Create custom bar for this app",
+        "Eigene Leiste löschen": "Delete custom bar",
+        "Eingabe %d %% → Ausgabe %d %%": "Input %d %% → output %d %%",
+        "Halten: %@": "Hold: %@",
+        "Hier mit dem Pencil drücken zum Testen": "Press here with the Pencil to test",
+        "Leiste für": "Bar for",
+        "Mbit/s · Ziel %.0f": "Mbit/s · target %.0f",
+        "Pencil-Druck →": "Pencil pressure →",
+        "Punkte mit dem Finger ziehen. Unten mit dem Pencil drücken, um zu sehen, wo dein Druck auf der Kurve landet.": "Drag the points with your finger. Press below with the Pencil to see where your pressure lands on the curve.",
+        "Shortcut senden": "Send shortcut",
+        "Standard (alle Apps)": "Default (all apps)",
+        "Strich glätten: %d %%": "Stroke smoothing: %d %%",
+        "Taste halten": "Hold key",
+        "Voreinstellung": "Preset",
+        "fest": "firm",
+        "leicht": "light",
     ]
 }
