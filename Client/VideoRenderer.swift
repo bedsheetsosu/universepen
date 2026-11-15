@@ -118,7 +118,22 @@ final class VideoRenderer: @unchecked Sendable {
                 allocator: kCFAllocatorDefault, parameterSetCount: pointers.count, parameterSetPointers: pointers,
                 parameterSetSizes: sizes, nalUnitHeaderLength: 4, extensions: nil, formatDescriptionOut: &desc)
         }
-        return status == noErr ? desc : nil
+        guard status == noErr, let desc else { return nil }
+        return f.displayP3 ? withP3(desc) : desc
+    }
+
+    /// Same description plus Display P3 colour tags, so the display layer colour-manages it.
+    static func withP3(_ desc: CMVideoFormatDescription) -> CMVideoFormatDescription {
+        var ext = (CMFormatDescriptionGetExtensions(desc) as? [CFString: Any]) ?? [:]
+        ext[kCMFormatDescriptionExtension_ColorPrimaries] = kCMFormatDescriptionColorPrimaries_P3_D65
+        ext[kCMFormatDescriptionExtension_TransferFunction] = kCMFormatDescriptionTransferFunction_ITU_R_709_2
+        ext[kCMFormatDescriptionExtension_YCbCrMatrix] = kCMFormatDescriptionYCbCrMatrix_ITU_R_709_2
+        let dims = CMVideoFormatDescriptionGetDimensions(desc)
+        var out: CMVideoFormatDescription?
+        let st = CMVideoFormatDescriptionCreate(allocator: kCFAllocatorDefault, codecType: CMFormatDescriptionGetMediaSubType(desc),
+                                                width: dims.width, height: dims.height, extensions: ext as CFDictionary,
+                                                formatDescriptionOut: &out)
+        return st == noErr ? (out ?? desc) : desc
     }
 
     static func makeSample(_ data: Data, _ desc: CMVideoFormatDescription) -> CMSampleBuffer? {

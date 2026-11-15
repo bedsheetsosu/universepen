@@ -66,6 +66,10 @@ final class VideoEncoder {
         set(kVTCompressionPropertyKey_AverageBitRate, NSNumber(value: Int(quality.bitrateMbps * 1_000_000)))
         set(kVTCompressionPropertyKey_ExpectedFrameRate, NSNumber(value: quality.fps))
         set(kVTCompressionPropertyKey_MaxKeyFrameIntervalDuration, NSNumber(value: 5))
+        // Colour: the capture is Display P3; tag the stream so the iPad shows the same colours.
+        set(kVTCompressionPropertyKey_ColorPrimaries, kCVImageBufferColorPrimaries_P3_D65)
+        set(kVTCompressionPropertyKey_TransferFunction, kCVImageBufferTransferFunction_ITU_R_709_2)
+        set(kVTCompressionPropertyKey_YCbCrMatrix, kCVImageBufferYCbCrMatrix_ITU_R_709_2)
         // Allow short bursts (e.g. scrolling) up to 2x average within one second.
         let limit = [NSNumber(value: Int(quality.bitrateMbps * 2_000_000 / 8)), NSNumber(value: 1)] as CFArray
         set(kVTCompressionPropertyKey_DataRateLimits, limit)
@@ -85,6 +89,14 @@ final class VideoEncoder {
     deinit { invalidate() }
 
     func requestKeyframe() { lock.withLock { forceKeyframe = true } }
+
+    /// Live bitrate change (adaptive quality), no restart needed.
+    func setBitrate(mbps: Double) {
+        guard let s = lock.withLock({ session }) else { return }
+        VTSessionSetProperty(s, key: kVTCompressionPropertyKey_AverageBitRate, value: NSNumber(value: Int(mbps * 1_000_000)))
+        let limit = [NSNumber(value: Int(mbps * 2_000_000 / 8)), NSNumber(value: 1)] as CFArray
+        VTSessionSetProperty(s, key: kVTCompressionPropertyKey_DataRateLimits, value: limit)
+    }
 
     func invalidate() {
         lock.withLock {
@@ -127,7 +139,7 @@ final class VideoEncoder {
         var format: VideoFormat?
         if isKey, let desc = CMSampleBufferGetFormatDescription(sbuf) {
             let sets = Self.parameterSets(desc, codec: codec)
-            let f = VideoFormat(codec: codec, width: width, height: height, parameterSets: sets)
+            let f = VideoFormat(codec: codec, width: width, height: height, parameterSets: sets, displayP3: true)
             // Sent with every keyframe so a client that missed one can always resync.
             format = f
             lock.withLock { lastFormat = f }

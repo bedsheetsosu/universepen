@@ -122,16 +122,20 @@ public struct StreamQuality: Codable, Equatable, Sendable {
     public var resolutionScale: Double
     /// Also capture and send the Mac's sound.
     public var audio: Bool
+    /// Lower the bitrate automatically when the connection cannot keep up, raise it again after.
+    public var adaptive: Bool
 
-    public init(codec: VideoCodec = .h264, bitrateMbps: Double = 30, fps: Int = 60, resolutionScale: Double = 1.0, audio: Bool = true) {
+    public init(codec: VideoCodec = .h264, bitrateMbps: Double = 30, fps: Int = 60, resolutionScale: Double = 1.0, audio: Bool = true,
+                adaptive: Bool = true) {
         self.codec = codec
         self.bitrateMbps = bitrateMbps
         self.fps = fps
         self.resolutionScale = resolutionScale
         self.audio = audio
+        self.adaptive = adaptive
     }
 
-    private enum CodingKeys: String, CodingKey { case codec, bitrateMbps, fps, resolutionScale, audio }
+    private enum CodingKeys: String, CodingKey { case codec, bitrateMbps, fps, resolutionScale, audio, adaptive }
 
     /// Tolerates settings saved by older versions (missing keys get defaults).
     public init(from decoder: Decoder) throws {
@@ -142,6 +146,7 @@ public struct StreamQuality: Codable, Equatable, Sendable {
         fps = try c.decodeIfPresent(Int.self, forKey: .fps) ?? d.fps
         resolutionScale = try c.decodeIfPresent(Double.self, forKey: .resolutionScale) ?? d.resolutionScale
         audio = try c.decodeIfPresent(Bool.self, forKey: .audio) ?? d.audio
+        adaptive = try c.decodeIfPresent(Bool.self, forKey: .adaptive) ?? d.adaptive
     }
 }
 
@@ -394,9 +399,12 @@ public struct VideoFormat: Equatable, Sendable {
     public var height: Int
     /// H.264: [SPS, PPS]; HEVC: [VPS, SPS, PPS]. Raw NAL units without start codes.
     public var parameterSets: [Data]
+    /// Picture is in Display P3 (wide colour). Lets the iPad colour-manage it correctly.
+    public var displayP3: Bool
 
-    public init(codec: VideoCodec, width: Int, height: Int, parameterSets: [Data]) {
+    public init(codec: VideoCodec, width: Int, height: Int, parameterSets: [Data], displayP3: Bool = false) {
         self.codec = codec; self.width = width; self.height = height; self.parameterSets = parameterSets
+        self.displayP3 = displayP3
     }
 
     public func encoded() -> Data {
@@ -405,6 +413,7 @@ public struct VideoFormat: Equatable, Sendable {
         w.u32(UInt32(width)); w.u32(UInt32(height))
         w.u8(UInt8(parameterSets.count))
         for p in parameterSets { w.blob(p) }
+        w.bool(displayP3)
         return w.data
     }
 
@@ -420,6 +429,7 @@ public struct VideoFormat: Equatable, Sendable {
         var sets: [Data] = []
         for _ in 0..<n { sets.append(try r.blob()) }
         parameterSets = sets
+        displayP3 = r.remaining > 0 ? try r.bool() : false   // absent in older hosts
     }
 }
 

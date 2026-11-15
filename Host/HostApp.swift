@@ -90,7 +90,9 @@ struct HostView: View {
             if connected {
                 HStack(spacing: 10) {
                     StatTile(value: host.stats.fps, format: "%.0f", unit: L("Bilder/s"), symbol: "film")
-                    StatTile(value: host.stats.mbps, format: "%.1f", unit: "Mbit/s", symbol: "arrow.up.right")
+                    StatTile(value: host.stats.mbps, format: "%.1f",
+                             unit: host.stats.targetMbps > 0 ? L("Mbit/s · Ziel %.0f", host.stats.targetMbps) : "Mbit/s",
+                             symbol: "arrow.up.right")
                     StatTile(value: Double(host.stats.dropped), format: "%.0f", unit: L("verworfen"), symbol: "tray.and.arrow.down")
                 }
                 .transition(.move(edge: .bottom).combined(with: .opacity))

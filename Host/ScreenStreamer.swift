@@ -7,6 +7,8 @@ struct StreamStats: Equatable {
     var fps: Double = 0
     var mbps: Double = 0
     var dropped: Int = 0
+    /// Current encoder target (changes when adaptive quality is on).
+    var targetMbps: Double = 0
 }
 
 /// ScreenCaptureKit -> VideoToolbox pipeline. One instance per running stream.
@@ -35,6 +37,12 @@ final class ScreenStreamer: NSObject, SCStreamOutput, SCStreamDelegate {
     private var byteCount = 0
     private var dropped = 0
     private var statsTimer: DispatchSourceTimer?
+    // Adaptive bitrate (sample queue only)
+    private var maxMbps: Double = 30
+    private var targetMbps: Double = 30
+    private var adaptive = true
+    private var lastDropped = 0
+    private var calmSeconds = 0
 
     func start(filter: SCContentFilter, sourceRect: CGRect?, width: Int, height: Int, quality: StreamQuality) async throws {
         let enc = try VideoEncoder(codec: quality.codec, width: width, height: height, quality: quality)
@@ -47,6 +55,9 @@ final class ScreenStreamer: NSObject, SCStreamOutput, SCStreamDelegate {
             self.onEncoded?(format, frame)
         }
         encoder = enc
+        maxMbps = quality.bitrateMbps
+        targetMbps = quality.bitrateMbps
+        adaptive = quality.adaptive
         outputWidth = width
         outputHeight = height
         encoderDescription = "\(quality.codec.rawValue.uppercased()) \(width)×\(height) · "
@@ -59,6 +70,8 @@ final class ScreenStreamer: NSObject, SCStreamOutput, SCStreamDelegate {
         cfg.scalesToFit = true
         cfg.minimumFrameInterval = CMTime(value: 1, timescale: CMTimeScale(max(quality.fps, 1)))
         cfg.pixelFormat = kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
+        cfg.colorSpaceName = CGColorSpace.displayP3
+        cfg.colorMatrix = CGDisplayStream.yCbCrMatrix_ITU_R_709_2
         cfg.queueDepth = 3
         cfg.showsCursor = true
         capturesAudio = quality.audio
@@ -82,6 +95,8 @@ final class ScreenStreamer: NSObject, SCStreamOutput, SCStreamDelegate {
         cfg.scalesToFit = true
         cfg.minimumFrameInterval = CMTime(value: 1, timescale: CMTimeScale(max(fps, 1)))
         cfg.pixelFormat = kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
+        cfg.colorSpaceName = CGColorSpace.displayP3
+        cfg.colorMatrix = CGDisplayStream.yCbCrMatrix_ITU_R_709_2
         cfg.queueDepth = 3
         cfg.showsCursor = true
         applyAudio(cfg)
@@ -188,15 +203,39 @@ final class ScreenStreamer: NSObject, SCStreamOutput, SCStreamDelegate {
                           captureTime: Date().timeIntervalSince1970, samples: out)
     }
 
+    /// Network can't keep up (frames dropped because the socket is backed up) → lower the bitrate
+    /// quickly; after 4 calm seconds raise it slowly again, up to the chosen maximum.
+    private func adapt(droppedNow: Int) {
+        let delta = droppedNow - lastDropped
+        lastDropped = droppedNow
+        guard adaptive else { return }
+        var next = targetMbps
+        if delta >= 3 {
+            next = max(4, targetMbps * 0.75)
+            calmSeconds = 0
+        } else if delta == 0 {
+            calmSeconds += 1
+            if calmSeconds >= 4, targetMbps < maxMbps { next = min(maxMbps, targetMbps * 1.15); calmSeconds = 0 }
+        } else {
+            calmSeconds = 0
+        }
+        if abs(next - targetMbps) > 0.01 {
+            targetMbps = next
+            encoder?.setBitrate(mbps: next)
+        }
+    }
+
     private func startStatsTimer() {
         let t = DispatchSource.makeTimerSource(queue: sampleQueue)
         t.schedule(deadline: .now() + 1, repeating: 1)
         t.setEventHandler { [weak self] in
             guard let self else { return }
-            let s: StreamStats = self.statsLock.withLock {
+            var s: StreamStats = self.statsLock.withLock {
                 defer { self.frameCount = 0; self.byteCount = 0 }
                 return StreamStats(fps: Double(self.frameCount), mbps: Double(self.byteCount) * 8 / 1_000_000, dropped: self.dropped)
             }
+            self.adapt(droppedNow: s.dropped)
+            s.targetMbps = self.targetMbps
             self.onStats?(s)
         }
         t.resume()

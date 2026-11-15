@@ -76,6 +76,7 @@ struct SettingsView: View {
     private var imageSection: some View {
         Section {
             Toggle(L("Ton vom Mac"), isOn: $model.quality.audio)
+            Toggle(L("Bitrate automatisch anpassen"), isOn: $model.quality.adaptive)
             Picker("Codec", selection: $model.quality.codec) {
                 Text("H.264").tag(VideoCodec.h264)
                 Text("HEVC").tag(VideoCodec.hevc)
