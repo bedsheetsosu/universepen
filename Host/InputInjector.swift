@@ -42,7 +42,10 @@ final class InputInjector {
     // MARK: Pen
 
     func handle(_ s: PenSample) {
-        let p = Geometry.denormalized(CGPoint(x: CGFloat(s.x), y: CGFloat(s.y)), in: region)
+        // "Out of range" carries no meaningful position (the iPad may send 0,0): keep the
+        // pointer where the pen was last seen instead of jumping to the corner.
+        let p = s.phase == .exit ? lastPoint
+            : Geometry.denormalized(CGPoint(x: CGFloat(s.x), y: CGFloat(s.y)), in: region)
         lastPoint = p
         switch s.phase {
         case .enter:
