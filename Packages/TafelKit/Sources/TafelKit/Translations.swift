@@ -425,5 +425,9 @@ enum Translations {
         "Speichern & neu laden": "Save & reload",
         "gestartet": "started",
         "gestoppt": "stopped",
+        "An %@ binden": "Bind to %@",
+        "Gilt jetzt für %@ (Preset „%@“)": "Now used for %@ (preset “%@”)",
+        "Normaler Bereich (alle anderen Apps)": "Normal area (all other apps)",
+        "Von der App lösen": "Unbind from the app",
     ]
 }

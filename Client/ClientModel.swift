@@ -505,7 +505,7 @@ final class ClientModel: ObservableObject {
     func saveTabletPreset(named name: String) {
         let n = name.trimmingCharacters(in: .whitespaces)
         let preset = TabletPreset(name: n.isEmpty ? L("Bereich %d", settings.tabletPresets.count + 1) : n,
-                                  area: settings.tabletArea, lockAspect: settings.tabletLockAspect)
+                                  area: tabletArea, lockAspect: tabletLock)
         // Same name again replaces the old one.
         if let i = settings.tabletPresets.firstIndex(where: { $0.name == preset.name }) {
             settings.tabletPresets[i].area = preset.area
@@ -515,9 +515,47 @@ final class ClientModel: ObservableObject {
         }
     }
 
+    /// App-bound preset in use right now (the app in front on the Mac has one).
+    var activeAppPreset: TabletPreset? { settings.tabletPreset(for: frontApp?.bundleID) }
+    /// The area in use right now (app-bound preset or the normal area).
+    var tabletArea: TabletArea { effectiveSettings.tabletArea }
+    var tabletLock: Bool { effectiveSettings.tabletLockAspect }
+
+    /// Changes the area in use: the app-bound preset while its app is in front, else the normal area.
+    func setTabletArea(_ a: TabletArea) {
+        if let p = activeAppPreset, let i = settings.tabletPresets.firstIndex(where: { $0.id == p.id }) {
+            settings.tabletPresets[i].area = a
+        } else {
+            settings.tabletArea = a
+        }
+    }
+
+    func setTabletLock(_ on: Bool) {
+        if let p = activeAppPreset, let i = settings.tabletPresets.firstIndex(where: { $0.id == p.id }) {
+            settings.tabletPresets[i].lockAspect = on
+        } else {
+            settings.tabletLockAspect = on
+        }
+    }
+
+    /// Binds a preset to the app in front (or unbinds it). One preset per app.
+    func bindTabletPreset(_ p: TabletPreset, toFrontApp: Bool) {
+        guard let i = settings.tabletPresets.firstIndex(where: { $0.id == p.id }) else { return }
+        if toFrontApp, let app = frontApp {
+            for j in settings.tabletPresets.indices where settings.tabletPresets[j].appBundleID == app.bundleID {
+                settings.tabletPresets[j].appBundleID = nil; settings.tabletPresets[j].appName = nil
+            }
+            settings.tabletPresets[i].appBundleID = app.bundleID
+            settings.tabletPresets[i].appName = app.name
+        } else {
+            settings.tabletPresets[i].appBundleID = nil
+            settings.tabletPresets[i].appName = nil
+        }
+    }
+
     func applyTabletPreset(_ p: TabletPreset) {
-        settings.tabletLockAspect = p.lockAspect
-        settings.tabletArea = p.area
+        setTabletLock(p.lockAspect)
+        setTabletArea(p.area)
     }
 
     /// Toggles game mode for the app in front on the Mac.

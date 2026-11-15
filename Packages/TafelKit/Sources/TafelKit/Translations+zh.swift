@@ -382,5 +382,9 @@ extension Translations {
         "Speichern & neu laden": "存储并重新载入",
         "gestartet": "已启动",
         "gestoppt": "已停止",
+        "An %@ binden": "绑定到 %@",
+        "Gilt jetzt für %@ (Preset „%@“)": "现在用于 %@（预设“%@”）",
+        "Normaler Bereich (alle anderen Apps)": "普通区域（其他所有应用）",
+        "Von der App lösen": "取消与应用的绑定",
     ]
 }

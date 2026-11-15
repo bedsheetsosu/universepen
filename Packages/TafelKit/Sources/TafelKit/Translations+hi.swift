@@ -382,5 +382,9 @@ extension Translations {
         "Speichern & neu laden": "सेव करके रीलोड करें",
         "gestartet": "शुरू हुआ",
         "gestoppt": "रुका",
+        "An %@ binden": "%@ से जोड़ें",
+        "Gilt jetzt für %@ (Preset „%@“)": "अभी %@ के लिए इस्तेमाल हो रहा है (प्रीसेट “%@”)",
+        "Normaler Bereich (alle anderen Apps)": "सामान्य क्षेत्र (बाकी सभी ऐप)",
+        "Von der App lösen": "ऐप से अलग करें",
     ]
 }

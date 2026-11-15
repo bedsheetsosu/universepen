@@ -9,7 +9,7 @@ struct TabletSurfaceView: View {
 
     var body: some View {
         GeometryReader { g in
-            let r = model.settings.tabletArea.rect(in: g.size)
+            let r = model.tabletArea.rect(in: g.size)
             ZStack {
                 Color.black
                 Canvas { ctx, size in
@@ -39,10 +39,10 @@ struct TabletSurfaceView: View {
 
     /// Keeps the area in the Mac display's shape (when that option is on).
     private func lockAspect(_ size: CGSize) {
-        guard model.settings.tabletLockAspect else { return }
-        let locked = model.settings.tabletArea.locked(to: model.tabletAspect, in: size)
-        let a = model.settings.tabletArea
-        if abs(locked.width - a.width) > 0.002 || abs(locked.height - a.height) > 0.002 { model.settings.tabletArea = locked }
+        guard model.tabletLock else { return }
+        let locked = model.tabletArea.locked(to: model.tabletAspect, in: size)
+        let a = model.tabletArea
+        if abs(locked.width - a.width) > 0.002 || abs(locked.height - a.height) > 0.002 { model.setTabletArea(locked) }
     }
 }
 
@@ -86,7 +86,7 @@ struct TabletAreaEditor: View {
     var body: some View {
         GeometryReader { g in
             let size = g.size
-            let a = area ?? model.settings.tabletArea
+            let a = area ?? model.tabletArea
             let r = a.rect(in: size)
             ZStack {
                 Color.black.opacity(0.45)
@@ -135,10 +135,10 @@ struct TabletAreaEditor: View {
                 }
                 .padding(.top, 14)
                 .onAppear { viewSize = size; fill(a, size) }
-                .onChange(of: size) { viewSize = size; fill(area ?? model.settings.tabletArea, size) }
-                .onChange(of: area) { fill(area ?? model.settings.tabletArea, size) }
-                .onChange(of: model.settings.tabletArea) { fill(area ?? model.settings.tabletArea, size) }
-                .onChange(of: model.settings.tabletLockAspect) { fill(area ?? model.settings.tabletArea, size) }
+                .onChange(of: size) { viewSize = size; fill(area ?? model.tabletArea, size) }
+                .onChange(of: area) { fill(area ?? model.tabletArea, size) }
+                .onChange(of: model.tabletArea) { fill(area ?? model.tabletArea, size) }
+                .onChange(of: model.tabletLock) { fill(area ?? model.tabletArea, size) }
                 .onChange(of: focus) { old, new in
                     // Tapping a field empties it, so typing replaces the value instead of adding digits to it.
                     if let new { before[new] = text[new]; text[new] = "" }
@@ -152,12 +152,19 @@ struct TabletAreaEditor: View {
 
     private var toolbar: some View {
         HStack(spacing: 14) {
-            Text(L("Aktiver Bereich")).font(.headline)
-            Toggle(L("Seitenverhältnis wie Mac-Bildschirm"), isOn: $model.settings.tabletLockAspect)
+            VStack(alignment: .leading, spacing: 0) {
+                Text(L("Aktiver Bereich")).font(.headline)
+                if let p = model.activeAppPreset {
+                    Text(L("Gilt jetzt für %@ (Preset „%@“)", p.appName ?? "", p.name)).font(.caption).foregroundStyle(Brand.mint)
+                } else {
+                    Text(L("Normaler Bereich (alle anderen Apps)")).font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            Toggle(L("Seitenverhältnis wie Mac-Bildschirm"), isOn: Binding(get: { model.tabletLock }, set: { model.setTabletLock($0) }))
                 .toggleStyle(.switch).tint(Brand.mint).fixedSize()
             Button(L("Zurücksetzen")) {
                 area = nil
-                model.settings.tabletArea = TabletArea()
+                model.setTabletArea(TabletArea())
             }
             Button(L("Fertig")) {
                 withAnimation(Brand.spring) { model.tabletEditing = false }
@@ -174,8 +181,8 @@ struct TabletAreaEditor: View {
             field(L("Breite"), .w)
             Text("×").foregroundStyle(.secondary)
             field(L("Höhe"), .h)
-                .disabled(model.settings.tabletLockAspect)
-                .opacity(model.settings.tabletLockAspect ? 0.5 : 1)
+                .disabled(model.tabletLock)
+                .opacity(model.tabletLock ? 0.5 : 1)
             Divider().frame(height: 22)
             field("X", .x)
             field("Y", .y)
@@ -194,7 +201,7 @@ struct TabletAreaEditor: View {
             TextField(before[f] ?? label, text: Binding(get: { text[f] ?? "" }, set: { new in
                 text[f] = new
                 // Aspect locked: the height follows the typed width right away.
-                if f == .w, model.settings.tabletLockAspect, let w = Self.number(new) {
+                if f == .w, model.tabletLock, let w = Self.number(new) {
                     text[.h] = Self.format(w / model.tabletAspect)
                 }
             }))
@@ -212,7 +219,7 @@ struct TabletAreaEditor: View {
 
     /// Saved areas: tap to use, ✕ to delete; save the current area under a name.
     private func presets(_ size: CGSize) -> some View {
-        let current = area ?? model.settings.tabletArea
+        let current = area ?? model.tabletArea
         return HStack(spacing: 8) {
             Text(L("Presets")).foregroundStyle(.secondary)
             ScrollView(.horizontal, showsIndicators: false) {
@@ -229,11 +236,22 @@ struct TabletAreaEditor: View {
                             } label: {
                                 VStack(alignment: .leading, spacing: 0) {
                                     Text(p.name).font(.callout.weight(.semibold)).lineLimit(1)
-                                    Text(String(format: "%.0f × %.0f mm", r.width * Self.mmPerPoint, r.height * Self.mmPerPoint))
+                                    Text(String(format: "%.0f × %.0f mm", r.width * Self.mmPerPoint, r.height * Self.mmPerPoint)
+                                         + (p.appName.map { " · " + $0 } ?? ""))
                                         .font(.caption2.monospacedDigit()).opacity(0.75)
                                 }
                             }
                             .buttonStyle(.plain)
+                            // Bind to the app in front on the Mac (used automatically while it is in front).
+                            if p.appBundleID != nil || model.frontApp != nil {
+                                Button {
+                                    withAnimation(Brand.spring) { model.bindTabletPreset(p, toFrontApp: p.appBundleID == nil) }
+                                } label: {
+                                    Image(systemName: p.appBundleID != nil ? "link.circle.fill" : "link").font(.caption.bold())
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel(p.appBundleID != nil ? L("Von der App lösen") : L("An %@ binden", model.frontApp?.name ?? ""))
+                            }
                             Button {
                                 withAnimation(Brand.spring) { model.settings.tabletPresets.removeAll { $0.id == p.id } }
                             } label: {
@@ -305,22 +323,22 @@ struct TabletAreaEditor: View {
     private func apply(_ size: CGSize, center: Bool) {
         focus = nil
         guard size.width > 0 else { return }
-        let cur = (area ?? model.settings.tabletArea).rect(in: size)
+        let cur = (area ?? model.tabletArea).rect(in: size)
         func pt(_ f: Field, _ fallback: CGFloat) -> CGFloat {
             let typed = (text[f] ?? "").isEmpty ? before[f] ?? "" : text[f] ?? ""
             return Self.number(typed).map { CGFloat($0 / Self.mmPerPoint) } ?? fallback
         }
         var w = pt(.w, cur.width)
-        var h = model.settings.tabletLockAspect ? w / model.tabletAspect : pt(.h, cur.height)
+        var h = model.tabletLock ? w / model.tabletAspect : pt(.h, cur.height)
         w = min(max(w, 40), size.width); h = min(max(h, 30), size.height)
-        if model.settings.tabletLockAspect { let asp = model.tabletAspect; if w / h > asp { w = h * asp } else { h = w / asp } }
+        if model.tabletLock { let asp = model.tabletAspect; if w / h > asp { w = h * asp } else { h = w / asp } }
         var x = center ? (size.width - w) / 2 : pt(.x, cur.minX)
         var y = center ? (size.height - h) / 2 : pt(.y, cur.minY)
         x = min(max(x, 0), size.width - w); y = min(max(y, 0), size.height - h)
         area = nil
         let new = TabletArea(x: Double(x / size.width), y: Double(y / size.height),
                              width: Double(w / size.width), height: Double(h / size.height))
-        model.settings.tabletArea = new
+        model.setTabletArea(new)
         before = [:]
         fill(new, size)   // show what was actually applied (after clamping)
     }
@@ -330,7 +348,7 @@ struct TabletAreaEditor: View {
         let r = a.rect(in: size)
         var w = min(max(p.x - r.minX, 80), size.width - r.minX)
         var h = min(max(p.y - r.minY, 60), size.height - r.minY)
-        if model.settings.tabletLockAspect {
+        if model.tabletLock {
             let asp = model.tabletAspect
             if w / h > asp { w = h * asp } else { h = w / asp }
         }
@@ -339,7 +357,7 @@ struct TabletAreaEditor: View {
     }
 
     private func commit() {
-        if let area { model.settings.tabletArea = area }
+        if let area { model.setTabletArea(area) }
         area = nil
         dragStart = nil
     }

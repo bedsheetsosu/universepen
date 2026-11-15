@@ -382,5 +382,9 @@ extension Translations {
         "Speichern & neu laden": "저장 후 다시 불러오기",
         "gestartet": "시작됨",
         "gestoppt": "중지됨",
+        "An %@ binden": "%@에 연결",
+        "Gilt jetzt für %@ (Preset „%@“)": "지금 %@에 사용 중(프리셋 '%@')",
+        "Normaler Bereich (alle anderen Apps)": "기본 영역(그 밖의 모든 앱)",
+        "Von der App lösen": "앱 연결 해제",
     ]
 }

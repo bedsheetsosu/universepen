@@ -219,6 +219,12 @@ public struct InputSettings: Codable, Equatable, Sendable {
 
     public func isGame(_ bundleID: String?) -> Bool { bundleID.map { gameApps[$0] != nil } ?? false }
 
+    /// Tablet preset bound to this Mac app, if any.
+    public func tabletPreset(for bundleID: String?) -> TabletPreset? {
+        guard let bundleID else { return nil }
+        return tabletPresets.first { $0.appBundleID == bundleID }
+    }
+
     /// The Pencil part of these settings (what a per-app profile can override).
     public var penProfile: PenProfile {
         get { PenProfile(pressure: pressure, positionSmoothing: positionSmoothing, pressureSmoothing: pressureSmoothing,
@@ -236,6 +242,10 @@ public struct InputSettings: Codable, Equatable, Sendable {
     public func effective(for bundleID: String?) -> InputSettings {
         var s = self
         if let bundleID, let p = appPenProfiles[bundleID] { s.penProfile = p }
+        if let p = tabletPreset(for: bundleID) {
+            s.tabletArea = p.area
+            s.tabletLockAspect = p.lockAspect
+        }
         if isGame(bundleID) {
             // Smoothing adds lag; a game wants the raw Pencil.
             s.positionSmoothing = 0
@@ -373,8 +383,12 @@ public struct TabletPreset: Codable, Equatable, Identifiable, Sendable {
     public var name: String
     public var area: TabletArea
     public var lockAspect: Bool
-    public init(id: UUID = UUID(), name: String, area: TabletArea, lockAspect: Bool) {
+    /// If set, this area is used automatically while that Mac app is in front (e.g. osu!).
+    public var appBundleID: String?
+    public var appName: String?
+    public init(id: UUID = UUID(), name: String, area: TabletArea, lockAspect: Bool, appBundleID: String? = nil, appName: String? = nil) {
         self.id = id; self.name = name; self.area = area; self.lockAspect = lockAspect
+        self.appBundleID = appBundleID; self.appName = appName
     }
 
     /// Whether `a` is (practically) this preset's area.

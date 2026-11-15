@@ -382,5 +382,9 @@ extension Translations {
         "Speichern & neu laden": "保存して再読み込み",
         "gestartet": "開始",
         "gestoppt": "停止",
+        "An %@ binden": "%@ に割り当て",
+        "Gilt jetzt für %@ (Preset „%@“)": "現在 %@ で使用中（プリセット「%@」）",
+        "Normaler Bereich (alle anderen Apps)": "通常のエリア（その他すべてのアプリ）",
+        "Von der App lösen": "アプリから解除",
     ]
 }

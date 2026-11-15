@@ -92,6 +92,16 @@ final class TabletAreaTests: XCTestCase {
         XCTAssertLessThanOrEqual(r.height, size.height + 0.001)
     }
 
+    func testAppBoundPresetWinsWhileAppInFront() {
+        var s = InputSettings()
+        s.tabletArea = TabletArea(x: 0, y: 0, width: 1, height: 1)
+        let small = TabletArea(x: 0.3, y: 0.3, width: 0.3, height: 0.2)
+        s.tabletPresets = [TabletPreset(name: "osu!", area: small, lockAspect: false, appBundleID: "sh.ppy.osu.lazer", appName: "osu!")]
+        XCTAssertEqual(s.effective(for: "sh.ppy.osu.lazer").tabletArea, small)
+        XCTAssertEqual(s.effective(for: "com.seriflabs.affinityphoto2").tabletArea, s.tabletArea)
+        XCTAssertEqual(s.effective(for: nil).tabletArea, s.tabletArea)
+    }
+
     func testTabletModeRestartsStream() {
         let a = ClientConfig(viewPixelWidth: 10, viewPixelHeight: 10, quality: StreamQuality())
         var b = a; b.tabletMode = true

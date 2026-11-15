@@ -382,5 +382,9 @@ extension Translations {
         "Speichern & neu laden": "Guardar y recargar",
         "gestartet": "iniciado",
         "gestoppt": "detenido",
+        "An %@ binden": "Vincular a %@",
+        "Gilt jetzt für %@ (Preset „%@“)": "Ahora se usa para %@ (preajuste «%@»)",
+        "Normaler Bereich (alle anderen Apps)": "Área normal (todas las demás apps)",
+        "Von der App lösen": "Desvincular de la app",
     ]
 }
