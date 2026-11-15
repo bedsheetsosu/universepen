@@ -293,7 +293,7 @@ struct HostView: View {
                     .contentTransition(.numericText())
             }
             if let e = host.devAPIError { Text(e).font(.caption).foregroundStyle(.orange) }
-            Link(L("Dokumentation (SDK, MIT-Lizenz)"), destination: URL(string: "https://github.com/BieneBzz/universepen/tree/main/SDK")!)
+            Link(L("Dokumentation (SDK, MIT-Lizenz)"), destination: URL(string: "https://github.com/bedsheetsosu/universepen/tree/main/SDK")!)
                 .font(.caption)
         }
         .tafelCard()
