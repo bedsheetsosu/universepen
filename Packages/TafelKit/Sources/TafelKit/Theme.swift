@@ -119,12 +119,13 @@ public final class Theme: ObservableObject, @unchecked Sendable {
 /// Background of both apps: the still brand gradient, or a slowly flowing mesh whose hues drift.
 public struct ThemeBackground: View {
     @ObservedObject private var theme = Theme.shared
+    @State private var clock = FlowClock()
     public init() {}
 
     public var body: some View {
         if theme.flow {
             TimelineView(.animation(minimumInterval: 1.0 / 30)) { ctx in
-                let t = ctx.date.timeIntervalSinceReferenceDate * theme.flowSpeed
+                let t = clock.advance(to: ctx.date, speed: theme.flowSpeed)
                 MeshGradient(width: 3, height: 3, points: Self.points(t), colors: Self.colors(t, theme.palette))
             }
         } else {
@@ -132,32 +133,45 @@ public struct ThemeBackground: View {
         }
     }
 
-    /// Inner and edge points wander slowly; corners stay put so the mesh always fills the view.
+    /// Animation time that only moves forward at the current speed, so changing the speed never
+    /// jumps to another point of the animation (which would just look like other colours).
+    final class FlowClock {
+        private var last: Date?
+        private var phase = 0.0
+        func advance(to now: Date, speed: Double) -> Double {
+            if let last { phase += min(max(now.timeIntervalSince(last), 0), 0.25) * speed }
+            last = now
+            return phase
+        }
+    }
+
+    /// Inner and edge points wander; corners stay put so the mesh always fills the view.
     static func points(_ t: Double) -> [SIMD2<Float>] {
         func w(_ base: Double, _ amp: Double, _ f: Double, _ ph: Double) -> Float { Float(base + amp * sin(t * f + ph)) }
         return [
-            [0, 0], [w(0.5, 0.18, 0.21, 0), 0], [1, 0],
-            [0, w(0.5, 0.2, 0.17, 1.3)], [w(0.5, 0.22, 0.23, 2.1), w(0.5, 0.2, 0.19, 0.4)], [1, w(0.5, 0.2, 0.15, 2.7)],
-            [0, 1], [w(0.5, 0.18, 0.18, 3.6), 1], [1, 1],
+            [0, 0], [w(0.5, 0.3, 0.9, 0), 0], [1, 0],
+            [0, w(0.5, 0.32, 0.7, 1.3)], [w(0.5, 0.3, 1.1, 2.1), w(0.5, 0.3, 0.8, 0.4)], [1, w(0.5, 0.32, 0.6, 2.7)],
+            [0, 1], [w(0.5, 0.3, 0.75, 3.6), 1], [1, 1],
         ]
     }
 
     static func colors(_ t: Double, _ p: Theme.Palette) -> [Color] {
-        // Hues drift back and forth around the accent / background hues.
-        let drift = 0.07 * sin(t * 0.11)
-        func hue(_ h: Double) -> Double { (h + drift + 1).truncatingRemainder(dividingBy: 1) }
-        let s = max(p.accentSat, 0.3)
+        // Hues drift back and forth around the accent / background hues; bright accent patches
+        // pulse and swap places so the flow is easy to see.
+        let drift = 0.12 * sin(t * 0.35)
+        func hue(_ h: Double) -> Double { ((h + drift).truncatingRemainder(dividingBy: 1) + 1).truncatingRemainder(dividingBy: 1) }
+        func pulse(_ f: Double, _ ph: Double) -> Double { 0.5 + 0.5 * sin(t * f + ph) }
+        let s = max(p.accentSat, 0.35)
         let base = p.baseHue
-        let glow = 0.5 + 0.5 * sin(t * 0.37)
         return [
-            Color(hue: hue(base), saturation: 0.62, brightness: 0.48),
-            Color(hue: hue(base + 0.05), saturation: 0.6, brightness: 0.3),
-            Color(hue: hue(p.accentHue + 0.22), saturation: s * 0.8, brightness: 0.35 + 0.15 * glow),
-            Color(hue: hue(base - 0.04), saturation: 0.64, brightness: 0.22),
-            Color(hue: hue(p.accentHue), saturation: s, brightness: 0.28 + 0.14 * glow),
-            Color(hue: hue(base + 0.02), saturation: 0.66, brightness: 0.16),
+            Color(hue: hue(base), saturation: 0.6, brightness: 0.42 + 0.14 * pulse(0.5, 0)),
+            Color(hue: hue(p.accentHue + 0.22), saturation: s * 0.85, brightness: 0.2 + 0.32 * pulse(0.6, 1)),
+            Color(hue: hue(base + 0.06), saturation: 0.62, brightness: 0.3),
+            Color(hue: hue(p.accentHue), saturation: s, brightness: 0.18 + 0.34 * pulse(0.55, 2.2)),
+            Color(hue: hue(base - 0.04), saturation: 0.66, brightness: 0.2 + 0.1 * pulse(0.4, 3)),
+            Color(hue: hue(p.accentHue + 0.1), saturation: s * 0.9, brightness: 0.16 + 0.3 * pulse(0.65, 4.1)),
             Color(hue: hue(base), saturation: 0.7, brightness: 0.1),
-            Color(hue: hue(p.accentHue - 0.05), saturation: s * 0.9, brightness: 0.18),
+            Color(hue: hue(p.accentHue - 0.06), saturation: s * 0.9, brightness: 0.12 + 0.24 * pulse(0.5, 5)),
             Color(hue: hue(base + 0.03), saturation: 0.7, brightness: 0.07),
         ]
     }
