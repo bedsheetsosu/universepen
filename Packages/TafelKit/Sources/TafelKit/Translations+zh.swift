@@ -386,5 +386,13 @@ extension Translations {
         "Normaler Bereich (alle anderen Apps)": "普通区域（其他所有应用）",
         "Von der App lösen": "取消与应用的绑定",
         "Ganze Fläche": "整个区域",
+        "Beschriftung": "标签",
+        "Drehung": "旋转",
+        "Klick ab Druck: %d %%": "按压阈值：%d %%",
+        "Klick ab Druck: leichte Berührungen bleiben Schweben, erst ab diesem Druck wird geklickt (gilt immer, nicht nur im Tablett-Modus). Tasten-Feld: große Touch-Tasten am Rand im Tablett-Modus – Finger drauf hält die Taste am Mac (z. B. Z/X für osu!). Taste: ein Zeichen oder space, return, tab, esc, delete, left, right, up, down. Die Drehung des Bereichs stellst du im Bereich-Editor ein.": "按压阈值：轻触保持悬停，只有超过此压力才会点击（始终有效，不仅限数位板模式）。按键区：数位板模式下边缘的大号触控按键，手指按住即在 Mac 上按住该键（例如 osu! 的 Z/X）。按键：一个字符或 space、return、tab、esc、delete、left、right、up、down。区域旋转请在区域编辑器中设置。",
+        "Klick ab Druck: sofort": "按压阈值：立即",
+        "Seite": "位置",
+        "Tasten-Feld (wie ExpressKeys)": "按键区（类似 ExpressKeys）",
+        "Tastengröße: %d pt": "按键大小：%d pt",
     ]
 }

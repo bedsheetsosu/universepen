@@ -24,6 +24,7 @@ final class HostServer {
     var onClientConfig: ((ClientConfig) -> Void)?
     var onSelectSource: ((SourceSelection) -> Void)?
     var onRunPluginAction: ((String) -> Void)?
+    var onCharKey: ((CharKeyEvent) -> Void)?
     var onPen: ((PenSample) -> Void)?
     var onScroll: ((ScrollEvent) -> Void)?
     var onShortcut: ((Shortcut) -> Void)?
@@ -193,6 +194,8 @@ final class HostServer {
             if let c = try? JSONWire.decode(ClientConfig.self, f.payload) { onClientConfig?(c) }
         case .requestKeyframe:
             onRequestKeyframe?()
+        case .charKey:
+            if let k = try? JSONWire.decode(CharKeyEvent.self, f.payload) { onCharKey?(k) }
         case .runPluginAction:
             if let a = try? JSONWire.decode(RunPluginAction.self, f.payload) { onRunPluginAction?(a.id) }
         case .selectSource:

@@ -502,6 +502,7 @@ final class HostController: ObservableObject {
         }
         server.onClientSettings = { [weak self] o in Task { @MainActor in self?.clientSettingsJSON = o } }
         server.onText = { injector.text($0) }
+        server.onCharKey = { k in DispatchQueue.main.async { injector.charKey(k.key, down: k.down) } }
         server.onRequestKeyframe = { [weak self] in
             Task { @MainActor in self?.streamer?.requestKeyframe() }
         }
@@ -525,7 +526,7 @@ final class HostController: ObservableObject {
             }
         }
         server.onSession = { [weak self] name, link in
-            if name == nil { injector.releaseAll() }
+            if name == nil { injector.releaseAll(); DispatchQueue.main.async { injector.releaseCharKeys() } }
             Task { @MainActor in
                 guard let self else { return }
                 self.sessionDevice = name

@@ -302,6 +302,32 @@ final class InputInjector {
         e.post(tap: .cghidEventTap)
     }
 
+    // MARK: Held keys by character (tablet keys; main thread – layout lookup)
+
+    private var heldCharCodes: [String: CGKeyCode] = [:]
+
+    /// Holds / releases a key given as character (or special key name), resolved with the Mac's
+    /// keyboard layout. Main thread.
+    func charKey(_ key: String, down: Bool) {
+        let code: CGKeyCode
+        if down {
+            guard heldCharCodes[key] == nil, let r = KeyboardLayout.keyCode(for: key) else { return }
+            code = r.code
+            heldCharCodes[key] = code
+        } else {
+            guard let c = heldCharCodes.removeValue(forKey: key) else { return }
+            code = c
+        }
+        guard let e = CGEvent(keyboardEventSource: source, virtualKey: code, keyDown: down) else { return }
+        e.flags = currentKeyFlags
+        e.post(tap: .cghidEventTap)
+    }
+
+    /// Lets go of all keys held by character (disconnect). Main thread.
+    func releaseCharKeys() {
+        for key in Array(heldCharCodes.keys) { charKey(key, down: false) }
+    }
+
     /// Scroll by pixels at the current pointer position (plugins).
     func scrollPixels(dx: Double, dy: Double) {
         let ix = scrollX.take(dx), iy = scrollY.take(dy)

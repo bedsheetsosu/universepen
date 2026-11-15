@@ -207,6 +207,11 @@ public struct InputSettings: Codable, Equatable, Sendable {
     public var tabletArea = TabletArea.full
     /// Keep the area in the Mac display's aspect ratio (no stretching, like Wacom's "force proportions").
     public var tabletLockAspect = false
+    /// Click only above this pressure (0 = off); lighter touches stay hover. Like OpenTabletDriver's tip threshold.
+    public var tipThreshold: Double = 0
+    /// Touch keys next to the active area in tablet mode (like a pen tablet's ExpressKeys).
+    public var tabletKeys = TabletKeys()
+
     /// Saved active areas (e.g. "osu! small", "drawing").
     public var tabletPresets: [TabletPreset] = []
 
@@ -261,7 +266,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         case fingerMode, fingerPressure, longPressRightClick, palmRadius
         case threeFingerSwipeLeft, threeFingerSwipeRight, threeFingerSwipeUp, threeFingerSwipeDown, fourFingerTap
         case swapISOKeys, trackpadAsMouse, hideIPadPointer, showShortcutBar, shortcutBarOnRight, shortcutBar
-        case appShortcutBars, appNames, radialMenu, appPenProfiles, gameApps, undoScrub, undoScrubStep, instantInk, hoverDot, tabletMode, tabletArea, tabletLockAspect, tabletPresets
+        case appShortcutBars, appNames, radialMenu, appPenProfiles, gameApps, undoScrub, undoScrubStep, instantInk, hoverDot, tabletMode, tabletArea, tabletLockAspect, tabletPresets, tipThreshold, tabletKeys
     }
 
     /// Tolerates settings saved by older versions: missing keys keep their defaults.
@@ -294,6 +299,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         try get(.instantInk, &instantInk); try get(.hoverDot, &hoverDot)
         try get(.tabletMode, &tabletMode); try get(.tabletArea, &tabletArea); try get(.tabletLockAspect, &tabletLockAspect)
         try get(.tabletPresets, &tabletPresets)
+        try get(.tipThreshold, &tipThreshold); try get(.tabletKeys, &tabletKeys)
     }
 }
 
@@ -346,7 +352,40 @@ public struct TabletArea: Codable, Equatable, Sendable {
     public var y: Double = 0.2
     public var width: Double = 0.6
     public var height: Double = 0.6
+    /// Rotation of the area around its centre, degrees clockwise (like OpenTabletDriver's rotation).
+    public var rotation: Double = 0
     public init() {}
+
+    private enum CodingKeys: String, CodingKey { case x, y, width, height, rotation }
+    /// Areas saved before rotation existed have no "rotation" key.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        x = try c.decode(Double.self, forKey: .x)
+        y = try c.decode(Double.self, forKey: .y)
+        width = try c.decode(Double.self, forKey: .width)
+        height = try c.decode(Double.self, forKey: .height)
+        rotation = try c.decodeIfPresent(Double.self, forKey: .rotation) ?? 0
+    }
+
+    /// Normalised position (0…1, clamped) of view point `p` inside this area, rotation undone.
+    public func normalized(_ p: CGPoint, in size: CGSize) -> CGPoint {
+        let r = rect(in: size)
+        guard rotation != 0 else { return Geometry.normalized(p, in: r) }
+        let a = -rotation * .pi / 180
+        let dx = Double(p.x - r.midX), dy = Double(p.y - r.midY)
+        let q = CGPoint(x: Double(r.midX) + dx * cos(a) - dy * sin(a), y: Double(r.midY) + dx * sin(a) + dy * cos(a))
+        return Geometry.normalized(q, in: r)
+    }
+
+    /// The four corners in view points, rotation applied (top-left, top-right, bottom-right, bottom-left).
+    public func corners(in size: CGSize) -> [CGPoint] {
+        let r = rect(in: size)
+        let a = rotation * .pi / 180
+        return [CGPoint(x: r.minX, y: r.minY), CGPoint(x: r.maxX, y: r.minY), CGPoint(x: r.maxX, y: r.maxY), CGPoint(x: r.minX, y: r.maxY)].map { p in
+            let dx = Double(p.x - r.midX), dy = Double(p.y - r.midY)
+            return CGPoint(x: Double(r.midX) + dx * cos(a) - dy * sin(a), y: Double(r.midY) + dx * sin(a) + dy * cos(a))
+        }
+    }
     /// The whole iPad.
     public static let full = TabletArea(x: 0, y: 0, width: 1, height: 1)
     public init(x: Double, y: Double, width: Double, height: Double) {
@@ -366,8 +405,9 @@ public struct TabletArea: Codable, Equatable, Sendable {
         if h > size.height { h = size.height; w = h * aspect }
         if w > size.width { w = size.width; h = w / aspect }
         let cx = (x + width / 2) * size.width, cy = (y + height / 2) * size.height
-        return TabletArea(x: 0, y: 0, width: w / size.width, height: h / size.height)
-            .moved(toCenter: CGPoint(x: cx, y: cy), in: size)
+        var out = TabletArea(x: 0, y: 0, width: w / size.width, height: h / size.height)
+        out.rotation = rotation
+        return out.moved(toCenter: CGPoint(x: cx, y: cy), in: size)
     }
 
     /// Moved so its centre is at `c` (points), clamped inside the view.
@@ -404,5 +444,75 @@ public struct TabletPreset: Codable, Equatable, Identifiable, Sendable {
     /// Whether `a` is (practically) this preset's area.
     public func matches(_ a: TabletArea) -> Bool {
         abs(a.x - area.x) < 0.001 && abs(a.y - area.y) < 0.001 && abs(a.width - area.width) < 0.001 && abs(a.height - area.height) < 0.001
+    }
+}
+
+/// Touch keys in tablet mode ("ExpressKeys"): held as long as a finger rests on them.
+public struct TabletKeys: Codable, Equatable, Sendable {
+    public enum Side: String, Codable, CaseIterable, Sendable { case left, right }
+    public var enabled = false
+    public var side: Side = .left
+    /// Edge length of a key in points.
+    public var size: Double = 120
+    public var keys: [TabletKey] = [TabletKey(title: "Z", key: "z"), TabletKey(title: "X", key: "x")]
+    public init() {}
+
+    private enum CodingKeys: String, CodingKey { case enabled, side, size, keys }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let d = TabletKeys()
+        enabled = try c.decodeIfPresent(Bool.self, forKey: .enabled) ?? d.enabled
+        side = try c.decodeIfPresent(Side.self, forKey: .side) ?? d.side
+        size = try c.decodeIfPresent(Double.self, forKey: .size) ?? d.size
+        keys = try c.decodeIfPresent([TabletKey].self, forKey: .keys) ?? d.keys
+    }
+
+    /// Key frames in a view of `size` (a column centred on the chosen side).
+    public func frames(in view: CGSize) -> [CGRect] {
+        let s = CGFloat(size), gap: CGFloat = 16, margin: CGFloat = 22
+        let total = CGFloat(keys.count) * s + CGFloat(max(keys.count - 1, 0)) * gap
+        let x = side == .left ? margin : view.width - margin - s
+        var y = (view.height - total) / 2
+        return keys.map { _ in defer { y += s + gap }; return CGRect(x: x, y: y, width: s, height: s) }
+    }
+}
+
+public struct TabletKey: Codable, Equatable, Identifiable, Sendable {
+    public var id: UUID
+    public var title: String
+    /// Character (resolved with the Mac's keyboard layout) or a special key name (space, return, …).
+    public var key: String
+    public init(id: UUID = UUID(), title: String, key: String) { self.id = id; self.title = title; self.key = key }
+}
+
+/// Hold / release a key by character (resolved on the Mac with its layout).
+public struct CharKeyEvent: Codable, Equatable, Sendable {
+    public var key: String
+    public var down: Bool
+    public init(key: String, down: Bool) { self.key = key; self.down = down }
+}
+
+/// Tip threshold logic: decides whether a touching sample is sent as a click (down/move/up) or as hover.
+public struct TipGate: Sendable {
+    public private(set) var tipDown = false
+    public init() {}
+
+    /// Returns the phase to send (nil = send nothing). Release happens at 75 % of the threshold.
+    public mutating func phase(for phase: PenPhase, pressure: Double, threshold: Double) -> PenPhase? {
+        guard threshold > 0 else { return phase }
+        switch phase {
+        case .down, .move:
+            if !tipDown {
+                if pressure >= threshold { tipDown = true; return .down }
+                return .hover
+            }
+            if pressure < threshold * 0.75 { tipDown = false; return .up }
+            return .move
+        case .up, .cancel:
+            if tipDown { tipDown = false; return phase }
+            return nil
+        default:
+            return phase
+        }
     }
 }

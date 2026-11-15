@@ -386,5 +386,13 @@ extension Translations {
         "Normaler Bereich (alle anderen Apps)": "기본 영역(그 밖의 모든 앱)",
         "Von der App lösen": "앱 연결 해제",
         "Ganze Fläche": "전체 영역",
+        "Beschriftung": "레이블",
+        "Drehung": "회전",
+        "Klick ab Druck: %d %%": "클릭 필압: %d %%",
+        "Klick ab Druck: leichte Berührungen bleiben Schweben, erst ab diesem Druck wird geklickt (gilt immer, nicht nur im Tablett-Modus). Tasten-Feld: große Touch-Tasten am Rand im Tablett-Modus – Finger drauf hält die Taste am Mac (z. B. Z/X für osu!). Taste: ein Zeichen oder space, return, tab, esc, delete, left, right, up, down. Die Drehung des Bereichs stellst du im Bereich-Editor ein.": "클릭 필압: 가벼운 터치는 호버로 유지되고 이 필압을 넘을 때만 클릭합니다(태블릿 모드가 아니어도 항상 적용). 키 패드: 태블릿 모드에서 가장자리에 큰 터치 키를 표시하며, 손가락을 올리고 있는 동안 Mac에서 키가 눌린 상태가 됩니다(예: osu!의 Z/X). 키: 한 글자 또는 space, return, tab, esc, delete, left, right, up, down. 영역 회전은 영역 편집기에서 설정합니다.",
+        "Klick ab Druck: sofort": "클릭 필압: 즉시",
+        "Seite": "위치",
+        "Tasten-Feld (wie ExpressKeys)": "키 패드(ExpressKeys처럼)",
+        "Tastengröße: %d pt": "키 크기: %d pt",
     ]
 }

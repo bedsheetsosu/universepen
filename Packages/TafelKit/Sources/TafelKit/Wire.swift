@@ -26,6 +26,7 @@ public enum MessageType: UInt8, Sendable {
     case shortcut = 0x20
     case key = 0x21            // hardware keyboard key down/up (HID usage)
     case text = 0x22           // on-screen keyboard text (UTF-8)
+    case charKey = 0x23        // client -> host: JSON CharKeyEvent (hold a key by character, tablet keys)
     // timing
     case ping = 0x30
     case pong = 0x31

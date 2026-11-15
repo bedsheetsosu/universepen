@@ -262,6 +262,7 @@ final class Session: @unchecked Sendable {
     func send(_ mouse: MouseEvent) { control?.send(.mouse, mouse.encoded()) }
     func send(_ gesture: GestureEvent) { control?.sendJSON(.gesture, gesture) }
     func send(_ selection: SourceSelection) { control?.sendJSON(.selectSource, selection) }
+    func send(charKey: CharKeyEvent) { control?.sendJSON(.charKey, charKey) }
     func runPluginAction(_ id: String) { control?.sendJSON(.runPluginAction, RunPluginAction(id: id)) }
 
     /// Settings snapshot for the developer API on the Mac (sent once ready, and on change).

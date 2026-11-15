@@ -71,6 +71,9 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         isMultipleTouchEnabled = true
         layer.addSublayer(videoLayer)
         addSubview(ink)
+        addSubview(keys)
+        keys.isHidden = true
+        keys.onKey = { [weak self] k, down in self?.session?.send(charKey: CharKeyEvent(key: k, down: down)) }
         setupGestures()
         let pencil = UIPencilInteraction(delegate: self)
         addInteraction(pencil)
@@ -175,6 +178,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         videoLayer.frame = bounds
         CATransaction.commit()
         ink.frame = bounds
+        keys.frame = bounds
         let scale = traitCollection.displayScale
         onPixelSize?(Int((bounds.width * scale).rounded()), Int((bounds.height * scale).rounded()))
     }
@@ -185,12 +189,22 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
             guard tabletMode != oldValue else { return }
             videoLayer.isHidden = tabletMode
             backgroundColor = tabletMode ? .clear : .black
-            if tabletMode { emitFinger(oneFinger.cancel()) }
+            if tabletMode { emitFinger(oneFinger.cancel()) } else { keys.releaseAll() }
+            keys.isHidden = !tabletMode || !settings.tabletKeys.enabled
         }
     }
 
     /// Area the input coordinates refer to: the picture, or the active area in tablet mode.
     var inputRect: CGRect { tabletMode ? settings.tabletArea.rect(in: bounds.size) : videoRect }
+
+    /// View point → normalised input position (picture, or the possibly rotated tablet area).
+    func normalizeInput(_ p: CGPoint) -> CGPoint {
+        tabletMode ? settings.tabletArea.normalized(p, in: bounds.size) : Geometry.normalized(p, in: videoRect)
+    }
+
+    /// Tablet keys ("ExpressKeys") above the surface in tablet mode.
+    let keys = TabletKeysView()
+    private var tipGate = TipGate()
 
     /// Where the video is drawn inside the view (aspect fit, same as the layer's gravity).
     var videoRect: CGRect {
@@ -306,7 +320,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
 
     private func sendFingerPen(_ phase: PenPhase, _ location: CGPoint) {
         guard let session else { return }
-        let n = Geometry.normalized(location, in: inputRect)
+        let n = normalizeInput(location)
         let touching = phase == .down || phase == .move
         session.send(PenSample(phase: phase, x: Float(n.x), y: Float(n.y),
                                pressure: touching ? Float(settings.fingerPressure) : 0,
@@ -323,7 +337,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
 
     private func sendMouse(_ phase: MouseEvent.Phase, _ location: CGPoint, button: MouseEvent.Button = .left) {
         guard let session else { return }
-        let n = Geometry.normalized(location, in: inputRect)
+        let n = normalizeInput(location)
         session.send(MouseEvent(phase: phase, button: button, x: Float(n.x), y: Float(n.y)))
     }
 
@@ -374,14 +388,18 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         }
     }
 
-    private func send(_ t: UITouch, _ phase: PenPhase) {
+    private func send(_ t: UITouch, _ rawPhase: PenPhase) {
         guard let session else { return }
+        let touchingRaw = rawPhase == .down || rawPhase == .move
+        // Tip threshold: below it a touching Pencil stays hover (no click).
+        let curved = touchingRaw ? settings.pressure.apply(force: Double(t.force), maximumForce: Double(t.maximumPossibleForce)) : 0
+        guard let phase = tipGate.phase(for: rawPhase, pressure: curved, threshold: settings.tipThreshold) else { return }
         if settings.instantInk, phase == .down || phase == .move {
             let raw = t.maximumPossibleForce > 0 ? Double(t.force / t.maximumPossibleForce) : 0.5
             ink.add(t.preciseLocation(in: self), pressure: settings.pressure.map(raw), newStroke: phase == .down)
         }
         if phase == .down { ink.setHover(nil) }
-        var n = Geometry.normalized(t.preciseLocation(in: self), in: inputRect)
+        var n = normalizeInput(t.preciseLocation(in: self))
         let touching = phase == .down || phase == .move
         var pressure = touching ? settings.pressure.apply(force: Double(t.force), maximumForce: Double(t.maximumPossibleForce)) : 0
         if phase == .down {
@@ -409,7 +427,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         if radialOpen { if gone { hovering = false }; return }
         ink.setHover(settings.hoverDot && !gone && pencilTouch == nil ? g.location(in: self) : nil)
         guard settings.sendHover, let session else { return }
-        let n = Geometry.normalized(g.location(in: self), in: inputRect)
+        let n = normalizeInput(g.location(in: self))
         let tilt = settings.tilt.tilt(altitude: Double(g.altitudeAngle), azimuth: Double(g.azimuthAngle(in: self)))
         let roll = settings.sendRoll ? Double(g.rollAngle) * 180 / .pi : 0
         func sample(_ phase: PenPhase) -> PenSample {
@@ -464,7 +482,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         if radialOpen { onRadialPick?(); return }
         // The Mac should not keep a hovering pen while the menu is up.
         if hovering, pencilTouch == nil, let session, let p = lastHoverPoint {
-            let n = Geometry.normalized(p, in: inputRect)
+            let n = normalizeInput(p)
             session.send(PenSample(phase: .exit, x: Float(n.x), y: Float(n.y), timestamp: ProcessInfo.processInfo.systemUptime))
         }
         let at = hover ?? lastHoverPoint ?? CGPoint(x: bounds.midX, y: bounds.midY)
@@ -575,7 +593,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     }
 
     private func anchor(_ g: UIGestureRecognizer) -> CGPoint {
-        Geometry.normalized(g.location(in: self), in: inputRect)
+        normalizeInput(g.location(in: self))
     }
 
     @objc private func handlePan(_ g: UIPanGestureRecognizer) {
@@ -694,6 +712,9 @@ struct CanvasRepresentable: UIViewRepresentable {
         v.session = model.session
         v.settings = model.effectiveSettings
         v.tabletMode = model.settings.tabletMode
+        v.keys.config = model.settings.tabletKeys
+        v.keys.accent = UIColor(Brand.mint)
+        v.keys.isHidden = !model.settings.tabletMode || !model.settings.tabletKeys.enabled
         v.ink.color = UIColor(Brand.mint)
         // Visible for about as long as the Mac's own stroke takes to appear in the picture:
         // pen event to the Mac (½ RTT) + drawing + capture/encode/network (frame age) + decode/display.

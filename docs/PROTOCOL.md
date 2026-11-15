@@ -73,6 +73,7 @@ JSON messages use plain `JSONEncoder` key names (camelCase).
 | 0x20 | shortcut | C→H | `u8 modifiers, string key` (character, or `return tab space delete esc left right up down`) |
 | 0x21 | key | C→H | `u16 HID usage (page 7), bool down` |
 | 0x22 | text | C→H | UTF-8 text (typed on an on-screen keyboard) |
+| 0x23 | charKey | C→H | JSON `{key, down}` – hold/release a key given as character or special key name (resolved with the Mac's layout; tablet key pad) |
 | 0x30 | ping | C→H | `f64 clientTime` (seconds since 1970) |
 | 0x31 | pong | H→C | `f64 clientTime, f64 hostTime` |
 | 0x40 | videoFormat | H→C | `u8 codec (0 H.264, 1 HEVC), u32 width, u32 height, u8 count, count × blob parameter set, [bool displayP3]` |

@@ -386,5 +386,13 @@ extension Translations {
         "Normaler Bereich (alle anderen Apps)": "通常のエリア（その他すべてのアプリ）",
         "Von der App lösen": "アプリから解除",
         "Ganze Fläche": "全面",
+        "Beschriftung": "ラベル",
+        "Drehung": "回転",
+        "Klick ab Druck: %d %%": "クリックする筆圧：%d %%",
+        "Klick ab Druck: leichte Berührungen bleiben Schweben, erst ab diesem Druck wird geklickt (gilt immer, nicht nur im Tablett-Modus). Tasten-Feld: große Touch-Tasten am Rand im Tablett-Modus – Finger drauf hält die Taste am Mac (z. B. Z/X für osu!). Taste: ein Zeichen oder space, return, tab, esc, delete, left, right, up, down. Die Drehung des Bereichs stellst du im Bereich-Editor ein.": "クリックする筆圧：軽いタッチはホバーのままで、この筆圧を超えたときだけクリックします（タブレットモード以外でも有効）。キーパッド：タブレットモードで画面端に大きなタッチキーを表示し、指を置いている間 Mac のキーを押し続けます（例：osu! の Z/X）。キー：1 文字、または space、return、tab、esc、delete、left、right、up、down。エリアの回転はエリアエディタで設定します。",
+        "Klick ab Druck: sofort": "クリックする筆圧：すぐに",
+        "Seite": "位置",
+        "Tasten-Feld (wie ExpressKeys)": "キーパッド（ExpressKeys のように）",
+        "Tastengröße: %d pt": "キーのサイズ：%d pt",
     ]
 }

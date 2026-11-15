@@ -9,7 +9,8 @@ struct TabletSurfaceView: View {
 
     var body: some View {
         GeometryReader { g in
-            let r = model.tabletArea.rect(in: g.size)
+            let area = model.tabletArea
+            let poly = Path { p in p.addLines(area.corners(in: g.size)); p.closeSubpath() }
             ZStack {
                 Color.black
                 Canvas { ctx, size in
@@ -18,7 +19,7 @@ struct TabletSurfaceView: View {
                     while y < size.height {
                         var x = step / 2
                         while x < size.width {
-                            let inside = r.contains(CGPoint(x: x, y: y))
+                            let inside = poly.contains(CGPoint(x: x, y: y))
                             ctx.fill(Path(ellipseIn: CGRect(x: x - 1, y: y - 1, width: 2, height: 2)),
                                      with: .color(.white.opacity(inside ? 0.22 : 0.09)))
                             x += step
@@ -26,7 +27,7 @@ struct TabletSurfaceView: View {
                         y += step
                     }
                 }
-                AreaCorners(rect: r)
+                AreaCorners(corners: area.corners(in: g.size))
                     .stroke(Brand.mint.opacity(0.85), style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
             }
             .onAppear { lockAspect(g.size) }
@@ -46,17 +47,24 @@ struct TabletSurfaceView: View {
     }
 }
 
-/// L-shaped corner marks of the active area (like the marks printed on pen tablets).
+/// L-shaped corner marks of the active area (like the marks printed on pen tablets); follows rotation.
 struct AreaCorners: Shape {
-    var rect: CGRect
+    /// top-left, top-right, bottom-right, bottom-left
+    var corners: [CGPoint]
     func path(in _: CGRect) -> Path {
-        let l = min(26, rect.width / 4, rect.height / 4)
         var p = Path()
-        for (c, dx, dy) in [(CGPoint(x: rect.minX, y: rect.minY), 1.0, 1.0), (CGPoint(x: rect.maxX, y: rect.minY), -1.0, 1.0),
-                            (CGPoint(x: rect.minX, y: rect.maxY), 1.0, -1.0), (CGPoint(x: rect.maxX, y: rect.maxY), -1.0, -1.0)] {
-            p.move(to: CGPoint(x: c.x + l * dx, y: c.y))
+        guard corners.count == 4 else { return p }
+        for i in 0..<4 {
+            let c = corners[i], next = corners[(i + 1) % 4], prev = corners[(i + 3) % 4]
+            func toward(_ o: CGPoint) -> CGPoint {
+                let dx = o.x - c.x, dy = o.y - c.y
+                let len = max(hypot(dx, dy), 1)
+                let l = min(26, len / 4)
+                return CGPoint(x: c.x + dx / len * l, y: c.y + dy / len * l)
+            }
+            p.move(to: toward(prev))
             p.addLine(to: c)
-            p.addLine(to: CGPoint(x: c.x, y: c.y + l * dy))
+            p.addLine(to: toward(next))
         }
         return p
     }
@@ -70,7 +78,7 @@ struct TabletAreaEditor: View {
     @State private var dragStart: TabletArea?
     // Millimetre fields: plain text (comma or point both work), one focus per field, refreshed
     // from the area only while you are not typing in them.
-    private enum Field: Hashable, CaseIterable { case w, h, x, y }
+    private enum Field: Hashable, CaseIterable { case w, h, x, y, r }
     @FocusState private var focus: Field?
     @State private var text: [Field: String] = [:]
     /// The value a field showed before you tapped it (shown greyed while it is empty).
@@ -99,6 +107,7 @@ struct TabletAreaEditor: View {
                     .fill(Brand.mint.opacity(0.08))
                     .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(Brand.mint, style: StrokeStyle(lineWidth: 2, dash: [8, 6])))
                     .frame(width: r.width, height: r.height)
+                    .rotationEffect(.degrees(a.rotation))
                     .position(x: r.midX, y: r.midY)
                     .gesture(DragGesture()
                         .onChanged { v in
@@ -113,7 +122,7 @@ struct TabletAreaEditor: View {
                     .frame(width: 30, height: 30)
                     .overlay(Image(systemName: "arrow.up.left.and.arrow.down.right").font(.caption.bold()).foregroundStyle(Brand.slateDeep))
                     .contentShape(Circle().inset(by: -14))
-                    .position(x: r.maxX, y: r.maxY)
+                    .position(a.corners(in: size)[2])
                     .gesture(DragGesture()
                         .onChanged { v in
                             let start = dragStart ?? a
@@ -186,6 +195,8 @@ struct TabletAreaEditor: View {
             Divider().frame(height: 22)
             field("X", .x)
             field("Y", .y)
+            Divider().frame(height: 22)
+            field(L("Drehung"), .r, unit: "°")
             Button(L("Zentrieren")) { apply(size, center: true) }
             Button(L("Übernehmen")) { apply(size, center: false) }
                 .buttonStyle(.borderedProminent).tint(Brand.mint).foregroundStyle(Brand.slateDeep)
@@ -195,7 +206,7 @@ struct TabletAreaEditor: View {
         .tafelOverlayGlass(Capsule())
     }
 
-    private func field(_ label: String, _ f: Field) -> some View {
+    private func field(_ label: String, _ f: Field, unit: String = "mm") -> some View {
         HStack(spacing: 4) {
             Text(label).foregroundStyle(.secondary)
             TextField(before[f] ?? label, text: Binding(get: { text[f] ?? "" }, set: { new in
@@ -213,7 +224,7 @@ struct TabletAreaEditor: View {
             .frame(width: 58)
             .padding(.horizontal, 6).padding(.vertical, 4)
             .background(.white.opacity(focus == f ? 0.16 : 0.08), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-            Text("mm").foregroundStyle(.secondary)
+            Text(unit).foregroundStyle(.secondary)
         }
     }
 
@@ -316,6 +327,7 @@ struct TabletAreaEditor: View {
         for (f, v) in values where focus != f {
             text[f] = Self.format(Double(v) * Self.mmPerPoint)
         }
+        if focus != .r { text[.r] = Self.format(a.rotation) }
     }
 
     /// Applies the typed millimetres (clamped to the iPad), keeping the aspect lock.
@@ -335,24 +347,33 @@ struct TabletAreaEditor: View {
         var y = center ? (size.height - h) / 2 : pt(.y, cur.minY)
         x = min(max(x, 0), size.width - w); y = min(max(y, 0), size.height - h)
         area = nil
-        let new = TabletArea(x: Double(x / size.width), y: Double(y / size.height),
+        var new = TabletArea(x: Double(x / size.width), y: Double(y / size.height),
                              width: Double(w / size.width), height: Double(h / size.height))
+        let typedRot = (text[.r] ?? "").isEmpty ? before[.r] ?? "" : text[.r] ?? ""
+        new.rotation = Self.number(typedRot).map { ($0.truncatingRemainder(dividingBy: 360) + 360).truncatingRemainder(dividingBy: 360) }
+            ?? (area ?? model.tabletArea).rotation
         model.setTabletArea(new)
         before = [:]
         fill(new, size)   // show what was actually applied (after clamping)
     }
 
     /// New area with its bottom-right corner at `p` (top-left stays), aspect-locked if wanted.
-    private func resized(_ a: TabletArea, to p: CGPoint, in size: CGSize) -> TabletArea {
+    private func resized(_ a: TabletArea, to drag: CGPoint, in size: CGSize) -> TabletArea {
         let r = a.rect(in: size)
+        // Drag point in the area's own (unrotated) frame.
+        let ang = -a.rotation * .pi / 180
+        let dx = Double(drag.x - r.midX), dy = Double(drag.y - r.midY)
+        let p = CGPoint(x: Double(r.midX) + dx * cos(ang) - dy * sin(ang), y: Double(r.midY) + dx * sin(ang) + dy * cos(ang))
         var w = min(max(p.x - r.minX, 80), size.width - r.minX)
         var h = min(max(p.y - r.minY, 60), size.height - r.minY)
         if model.tabletLock {
             let asp = model.tabletAspect
             if w / h > asp { w = h * asp } else { h = w / asp }
         }
-        return TabletArea(x: Double(r.minX / size.width), y: Double(r.minY / size.height),
-                          width: Double(w / size.width), height: Double(h / size.height))
+        var out = TabletArea(x: Double(r.minX / size.width), y: Double(r.minY / size.height),
+                             width: Double(w / size.width), height: Double(h / size.height))
+        out.rotation = a.rotation
+        return out
     }
 
     private func commit() {

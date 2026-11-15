@@ -26,6 +26,7 @@ struct SettingsView: View {
                 connectionSection
                 imageSection
                 pencilSection
+                tabletSection
                 gestureSection
                 shortcutSection
                 radialSection
@@ -203,6 +204,53 @@ struct SettingsView: View {
             Text(L("Stift"))
         } footer: {
             Text(L("Druckkurve, Glättung, Doppeltippen und Squeeze können pro Mac-App eigene Werte haben (★) und wechseln automatisch mit der App, die am Mac vorne ist. Ob Neigung und Rotation in einer Mac-App ankommen, hängt von der App ab."))
+        }
+    }
+
+    private var tabletSection: some View {
+        Section {
+            VStack(alignment: .leading) {
+                Text(model.settings.tipThreshold == 0 ? L("Klick ab Druck: sofort") : L("Klick ab Druck: %d %%", Int(model.settings.tipThreshold * 100)))
+                Slider(value: $model.settings.tipThreshold, in: 0...0.6, step: 0.01)
+            }
+            Toggle(L("Tasten-Feld (wie ExpressKeys)"), isOn: $model.settings.tabletKeys.enabled)
+            if model.settings.tabletKeys.enabled {
+                Picker(L("Seite"), selection: $model.settings.tabletKeys.side) {
+                    Text(L("Links")).tag(TabletKeys.Side.left)
+                    Text(L("Rechts")).tag(TabletKeys.Side.right)
+                }
+                .pickerStyle(.segmented)
+                VStack(alignment: .leading) {
+                    Text(L("Tastengröße: %d pt", Int(model.settings.tabletKeys.size)))
+                    Slider(value: $model.settings.tabletKeys.size, in: 70...200, step: 5)
+                }
+                ForEach($model.settings.tabletKeys.keys) { $k in
+                    HStack {
+                        TextField(L("Beschriftung"), text: $k.title).frame(maxWidth: 140)
+                        Spacer()
+                        Text(L("Taste")).foregroundStyle(.secondary)
+                        TextField("z", text: Binding(get: { k.key }, set: { v in
+                            let t = v.trimmingCharacters(in: .whitespaces).lowercased()
+                            k.key = Shortcut.specialKeys[t] != nil ? t : String(t.suffix(1))
+                        }))
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 90)
+                    }
+                }
+                .onDelete { model.settings.tabletKeys.keys.remove(atOffsets: $0) }
+                .onMove { model.settings.tabletKeys.keys.move(fromOffsets: $0, toOffset: $1) }
+                if model.settings.tabletKeys.keys.count < 6 {
+                    Button(L("Taste hinzufügen")) {
+                        model.settings.tabletKeys.keys.append(TabletKey(title: "C", key: "c"))
+                    }
+                }
+            }
+        } header: {
+            Text(L("Tablett-Modus"))
+        } footer: {
+            Text(L("Klick ab Druck: leichte Berührungen bleiben Schweben, erst ab diesem Druck wird geklickt (gilt immer, nicht nur im Tablett-Modus). Tasten-Feld: große Touch-Tasten am Rand im Tablett-Modus – Finger drauf hält die Taste am Mac (z. B. Z/X für osu!). Taste: ein Zeichen oder space, return, tab, esc, delete, left, right, up, down. Die Drehung des Bereichs stellst du im Bereich-Editor ein."))
         }
     }
 

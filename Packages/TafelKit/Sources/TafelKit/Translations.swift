@@ -429,5 +429,13 @@ enum Translations {
         "Normaler Bereich (alle anderen Apps)": "Normal area (all other apps)",
         "Von der App lösen": "Unbind from the app",
         "Ganze Fläche": "Full area",
+        "Beschriftung": "Label",
+        "Drehung": "Rotation",
+        "Klick ab Druck: %d %%": "Click from pressure: %d %%",
+        "Klick ab Druck: leichte Berührungen bleiben Schweben, erst ab diesem Druck wird geklickt (gilt immer, nicht nur im Tablett-Modus). Tasten-Feld: große Touch-Tasten am Rand im Tablett-Modus – Finger drauf hält die Taste am Mac (z. B. Z/X für osu!). Taste: ein Zeichen oder space, return, tab, esc, delete, left, right, up, down. Die Drehung des Bereichs stellst du im Bereich-Editor ein.": "Click from pressure: light touches stay hover, a click starts only above this pressure (applies always, not only in tablet mode). Key pad: big touch keys at the edge in tablet mode – a finger on a key holds it on the Mac (e.g. Z/X for osu!). Key: one character or space, return, tab, esc, delete, left, right, up, down. Rotate the area in the area editor.",
+        "Klick ab Druck: sofort": "Click from pressure: immediately",
+        "Seite": "Side",
+        "Tasten-Feld (wie ExpressKeys)": "Key pad (like ExpressKeys)",
+        "Tastengröße: %d pt": "Key size: %d pt",
     ]
 }

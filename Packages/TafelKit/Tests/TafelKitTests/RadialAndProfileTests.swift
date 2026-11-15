@@ -127,3 +127,43 @@ final class PluginWireTests: XCTestCase {
         XCTAssertEqual(try JSONWire.decode([PluginActionInfo].self, JSONWire.encode(a)), a)
     }
 }
+
+final class TabletExtrasTests: XCTestCase {
+    func testRotatedAreaMapsCornersAndCentre() {
+        let size = CGSize(width: 1000, height: 800)
+        var a = TabletArea(x: 0.2, y: 0.25, width: 0.5, height: 0.5)
+        a.rotation = 90
+        let c = a.corners(in: size)
+        // Rotated corner "top-left" maps back to (0, 0) of the area.
+        let n = a.normalized(c[0], in: size)
+        XCTAssertEqual(Double(n.x), 0, accuracy: 0.001); XCTAssertEqual(Double(n.y), 0, accuracy: 0.001)
+        let m = a.normalized(CGPoint(x: a.rect(in: size).midX, y: a.rect(in: size).midY), in: size)
+        XCTAssertEqual(Double(m.x), 0.5, accuracy: 0.001); XCTAssertEqual(Double(m.y), 0.5, accuracy: 0.001)
+        let br = a.normalized(c[2], in: size)
+        XCTAssertEqual(Double(br.x), 1, accuracy: 0.001); XCTAssertEqual(Double(br.y), 1, accuracy: 0.001)
+    }
+
+    func testOldAreaWithoutRotationDecodes() throws {
+        let a = try JSONDecoder().decode(TabletArea.self, from: Data(#"{"x":0.1,"y":0.2,"width":0.3,"height":0.4}"#.utf8))
+        XCTAssertEqual(a.rotation, 0); XCTAssertEqual(a.width, 0.3)
+    }
+
+    func testTipGate() {
+        var g = TipGate()
+        XCTAssertEqual(g.phase(for: .down, pressure: 0.1, threshold: 0.3), .hover)
+        XCTAssertEqual(g.phase(for: .move, pressure: 0.35, threshold: 0.3), .down)
+        XCTAssertEqual(g.phase(for: .move, pressure: 0.25, threshold: 0.3), .move)    // hysteresis
+        XCTAssertEqual(g.phase(for: .move, pressure: 0.2, threshold: 0.3), .up)
+        XCTAssertEqual(g.phase(for: .up, pressure: 0, threshold: 0.3), nil)
+        var off = TipGate()
+        XCTAssertEqual(off.phase(for: .down, pressure: 0.01, threshold: 0), .down)
+    }
+
+    func testKeyFramesOnTheChosenSide() {
+        var k = TabletKeys(); k.side = .right
+        let f = k.frames(in: CGSize(width: 1180, height: 820))
+        XCTAssertEqual(f.count, 2)
+        XCTAssertGreaterThan(f[0].minX, 1000)
+        XCTAssertLessThan(f[0].maxY, f[1].minY)
+    }
+}
