@@ -276,7 +276,7 @@ struct ConnectView: View {
             }
             .scaleEffect(appeared ? 1 : 0.7)
             .opacity(appeared ? 1 : 0)
-            Text("Tafel")
+            Text("UniversePen")
                 .font(.system(size: 44, weight: .bold, design: .rounded))
             Text(L("Dein iPad als Zeichendisplay für den Mac"))
                 .font(.title3).foregroundStyle(.secondary)
@@ -305,7 +305,7 @@ struct ConnectView: View {
             .transition(.scale(scale: 0.95).combined(with: .opacity))
         default:
             if searching && !model.paired.isEmpty {
-                StatusCard(symbol: "magnifyingglass", tint: .secondary, text: L("Suche deinen Mac … Tafel Host muss laufen."))
+                StatusCard(symbol: "magnifyingglass", tint: .secondary, text: L("Suche deinen Mac … UniversePen Host muss laufen."))
                     .transition(.opacity)
             }
         }
@@ -336,7 +336,7 @@ struct ConnectView: View {
                 HStack(spacing: 12) {
                     Image(systemName: "laptopcomputer.and.arrow.down")
                         .font(.title2).foregroundStyle(.secondary)
-                    Text(L("Am Mac in Tafel Host „iPad koppeln …“ wählen – der Mac erscheint dann hier."))
+                    Text(L("Am Mac in UniversePen Host „iPad koppeln …“ wählen – der Mac erscheint dann hier."))
                         .foregroundStyle(.secondary)
                 }
                 .tafelCard()
@@ -446,7 +446,7 @@ private struct PairingSheet: View {
                 .symbolEffect(.bounce, value: model.pairingBusy)
             VStack(spacing: 6) {
                 Text(L("Mit %@ koppeln", host.name)).font(.title2.weight(.semibold))
-                Text(L("Gib den 12-stelligen Code ein, den Tafel Host auf dem Mac zeigt."))
+                Text(L("Gib den 12-stelligen Code ein, den UniversePen Host auf dem Mac zeigt."))
                     .foregroundStyle(.secondary).multilineTextAlignment(.center)
             }
             TextField("XXXX-XXXX-XXXX", text: $code)

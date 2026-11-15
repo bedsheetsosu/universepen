@@ -103,7 +103,7 @@ struct OnboardingView: View {
                 TafelMark().frame(width: 120, height: 120)
                     .shadow(color: Brand.mint.opacity(0.4), radius: 30)
             }
-            Text(L("Willkommen bei Tafel"))
+            Text(L("Willkommen bei UniversePen"))
                 .font(.system(size: 40, weight: .bold, design: .rounded))
             Text(L("Dein iPad wird zum Zeichendisplay für den Mac – mit Pencil-Druck und Neigung, Fingern, Tastatur und Trackpad. Ohne Konto, ohne Cloud, kostenlos."))
                 .font(.title3).foregroundStyle(.secondary).multilineTextAlignment(.center)
@@ -114,16 +114,16 @@ struct OnboardingView: View {
     }
 
     private var connection: some View {
-        PageScaffold(symbol: "cable.connector", title: L("So verbindet sich Tafel"),
-                     subtitle: L("Auf dem Mac läuft die App „Tafel Host“. Beim ersten Mal koppelst du beide mit einem Code.")) {
+        PageScaffold(symbol: "cable.connector", title: L("So verbindet sich UniversePen"),
+                     subtitle: L("Auf dem Mac läuft die App „UniversePen Host“. Beim ersten Mal koppelst du beide mit einem Code.")) {
             InfoRow(symbol: "cable.connector", title: L("USB-Kabel (empfohlen)"),
-                    text: L("Geringste Latenz. Tafel nimmt automatisch das Kabel, sobald es steckt."))
+                    text: L("Geringste Latenz. UniversePen nimmt automatisch das Kabel, sobald es steckt."))
             InfoRow(symbol: "wifi", title: L("WLAN"),
                     text: L("Funktioniert auch ohne Kabel, wenn Mac und iPad im selben WLAN sind."))
             InfoRow(symbol: "lock.shield", title: L("Verschlüsselt und privat"),
                     text: L("Nur gekoppelte Geräte, direkt zwischen Mac und iPad – keine Server."))
             InfoRow(symbol: "network", title: L("Lokales Netzwerk"),
-                    text: L("iPadOS fragt gleich, ob Tafel Geräte im lokalen Netzwerk finden darf. Bitte erlauben – sonst findet das iPad den Mac nicht."))
+                    text: L("iPadOS fragt gleich, ob UniversePen Geräte im lokalen Netzwerk finden darf. Bitte erlauben – sonst findet das iPad den Mac nicht."))
         }
     }
 
@@ -142,7 +142,7 @@ struct OnboardingView: View {
 
     private var fingers: some View {
         PageScaffold(symbol: "hand.point.up.left", title: L("Und deine Finger?"),
-                     subtitle: L("Wie bei einem Stift-Display. Liegt der Pencil in der Nähe, ignoriert Tafel die Hand.")) {
+                     subtitle: L("Wie bei einem Stift-Display. Liegt der Pencil in der Nähe, ignoriert UniversePen die Hand.")) {
             ChoiceRow(title: L("Ein Finger"), options: [
                 (L("Maus"), "cursorarrow.click", FingerMode.mouse),
                 (L("Stift"), "scribble", FingerMode.pen),

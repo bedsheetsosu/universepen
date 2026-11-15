@@ -92,8 +92,8 @@ struct HostOnboarding: View {
                 PulseRings(color: Brand.mint).frame(width: 120, height: 120)
                 TafelMark().frame(width: 96, height: 96).shadow(color: Brand.mint.opacity(0.4), radius: 24)
             }
-            Text(L("Willkommen bei Tafel")).font(.system(size: 30, weight: .bold, design: .rounded))
-            Text(L("Tafel macht dein iPad zum Zeichendisplay für diesen Mac – per USB-Kabel oder WLAN, verschlüsselt und ohne Cloud. In drei Schritten ist alles eingerichtet."))
+            Text(L("Willkommen bei UniversePen")).font(.system(size: 30, weight: .bold, design: .rounded))
+            Text(L("UniversePen macht dein iPad zum Zeichendisplay für diesen Mac – per USB-Kabel oder WLAN, verschlüsselt und ohne Cloud. In drei Schritten ist alles eingerichtet."))
                 .multilineTextAlignment(.center).foregroundStyle(.secondary)
                 .frame(maxWidth: 420)
             Spacer()
@@ -103,7 +103,7 @@ struct HostOnboarding: View {
     private var permissions: some View {
         VStack(alignment: .leading, spacing: 14) {
             header("lock.shield", L("Zwei Berechtigungen"),
-                   L("macOS fragt einmal nach. Danach bleibt es so – auch nach Updates von Tafel."))
+                   L("macOS fragt einmal nach. Danach bleibt es so – auch nach Updates von UniversePen."))
             permissionRow(L("Bildschirmaufnahme"), L("Damit das Bild aufs iPad kommt."), host.screenRecordingGranted, host.requestScreenRecording)
             permissionRow(L("Bedienungshilfen"), L("Damit Stift, Finger, Maus und Tastatur am Mac ankommen."), host.accessibilityGranted, host.requestAccessibility)
             if host.screenRecordingGranted && host.accessibilityGranted {
@@ -111,7 +111,7 @@ struct HostOnboarding: View {
                     .foregroundStyle(Brand.mint).font(.headline)
                     .transition(.scale.combined(with: .opacity))
             } else {
-                Text(L("Nach dem Erlauben in den Systemeinstellungen springt das Häkchen hier von selbst um. Bei der Bildschirmaufnahme kann macOS einen Neustart von Tafel Host verlangen."))
+                Text(L("Nach dem Erlauben in den Systemeinstellungen springt das Häkchen hier von selbst um. Bei der Bildschirmaufnahme kann macOS einen Neustart von UniversePen Host verlangen."))
                     .font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
@@ -138,7 +138,7 @@ struct HostOnboarding: View {
     private var source: some View {
         VStack(alignment: .leading, spacing: 14) {
             header("rectangle.dashed.badge.record", L("Was soll aufs iPad?"),
-                   L("Lässt sich jederzeit im Tafel-Fenster umstellen."))
+                   L("Lässt sich jederzeit im UniversePen-Fenster umstellen."))
             HStack(spacing: 8) {
                 ForEach(CaptureMode.allCases) { m in
                     let unavailable = m == .virtual && !HostController.secondScreenAvailable
@@ -155,7 +155,7 @@ struct HostOnboarding: View {
     private var pairing: some View {
         VStack(alignment: .leading, spacing: 14) {
             header("ipad.and.arrow.forward", L("iPad koppeln"),
-                   L("Öffne Tafel auf dem iPad, tippe unter „Neu koppeln“ auf diesen Mac und gib den Code ein."))
+                   L("Öffne UniversePen auf dem iPad, tippe unter „Neu koppeln“ auf diesen Mac und gib den Code ein."))
             if let paired = host.lastPaired, paired != pairedAtStart {
                 Label(L("%@ ist gekoppelt.", paired), systemImage: "checkmark.seal.fill")
                     .font(.title3.weight(.semibold)).foregroundStyle(Brand.mint)

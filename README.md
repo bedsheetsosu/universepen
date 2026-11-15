@@ -1,9 +1,9 @@
-# Tafel – iPad + Äbbl™ Pencil Pro als Grafikdisplay für den Mac
+# UniversePen – iPad + Äbbl™ Pencil Pro als Grafikdisplay für den Mac
 
-Kostenlos, Open Source, ohne Konto, Cloud, Werbung oder Abo. Zwei native Apps:
+Kostenlos, Open Source, ohne Konto, Cloud, Werbung oder Abo. Früher „Tafel“ – im Code heißen Ordner, Targets und das Paket `TafelKit` noch so. Zwei native Apps:
 
-- **Tafel Host** (macOS 15+): überträgt einen Bildschirmbereich oder ein Fenster und setzt Stift-, Gesten- und Tasteneingaben vom iPad in macOS-Eingaben um.
-- **Tafel** (iPadOS 18+): Vollbild-Anzeige, Pencil-Eingabe mit Druck, Neigung, Barrel Roll, Hover, Squeeze, Doppeltippen, Finger-Gesten.
+- **UniversePen Host** (macOS 15+): überträgt einen Bildschirmbereich oder ein Fenster und setzt Stift-, Gesten- und Tasteneingaben vom iPad in macOS-Eingaben um.
+- **UniversePen** (iPadOS 18+): Vollbild-Anzeige, Pencil-Eingabe mit Druck, Neigung, Barrel Roll, Hover, Squeeze, Doppeltippen, Finger-Gesten.
 
 Zielhardware: iPad Air 11" M4 + Äbbl Pencil Pro, MacBook Air M5, Affinity.
 
@@ -35,7 +35,7 @@ Nichts davon ist „fertig für den Einsatz“ bevor der Testplan auf echter Har
 Voraussetzungen: Xcode 27, [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`).
 
 ```bash
-cd Tafel
+cd universepen
 ```
 
 ```bash
@@ -46,8 +46,8 @@ xcodegen generate
 open Tafel.xcodeproj
 ```
 
-- **Tafel Host** (Mac): läuft ohne App-ID und ohne Entwicklerkonto. Nicht sandboxed (siehe Berechtigungen). Standard ist ad-hoc-Signatur – dann vergisst macOS nach **jedem Neubau** Bedienungshilfen und Bildschirmaufnahme. Abhilfe: `Config/HostSigning.local.xcconfig` (nicht in git) mit `CODE_SIGN_IDENTITY = <SHA-1 deines „Apple Development“-Zertifikats>` anlegen (`security find-identity -v -p codesigning`). Damit bleibt die Signatur gleich und die Berechtigungen bleiben erhalten.
-- **Tafel** (iPad): in *Signing & Capabilities* dein Team wählen. Mit einem kostenlosen Äbbl-Account läuft die App 7 Tage und belegt eine App-ID. Falls `local.tafel.pad` schon vergeben ist, Bundle-ID in `project.yml` ändern und neu generieren. Auf dem iPad muss der Entwicklermodus aktiv sein.
+- **UniversePen Host** (Mac): läuft ohne App-ID und ohne Entwicklerkonto. Nicht sandboxed (siehe Berechtigungen). Standard ist ad-hoc-Signatur – dann vergisst macOS nach **jedem Neubau** Bedienungshilfen und Bildschirmaufnahme. Abhilfe: `Config/HostSigning.local.xcconfig` (nicht in git) mit `CODE_SIGN_IDENTITY = <SHA-1 deines „Apple Development“-Zertifikats>` anlegen (`security find-identity -v -p codesigning`). Damit bleibt die Signatur gleich und die Berechtigungen bleiben erhalten.
+- **UniversePen** (iPad): in *Signing & Capabilities* dein Team wählen. Mit einem kostenlosen Äbbl-Account läuft die App 7 Tage und belegt eine App-ID. Falls `local.tafel.pad` schon vergeben ist, Bundle-ID in `project.yml` ändern und neu generieren. Auf dem iPad muss der Entwicklermodus aktiv sein.
 
 Tests:
 
@@ -61,12 +61,12 @@ xcodebuild -project Tafel.xcodeproj -scheme PipelineTests -derivedDataPath build
 
 ## Erste Schritte
 
-Beide Apps führen beim ersten Start durch eine kurze **Einrichtung** (iPad: Verbindung, Pencil-Druckgefühl und -Gesten, Finger-Modus, Bildqualität und Ton, Zeichenhand für die Shortcut-Leiste; Mac: Berechtigungen, Quelle, Koppeln). Erneut aufrufbar über iPad → Einstellungen bzw. am Mac unten im Tafel-Fenster.
+Beide Apps führen beim ersten Start durch eine kurze **Einrichtung** (iPad: Verbindung, Pencil-Druckgefühl und -Gesten, Finger-Modus, Bildqualität und Ton, Zeichenhand für die Shortcut-Leiste; Mac: Berechtigungen, Quelle, Koppeln). Erneut aufrufbar über iPad → Einstellungen bzw. am Mac unten im UniversePen-Fenster.
 
-1. Tafel Host starten. **Bildschirmaufnahme** und **Bedienungshilfen** erlauben (Buttons in der App). Ohne Bedienungshilfen werden Eingaben von macOS still verworfen.
+1. UniversePen Host starten. **Bildschirmaufnahme** und **Bedienungshilfen** erlauben (Buttons in der App). Ohne Bedienungshilfen werden Eingaben von macOS still verworfen.
    Hinweis: Bei ad-hoc signierten Builds kann macOS die Berechtigungen nach einem Neubau vergessen – dann in den Systemeinstellungen den alten Eintrag entfernen und neu erlauben.
 2. Am Mac **„iPad koppeln …“** → 12-stelliger Code erscheint (2 Minuten gültig).
-3. Tafel auf dem iPad öffnen → unter „Neu koppeln“ den Mac antippen → Code eingeben. Danach verbindet sich das iPad automatisch, sobald der Mac erreichbar ist.
+3. UniversePen auf dem iPad öffnen → unter „Neu koppeln“ den Mac antippen → Code eingeben. Danach verbindet sich das iPad automatisch, sobald der Mac erreichbar ist.
 4. Am Mac Quelle wählen: **Ganzer Bildschirm** (Standard, Wahl wird gemerkt; bei 16:10-Macs schmale Ränder oben/unten), **iPad-Ausschnitt** (füllt das iPad randlos) oder ein einzelnes **Fenster**.
 
 ---
@@ -89,7 +89,7 @@ Beide Apps führen beim ersten Start durch eine kurze **Einrichtung** (iPad: Ver
 |---|---|
 | WLAN | ✅ Bonjour + TCP, `Network.framework` |
 | Ohne Router | ✅ Äbbl Peer-to-Peer-WLAN (AWDL, `includePeerToPeer`), **standardmäßig aus**: solange AWDL aktiv ist, springt das WLAN-Modul periodisch den Kanal, das kostet im normalen WLAN spürbar Latenz. Schalter auf beiden Seiten. |
-| **USB** | ⚠️ Kein eigenes USB-Protokoll (usbmuxd ist undokumentiert, DriverKit braucht Äbbl-Berechtigungen). **Aber:** Mit Kabel stellt iPadOS dem Mac ein normales USB-Ethernet-Interface (NCM, am Mac z. B. `en8`) bereit. Tafel nutzt dafür nur normales Network.framework: der Mac lauscht auf allen Interfaces, das iPad verbindet zuerst mit `requiredInterfaceType = .wiredEthernet` und fällt nach 2,5 s auf WLAN zurück. **Befund 15.11.2026:** `NWPathMonitor` auf dem iPad zeigt nur `en0` (WLAN), `requiredInterfaceType = .wiredEthernet` scheitert also. Aber Bonjour findet den Mac zusätzlich über `en2` und `anpi0`; bindet man die Verbindung mit `requiredInterface` an das von Bonjour gelieferte `en2`, läuft sie über das Kabel (Mac-Seite `en8`). Das ist reines Network.framework, aber **nicht dokumentiert** – ein iPadOS-Update kann es ändern; dann greift der WLAN-Fallback. iPad → Einstellungen zeigt „Weg“, der Mac zeigt „Über USB-Kabel (en8)“. |
+| **USB** | ⚠️ Kein eigenes USB-Protokoll (usbmuxd ist undokumentiert, DriverKit braucht Äbbl-Berechtigungen). **Aber:** Mit Kabel stellt iPadOS dem Mac ein normales USB-Ethernet-Interface (NCM, am Mac z. B. `en8`) bereit. UniversePen nutzt dafür nur normales Network.framework: der Mac lauscht auf allen Interfaces, das iPad verbindet zuerst mit `requiredInterfaceType = .wiredEthernet` und fällt nach 2,5 s auf WLAN zurück. **Befund 15.11.2026:** `NWPathMonitor` auf dem iPad zeigt nur `en0` (WLAN), `requiredInterfaceType = .wiredEthernet` scheitert also. Aber Bonjour findet den Mac zusätzlich über `en2` und `anpi0`; bindet man die Verbindung mit `requiredInterface` an das von Bonjour gelieferte `en2`, läuft sie über das Kabel (Mac-Seite `en8`). Das ist reines Network.framework, aber **nicht dokumentiert** – ein iPadOS-Update kann es ändern; dann greift der WLAN-Fallback. iPad → Einstellungen zeigt „Weg“, der Mac zeigt „Über USB-Kabel (en8)“. |
 
 ### Stifteingabe auf dem iPad (UIKit, alles öffentlich)
 
@@ -122,7 +122,7 @@ Beide Apps führen beim ersten Start durch eine kurze **Einrichtung** (iPad: Ver
 ## Architektur
 
 ```
-iPad (Tafel)                                       Mac (Tafel Host)
+iPad (UniversePen)                                 Mac (UniversePen Host)
 ┌──────────────────────────┐   TLS 1.2 PSK / TCP   ┌─────────────────────────────┐
 │ CanvasView (UIKit)       │  Control-Verbindung   │ HostServer                  │
 │  Pencil → PenSample ─────┼──────────────────────►│  → InputInjector → CGEvent  │
@@ -152,14 +152,14 @@ iPad (Tafel)                                       Mac (Tafel Host)
 
 ### Schulverwaltete Geräte
 
-Tafel ändert keine Profile, Einschränkungen oder MDM-Einstellungen und versucht nicht, sie zu umgehen. Auf einem verwalteten iPad kann die Installation per Xcode (Entwicklermodus) oder der Zugriff aufs lokale Netzwerk per Richtlinie gesperrt sein – dann funktioniert Tafel dort nicht, und das ist so gewollt.
+UniversePen ändert keine Profile, Einschränkungen oder MDM-Einstellungen und versucht nicht, sie zu umgehen. Auf einem verwalteten iPad kann die Installation per Xcode (Entwicklermodus) oder der Zugriff aufs lokale Netzwerk per Richtlinie gesperrt sein – dann funktioniert UniversePen dort nicht, und das ist so gewollt.
 
 ---
 
 ## Verbindungsabbrüche
 
 - Der USB-Netzwerklink zum iPad fällt gelegentlich für ~3 s weg (im Mac-Log von `remoted`: `kIONetworkLinkStateInactive`). Beobachtet bei einer USB-2-Verbindung (High Speed); ob ein anderes Kabel hilft, ist offen.
-- Tafel erkennt das nach 2,5 s ohne Ping-Antwort (statt nach einem langen TCP-Timeout), lässt das letzte Bild stehen und verbindet sich bis zu 30 s lang automatisch neu: zuerst über das Kabel, sonst WLAN. Über WLAN prüft Tafel alle 10 s, ob das Kabel wieder geht, und wechselt zurück (bei Fehlschlag höchstens einmal pro Minute). Auf echter Hardware bestätigt (15.11.2026).
+- UniversePen erkennt das nach 2,5 s ohne Ping-Antwort (statt nach einem langen TCP-Timeout), lässt das letzte Bild stehen und verbindet sich bis zu 30 s lang automatisch neu: zuerst über das Kabel, sonst WLAN. Über WLAN prüft UniversePen alle 10 s, ob das Kabel wieder geht, und wechselt zurück (bei Fehlschlag höchstens einmal pro Minute). Auf echter Hardware bestätigt (15.11.2026).
 - Am Mac werden beim Abbruch gedrückte Stift-/Maus-/Tastenzustände losgelassen.
 - Encoder- oder Decoder-Fehler lösen sofort ein neues Vollbild aus, statt bis zum nächsten periodischen Keyframe (5 s) einzufrieren.
 
@@ -167,10 +167,10 @@ Tafel ändert keine Profile, Einschränkungen oder MDM-Einstellungen und versuch
 
 **Bewusste Ausnahme von der Regel „nur öffentliche APIs“, auf Wunsch eingebaut (15.11.2026).**
 
-- Modus „Zweiter Bildschirm“: Tafel legt mit der **privaten** CoreGraphics-Klasse `CGVirtualDisplay` einen zusätzlichen Mac-Bildschirm „Tafel (iPad)“ an – 1180×820 pt, HiDPI (2360×1640 Pixel), 60 Hz, bei Hochformat gedreht – und überträgt ihn randlos. Wie Sidecar, aber ohne gleiche Äbbl-ID (Kopplung per Code), also auch mit Geräten, auf denen man sich nicht mit dem eigenen Account anmelden kann.
-- Anordnung unter Systemeinstellungen → Displays. Ohne iPad wird der Bildschirm nach 10 s wieder entfernt (kurze USB-Aussetzer überbrückt), macOS holt die Fenster zurück; beim Beenden von Tafel Host sofort.
+- Modus „Zweiter Bildschirm“: UniversePen legt mit der **privaten** CoreGraphics-Klasse `CGVirtualDisplay` einen zusätzlichen Mac-Bildschirm „UniversePen (iPad)“ an – 1180×820 pt, HiDPI (2360×1640 Pixel), 60 Hz, bei Hochformat gedreht – und überträgt ihn randlos. Wie Sidecar, aber ohne gleiche Äbbl-ID (Kopplung per Code), also auch mit Geräten, auf denen man sich nicht mit dem eigenen Account anmelden kann.
+- Anordnung unter Systemeinstellungen → Displays. Ohne iPad wird der Bildschirm nach 10 s wieder entfernt (kurze USB-Aussetzer überbrückt), macOS holt die Fenster zurück; beim Beenden von UniversePen Host sofort.
 - Auf echter Hardware geprüft (macOS auf MacBook Air M5): Bildschirm erscheint, Stream 2360×1640.
-- **Risiko:** Äbbl kann die Schnittstelle mit jedem macOS-Update ändern oder entfernen. Tafel meldet dann „nicht verfügbar“; alle anderen Modi bleiben unberührt. Die Deklarationen liegen isoliert in `Host/Private/CGVirtualDisplayPrivate.h`, genutzt nur von `Host/VirtualDisplay.swift`.
+- **Risiko:** Äbbl kann die Schnittstelle mit jedem macOS-Update ändern oder entfernen. UniversePen meldet dann „nicht verfügbar“; alle anderen Modi bleiben unberührt. Die Deklarationen liegen isoliert in `Host/Private/CGVirtualDisplayPrivate.h`, genutzt nur von `Host/VirtualDisplay.swift`.
 - Kein Eingriff in MDM, Profile oder Systemeinstellungen; es wird nur eine Bildschirm-Sitzung angelegt.
 - Kostenlose Alternative ohne private API: ein HDMI-/USB-C-Display-Dummy-Stecker + Modus „Ganzer Bildschirm“ mit diesem Bildschirm (meist 16:9 → Ränder).
 
@@ -187,7 +187,7 @@ Auf echter Hardware bestätigt (15.11.2026).
 ## Tastatur
 
 - **Hardware-Tastatur am iPad** (z. B. Logi Combo Touch): jede Taste geht als physische Tastenposition (USB-HID-Usage → macOS-Keycode) an den Mac, inkl. ⌘ ⌥ ⌃ ⇧, Pfeile, F-Tasten. Welches Zeichen entsteht, bestimmt das **Tastaturlayout des Mac** – bei gleichem Layout auf beiden Seiten (z. B. Deutsch) passt alles inkl. ä ö ü ß.
-- iPadOS behält einige Kurzbefehle für sich (⌘-Tab, ⌘-Leertaste, Globus-Taste, ⌘-H …), die kommen nie bei Tafel an.
+- iPadOS behält einige Kurzbefehle für sich (⌘-Tab, ⌘-Leertaste, Globus-Taste, ⌘-H …), die kommen nie bei UniversePen an.
 - Manche ISO-Tastaturen melden `^` und `<` vertauscht → Einstellungen → Tastatur → „Tasten ^ und < tauschen“.
 - **Trackpad / Maus am iPad** (auf echter Hardware bestätigt, Logi Combo Touch) steuert den Mac-Zeiger: Position absolut (dort, wo der iPad-Zeiger über dem Bild steht), Klick, Zwei-Finger-Klick = Rechtsklick, Doppel-/Dreifachklick, Ziehen, Zwei-Finger-Scrollen, Pinch/Drehen wie die Finger-Gesten. Der iPad-Zeiger wird ausgeblendet (der Mac-Cursor ist im Video zu sehen) – abschaltbar. Modifier der Tastatur gelten auch für Klicks (z. B. ⌥-Ziehen).
 - **Bildschirmtastatur** (…-Menü): sendet getippten Text als Unicode (unabhängig vom Mac-Layout), ohne Autokorrektur.
@@ -201,7 +201,7 @@ Auf echter Hardware bestätigt (15.11.2026).
 - **Zoom-Belegung in Affinity:** ob ⌘+Scrollen oder ⌥+Scrollen zoomt, hängt von Affinitys Einstellungen ab → wählbar.
 - **Latenzanzeige:** „RTT“ ist die echte Netz-Umlaufzeit. „Bild“ ist das Alter eines Frames bei Empfang (Aufnahme + Kodierung + Netz), geschätzt über einen Uhrenabgleich per Ping; Dekodierung und Anzeige (typisch wenige ms) sind nicht enthalten.
 - **Mauszeiger** wird mit übertragen (hilft beim Hover).
-- **Tablet-Kennung:** Tafel meldet sich mit einer eigenen, erfundenen Vendor-ID und gibt sich nicht als Wacom aus. Apps, die nur bestimmte Hersteller akzeptieren, würden Druck dann ignorieren.
+- **Tablet-Kennung:** UniversePen meldet sich mit einer eigenen, erfundenen Vendor-ID und gibt sich nicht als Wacom aus. Apps, die nur bestimmte Hersteller akzeptieren, würden Druck dann ignorieren.
 
 ---
 
@@ -229,6 +229,11 @@ Bitte der Reihe nach, Ergebnis jeweils notieren:
 - Dirty-Region-Erkennung, um bei Standbildern Bandbreite zu sparen (ScreenCaptureKit liefert bei Stillstand ohnehin kaum Frames).
 - Per-Gerät-Schlüssel für einzelnes Widerrufen.
 
+## Steuerung von außen & Protokoll
+
+- [`docs/API.md`](docs/API.md): `universepen://…`-URLs für Kurzbefehle, Terminal, Stream Deck (Modus wechseln, Koppeln).
+- [`docs/PROTOCOL.md`](docs/PROTOCOL.md): vollständiges Wire-Protokoll – Grundlage für eigene Clients/Hosts (z. B. Android, Windows).
+
 ## Sprachen & Übersetzungen
 
 Die Apps haben eine eigene Sprachwahl (erster Schritt der Einrichtung, später in den Einstellungen), unabhängig von der Systemsprache. Standard ist Englisch.
@@ -241,4 +246,4 @@ Die Apps haben eine eigene Sprachwahl (erster Schritt der Einrichtung, später i
 
 Copyright © 2026 Biene
 
-Tafel ist freie Software unter der **GNU General Public License v3.0** (siehe [`LICENSE`](LICENSE)): Du darfst den Code nutzen, verändern und weitergeben. Wer eine veränderte Version weitergibt, muss deren Quellcode ebenfalls unter der GPL-3.0 offenlegen. Es gibt keine Gewährleistung.
+UniversePen ist freie Software unter der **GNU General Public License v3.0** (siehe [`LICENSE`](LICENSE)): Du darfst den Code nutzen, verändern und weitergeben. Wer eine veränderte Version weitergibt, muss deren Quellcode ebenfalls unter der GPL-3.0 offenlegen. Es gibt keine Gewährleistung.

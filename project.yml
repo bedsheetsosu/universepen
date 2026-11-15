@@ -39,14 +39,15 @@ targets:
     info:
       path: Host/Info.plist
       properties:
-        CFBundleDisplayName: Tafel Host
+        CFBundleDisplayName: UniversePen Host
+        CFBundleName: UniversePen Host
         LSApplicationCategoryType: public.app-category.graphics-design
-        NSLocalNetworkUsageDescription: Tafel nimmt Verbindungen von deinem gekoppelten iPad im lokalen Netzwerk an.
+        NSLocalNetworkUsageDescription: UniversePen accepts connections from your paired iPad on the local network.
         NSBonjourServices: [_tafel._tcp, _tafelpair._tcp]
         CFBundleURLTypes:
           - CFBundleURLName: local.tafel.host.control
             CFBundleURLSchemes: [universepen, tafel]
-        NSScreenCaptureUsageDescription: Tafel überträgt den gewählten Bildschirmbereich auf dein iPad.
+        NSScreenCaptureUsageDescription: UniversePen shows the selected part of your screen on your iPad.
   Tafel:
     type: application
     platform: iOS
@@ -63,7 +64,7 @@ targets:
     info:
       path: Client/Info.plist
       properties:
-        CFBundleDisplayName: Tafel
+        CFBundleDisplayName: UniversePen
         UILaunchScreen: {}
         UIRequiresFullScreen: true
         UIStatusBarHidden: true
@@ -73,7 +74,7 @@ targets:
           - UIInterfaceOrientationLandscapeRight
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationPortraitUpsideDown
-        NSLocalNetworkUsageDescription: Tafel sucht deinen gekoppelten Mac im lokalen Netzwerk und verbindet sich direkt mit ihm.
+        NSLocalNetworkUsageDescription: UniversePen finds your paired Mac on the local network and connects to it directly.
         NSBonjourServices: [_tafel._tcp, _tafelpair._tcp]
   PipelineTests:
     type: bundle.unit-test

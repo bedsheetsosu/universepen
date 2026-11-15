@@ -6,7 +6,7 @@ struct TafelHostApp: App {
     @StateObject private var host = HostController()
 
     var body: some Scene {
-        WindowGroup("Tafel") {
+        WindowGroup("UniversePen") {
             HostView()
                 .environmentObject(host)
                 .onOpenURL { host.handle(url: $0) }
@@ -82,7 +82,7 @@ struct HostView: View {
                         LinkBadge(link: host.sessionLink)
                             .transition(.scale(scale: 0.8, anchor: .leading).combined(with: .opacity))
                     } else {
-                        Text(L("Tafel auf dem iPad öffnen – es verbindet sich automatisch."))
+                        Text(L("UniversePen auf dem iPad öffnen – es verbindet sich automatisch."))
                             .font(.callout).foregroundStyle(.secondary)
                     }
                 }
@@ -224,7 +224,7 @@ struct HostView: View {
             Text(host.mode.help).font(.caption).foregroundStyle(.secondary)
                 .contentTransition(.opacity)
             if !HostController.secondScreenAvailable {
-                Label(L("„Zweiter Bildschirm“ ist auf diesem macOS nicht verfügbar – die private Schnittstelle hat sich geändert. Details stehen im Log (Konsole, Prozess „Tafel Host“)."),
+                Label(L("„Zweiter Bildschirm“ ist auf diesem macOS nicht verfügbar – die private Schnittstelle hat sich geändert. Details stehen im Log (Konsole, Prozess „UniversePen Host“)."),
                       systemImage: "exclamationmark.triangle")
                     .font(.caption).foregroundStyle(.orange)
             }

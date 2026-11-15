@@ -61,7 +61,7 @@ final class VirtualDisplay {
 
     /// `pixelWidth/Height`: the iPad's full-screen pixels. The display runs HiDPI (2×), so it
     /// has the iPad's point size – UI comes out at the same physical size as on the iPad.
-    init?(pixelWidth: Int, pixelHeight: Int, name: String = "Tafel (iPad)") {
+    init?(pixelWidth: Int, pixelHeight: Int, name: String = "UniversePen (iPad)") {
         guard Self.availability.isAvailable else { return nil }
         self.pixelWidth = pixelWidth
         self.pixelHeight = pixelHeight

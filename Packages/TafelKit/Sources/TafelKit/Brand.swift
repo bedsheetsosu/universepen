@@ -1,10 +1,11 @@
 import SwiftUI
 
-/// Shared look of both apps (colours from the app icon).
+/// Shared look of both apps (UniversePen: deep-space indigo, cyan-mint accent, from the icon).
 public enum Brand {
-    public static let slateTop = Color(red: 0x2B / 255, green: 0x4A / 255, blue: 0x55 / 255)
-    public static let slate = Color(red: 0x16 / 255, green: 0x26 / 255, blue: 0x2E / 255)
-    public static let slateDeep = Color(red: 0x0C / 255, green: 0x16 / 255, blue: 0x1B / 255)
+    public static let slateTop = Color(red: 0x3A / 255, green: 0x2F / 255, blue: 0x7A / 255)
+    public static let slate = Color(red: 0x17 / 255, green: 0x1A / 255, blue: 0x3F / 255)
+    public static let slateDeep = Color(red: 0x08 / 255, green: 0x0A / 255, blue: 0x1C / 255)
+    public static let violet = Color(red: 0xC0 / 255, green: 0x8B / 255, blue: 0xFF / 255)
     public static let mint = Color(red: 0x7F / 255, green: 0xE3 / 255, blue: 0xD3 / 255)
     public static let mintBright = Color(red: 0xBF / 255, green: 0xF5 / 255, blue: 0xEC / 255)
 
@@ -82,7 +83,7 @@ public struct TafelMark: View {
                     p.addCurve(to: CGPoint(x: s * 0.62, y: s * 0.60),
                                control1: CGPoint(x: s * 0.32, y: s * 0.20), control2: CGPoint(x: s * 0.44, y: s * 0.95))
                 }
-                .stroke(LinearGradient(colors: [.white, Brand.mint], startPoint: .leading, endPoint: .trailing),
+                .stroke(LinearGradient(colors: [.white, Brand.mint, Brand.violet], startPoint: .leading, endPoint: .trailing),
                         style: StrokeStyle(lineWidth: s * 0.065, lineCap: .round))
                 .shadow(color: Brand.mint.opacity(0.7), radius: s * 0.05)
                 Capsule()

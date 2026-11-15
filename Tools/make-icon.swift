@@ -1,4 +1,4 @@
-// Renders the Tafel app icons (iPad + Mac) with CoreGraphics.
+// Renders the UniversePen app icons (iPad + Mac) with CoreGraphics.
 // Usage:  swift Tools/make-icon.swift <output-dir>
 // Writes ipad-1024.png (full-bleed square, iPadOS applies the mask) and mac-<size>.png
 // (rounded "squircle" with margin and shadow, macOS icon grid).
@@ -22,14 +22,32 @@ func bezier(_ p0: CGPoint, _ p1: CGPoint, _ p2: CGPoint, _ p3: CGPoint, _ t: CGF
 /// Draws the artwork into a square of side `s` (origin bottom-left).
 func drawArt(_ ctx: CGContext, _ s: CGFloat) {
     let space = CGColorSpace(name: CGColorSpace.sRGB)!
-    // Slate: deep blue-green, lighter towards the top left.
-    let bg = CGGradient(colorsSpace: space, colors: [color(0x2B4A55), color(0x16262E), color(0x0C161B)] as CFArray,
+    // Deep space: indigo to near-black.
+    let bg = CGGradient(colorsSpace: space, colors: [color(0x3A2F7A), color(0x171A3F), color(0x080A1C)] as CFArray,
                         locations: [0, 0.55, 1])!
     ctx.drawLinearGradient(bg, start: CGPoint(x: 0, y: s), end: CGPoint(x: s, y: 0), options: [])
-    // Soft light spot.
-    let glow = CGGradient(colorsSpace: space, colors: [color(0x6FD3C6, 0.22), color(0x6FD3C6, 0)] as CFArray, locations: [0, 1])!
-    ctx.drawRadialGradient(glow, startCenter: CGPoint(x: s * 0.42, y: s * 0.55), startRadius: 0,
-                           endCenter: CGPoint(x: s * 0.42, y: s * 0.55), endRadius: s * 0.55, options: [])
+    // Nebula glow (violet) and a cyan halo where the stroke lives.
+    let nebula = CGGradient(colorsSpace: space, colors: [color(0xB57CFF, 0.30), color(0xB57CFF, 0)] as CFArray, locations: [0, 1])!
+    ctx.drawRadialGradient(nebula, startCenter: CGPoint(x: s * 0.72, y: s * 0.78), startRadius: 0,
+                           endCenter: CGPoint(x: s * 0.72, y: s * 0.78), endRadius: s * 0.5, options: [])
+    let glow = CGGradient(colorsSpace: space, colors: [color(0x6FE3E0, 0.22), color(0x6FE3E0, 0)] as CFArray, locations: [0, 1])!
+    ctx.drawRadialGradient(glow, startCenter: CGPoint(x: s * 0.38, y: s * 0.42), startRadius: 0,
+                           endCenter: CGPoint(x: s * 0.38, y: s * 0.42), endRadius: s * 0.5, options: [])
+    // Stars: fixed pseudo-random field so every size looks the same.
+    var seed: UInt64 = 0x5EED
+    func rnd() -> CGFloat { seed = seed &* 6364136223846793005 &+ 1442695040888963407; return CGFloat(seed >> 33) / CGFloat(UInt32.max >> 1) }
+    for _ in 0..<70 {
+        let p = CGPoint(x: rnd() * s, y: rnd() * s)
+        let r = s * (0.002 + 0.006 * rnd() * rnd())
+        ctx.setFillColor(color(0xFFFFFF, 0.35 + 0.6 * rnd()))
+        ctx.fillEllipse(in: CGRect(x: p.x - r, y: p.y - r, width: 2 * r, height: 2 * r))
+    }
+    // A few bright stars with a soft glow.
+    for (x, y, k) in [(0.22, 0.80, 1.0), (0.83, 0.30, 0.8), (0.70, 0.88, 0.6)] {
+        let c = CGPoint(x: s * x, y: s * y)
+        let g = CGGradient(colorsSpace: space, colors: [color(0xFFFFFF, 0.9), color(0xFFFFFF, 0)] as CFArray, locations: [0, 1])!
+        ctx.drawRadialGradient(g, startCenter: c, startRadius: 0, endCenter: c, endRadius: s * 0.025 * k, options: [])
+    }
 
     // The stroke: a swoosh whose width follows a pressure curve (thin – full – thin).
     let p0 = CGPoint(x: s * 0.14, y: s * 0.40)
@@ -61,7 +79,7 @@ func drawArt(_ ctx: CGContext, _ s: CGFloat) {
 
     // Glow under the stroke.
     ctx.saveGState()
-    ctx.setShadow(offset: .zero, blur: s * 0.05, color: color(0x7FF0DF, 0.55))
+    ctx.setShadow(offset: .zero, blur: s * 0.05, color: color(0x8FE8FF, 0.6))
     ctx.addPath(path)
     ctx.setFillColor(color(0xEAFBF8))
     ctx.fillPath()
@@ -70,7 +88,7 @@ func drawArt(_ ctx: CGContext, _ s: CGFloat) {
     ctx.saveGState()
     ctx.addPath(path)
     ctx.clip()
-    let ink = CGGradient(colorsSpace: space, colors: [color(0xFFFFFF), color(0xBFF5EC), color(0x7FE3D3)] as CFArray,
+    let ink = CGGradient(colorsSpace: space, colors: [color(0xFFFFFF), color(0x9FE9FF), color(0xC08BFF)] as CFArray,
                          locations: [0, 0.6, 1])!
     ctx.drawLinearGradient(ink, start: p0, end: p3, options: [.drawsBeforeStartLocation, .drawsAfterEndLocation])
     ctx.restoreGState()
@@ -136,7 +154,7 @@ func render(_ size: Int, mac: Bool) -> Data {
         ctx.saveGState()
         ctx.setShadow(offset: CGSize(width: 0, height: -s * 0.012), blur: s * 0.03, color: color(0x000000, 0.35))
         ctx.addPath(shape)
-        ctx.setFillColor(color(0x0C161B))
+        ctx.setFillColor(color(0x080A1C))
         ctx.fillPath()
         ctx.restoreGState()
         ctx.saveGState()

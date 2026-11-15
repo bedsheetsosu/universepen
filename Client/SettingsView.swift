@@ -57,7 +57,7 @@ struct SettingsView: View {
         } header: {
             Text(L("Verbindung"))
         } footer: {
-            Text(L("Mit USB-Kabel zum Mac verbindet Tafel zuerst über das Kabel und sonst über WLAN. Peer-to-Peer-WLAN nur einschalten, wenn kein gemeinsames WLAN da ist – es erhöht die Latenz."))
+            Text(L("Mit USB-Kabel zum Mac verbindet UniversePen zuerst über das Kabel und sonst über WLAN. Peer-to-Peer-WLAN nur einschalten, wenn kein gemeinsames WLAN da ist – es erhöht die Latenz."))
         }
     }
 
