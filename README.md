@@ -1,39 +1,39 @@
-# UniversePen – iPad + Äbbl™ Pencil Pro als Grafikdisplay für den Mac
+# UniversePen – iPad + Äbbl™ Pencil Pro as a pen display for the Mac
 
-Kostenlos, Open Source, ohne Konto, Cloud, Werbung oder Abo. Früher „Tafel“ – im Code heißen Ordner, Targets und das Paket `TafelKit` noch so. Zwei native Apps:
+Free and open source. No account, no cloud, no ads, no subscription. Formerly called "Tafel": folders, targets and the `TafelKit` package still use that name in the code. Two native apps:
 
-- **UniversePen Host** (macOS 15+): überträgt einen Bildschirmbereich oder ein Fenster und setzt Stift-, Gesten- und Tasteneingaben vom iPad in macOS-Eingaben um.
-- **UniversePen** (iPadOS 18+): Vollbild-Anzeige, Pencil-Eingabe mit Druck, Neigung, Barrel Roll, Hover, Squeeze, Doppeltippen, Finger-Gesten.
+- **UniversePen Host** (macOS 15+): streams a screen region or a window and turns pen, gesture and keyboard input from the iPad into macOS input.
+- **UniversePen** (iPadOS 18+): full-screen view, Pencil input with pressure, tilt, barrel roll, hover, squeeze, double-tap, finger gestures.
 
-Zielhardware: iPad Air 11" M4 + Äbbl Pencil Pro, MacBook Air M5, Affinity.
+Target hardware: iPad Air 11" M4 + Äbbl Pencil Pro, MacBook Air M5, Affinity.
 
 ---
 
-## Ehrlicher Stand (15.11.2026)
+## Honest status (2026-11-15)
 
-| Bereich | Status | Wie geprüft |
+| Area | Status | How it was checked |
 |---|---|---|
-| Wire-Protokoll, Framing, Kopplungscode, Geometrie, Neigung, Druckkurve | implementiert | 21 Unit-Tests (`swift test` in `Packages/TafelKit`) |
-| TLS-PSK-Verschlüsselung, falscher Schlüssel wird abgelehnt | implementiert | echte TLS-Handshakes über localhost (Tests) |
-| Kopplung → Schlüsselübergabe → Control- + Videoverbindung → Stift-/Shortcut-Events kommen am Host an, Ping/RTT | implementiert | Integrationstest mit echtem `HostServer` + echter Client-`Session` über 127.0.0.1 |
-| Video-Encoder (VideoToolbox, Hardware, Low-Latency-RC) → Wire → Client-Decoder, H.264 und HEVC in 2360×1640 | implementiert | Pipeline-Test auf diesem Mac: 10/10 Frames kodiert und wieder dekodiert, Keyframe auf Anforderung |
-| Tastatur-Shortcuts nach aktivem Layout (QWERTZ) | implementiert | Layout-Auflösung getestet (ohne Events zu senden) |
-| Bildschirmaufnahme (ScreenCaptureKit) | implementiert, baut | **nicht auf Gerät getestet** (braucht Bildschirmaufnahme-Berechtigung) |
-| Tablet-Events an macOS (Druck, Neigung, Rotation, Proximity) | implementiert, baut | **nicht getestet** – kein Pencil im Testlauf; Stifttest-Fenster zur Prüfung eingebaut |
-| Pencil-Eingabe, Hover, Squeeze, Doppeltippen, Gesten auf dem iPad | implementiert, baut | **nicht getestet** – kein iPad/Simulator im Testlauf (keine Simulator-Runtime installiert) |
-| Affinity-Kompatibilität | **unbekannt** | muss mit dem Testplan unten am echten Gerät geprüft werden |
-| Druckkurven-Editor & Shortcut-Leiste pro App | **läuft auf echter Hardware** (15.11.2026) | frei zeichenbare Kurve mit Live-Test, Glättung, Halte-Tasten, Leiste wechselt mit der Mac-App |
-| Zweiter Bildschirm (wie Sidecar) | **läuft auf echter Hardware**, experimentell | einzige private API (`CGVirtualDisplay`), nur in diesem Modus |
-| USB-Kabel | **läuft auf echter Hardware** (15.11.2026, iPad Air M4 ↔ MacBook Air M5) | alle drei Verbindungen über das USB-Ethernet-Interface (Mac `en8`); Fallback WLAN. Nicht dokumentiert, siehe Grenzen |
-| Ton vom Mac | **Daten fließen** (Hörtest steht aus) | ScreenCaptureKit-Audio → 16-bit-PCM → iPad, Puffer max. ~100 ms; der Mac spielt den Ton weiter selbst ab |
+| Wire protocol, framing, pairing code, geometry, tilt, pressure curve | implemented | 21 unit tests (`swift test` in `Packages/TafelKit`) |
+| TLS-PSK encryption, wrong key is rejected | implemented | real TLS handshakes over localhost (tests) |
+| Pairing → key handover → control + video connection → pen/shortcut events reach the host, ping/RTT | implemented | integration test with a real `HostServer` + real client `Session` over 127.0.0.1 |
+| Video encoder (VideoToolbox, hardware, low-latency rate control) → wire → client decoder, H.264 and HEVC at 2360×1640 | implemented | pipeline test on this Mac: 10/10 frames encoded and decoded again, keyframe on request |
+| Keyboard shortcuts following the active layout (QWERTZ) | implemented | layout resolution tested (without sending events) |
+| Screen capture (ScreenCaptureKit) | implemented, builds | **not tested on device** (needs Screen Recording permission) |
+| Tablet events to macOS (pressure, tilt, rotation, proximity) | implemented, builds | **not tested** – no Pencil in the test run; a pen test window is built in for checking |
+| Pencil input, hover, squeeze, double-tap, gestures on the iPad | implemented, builds | **not tested** – no iPad/simulator in the test run (no simulator runtime installed) |
+| Affinity compatibility | **unknown** | must be checked on real hardware with the test plan below |
+| Pressure curve editor & per-app shortcut bar | **runs on real hardware** (2026-11-15) | freely drawable curve with live test, smoothing, hold keys, the bar follows the Mac app |
+| Second screen (like Sidecar) | **runs on real hardware**, experimental | the only private API (`CGVirtualDisplay`), used only in this mode |
+| USB cable | **runs on real hardware** (2026-11-15, iPad Air M4 ↔ MacBook Air M5) | all three connections over the USB Ethernet interface (Mac `en8`); falls back to Wi-Fi. Undocumented, see limits |
+| Sound from the Mac | **data flows** (listening test pending) | ScreenCaptureKit audio → 16-bit PCM → iPad, buffer max. ~100 ms; the Mac keeps playing the sound itself |
 
-Nichts davon ist „fertig für den Einsatz“ bevor der Testplan auf echter Hardware durchlaufen ist.
+None of this is "ready for use" until the test plan has been run on real hardware.
 
 ---
 
-## Bauen und installieren
+## Build and install
 
-Voraussetzungen: Xcode 27, [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`).
+Requirements: Xcode 27, [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`).
 
 ```bash
 cd universepen
@@ -47,8 +47,8 @@ xcodegen generate
 open Tafel.xcodeproj
 ```
 
-- **UniversePen Host** (Mac): läuft ohne App-ID und ohne Entwicklerkonto. Nicht sandboxed (siehe Berechtigungen). Standard ist ad-hoc-Signatur – dann vergisst macOS nach **jedem Neubau** Bedienungshilfen und Bildschirmaufnahme. Abhilfe: `Config/HostSigning.local.xcconfig` (nicht in git) mit `CODE_SIGN_IDENTITY = <SHA-1 deines „Apple Development“-Zertifikats>` anlegen (`security find-identity -v -p codesigning`). Damit bleibt die Signatur gleich und die Berechtigungen bleiben erhalten.
-- **UniversePen** (iPad): in *Signing & Capabilities* dein Team wählen. Mit einem kostenlosen Äbbl-Account läuft die App 7 Tage und belegt eine App-ID. Falls `local.tafel.pad` schon vergeben ist, Bundle-ID in `project.yml` ändern und neu generieren. Auf dem iPad muss der Entwicklermodus aktiv sein.
+- **UniversePen Host** (Mac): runs without an App ID and without a developer account. Not sandboxed (see permissions). The default is ad-hoc signing – then macOS forgets Accessibility and Screen Recording after **every rebuild**. Fix: create `Config/HostSigning.local.xcconfig` (not in git) with `CODE_SIGN_IDENTITY = <SHA-1 of your "Apple Development" certificate>` (`security find-identity -v -p codesigning`). The signature then stays the same and the permissions are kept.
+- **UniversePen** (iPad): pick your team under *Signing & Capabilities*. With a free Äbbl account the app runs for 7 days and uses up one App ID. If `local.tafel.pad` is already taken, change the bundle ID in `project.yml` and regenerate. Developer Mode must be on on the iPad.
 
 Tests:
 
@@ -60,195 +60,194 @@ cd Packages/TafelKit && swift test
 xcodebuild -project Tafel.xcodeproj -scheme PipelineTests -derivedDataPath build/dd test
 ```
 
-## Erste Schritte
+## Getting started
 
-Beide Apps führen beim ersten Start durch eine kurze **Einrichtung** (iPad: Verbindung, Pencil-Druckgefühl und -Gesten, Finger-Modus, Bildqualität und Ton, Zeichenhand für die Shortcut-Leiste; Mac: Berechtigungen, Quelle, Koppeln). Erneut aufrufbar über iPad → Einstellungen bzw. am Mac unten im UniversePen-Fenster.
+On first launch both apps walk you through a short **setup** (iPad: connection, Pencil pressure feel and gestures, finger mode, image quality and sound, drawing hand for the shortcut bar; Mac: permissions, source, pairing). You can open it again from iPad → Settings, or at the bottom of the UniversePen window on the Mac.
 
-1. UniversePen Host starten. **Bildschirmaufnahme** und **Bedienungshilfen** erlauben (Buttons in der App). Ohne Bedienungshilfen werden Eingaben von macOS still verworfen.
-   Hinweis: Bei ad-hoc signierten Builds kann macOS die Berechtigungen nach einem Neubau vergessen – dann in den Systemeinstellungen den alten Eintrag entfernen und neu erlauben.
-2. Am Mac **„iPad koppeln …“** → 12-stelliger Code erscheint (2 Minuten gültig).
-3. UniversePen auf dem iPad öffnen → unter „Neu koppeln“ den Mac antippen → Code eingeben. Danach verbindet sich das iPad automatisch, sobald der Mac erreichbar ist.
-4. Am Mac Quelle wählen: **Ganzer Bildschirm** (Standard, Wahl wird gemerkt; bei 16:10-Macs schmale Ränder oben/unten), **iPad-Ausschnitt** (füllt das iPad randlos) oder ein einzelnes **Fenster**.
+1. Start UniversePen Host. Allow **Screen Recording** and **Accessibility** (buttons in the app). Without Accessibility, macOS silently drops all input.
+   Note: with ad-hoc signed builds macOS may forget the permissions after a rebuild – then remove the old entry in System Settings and allow it again.
+2. On the Mac, click **"Pair iPad …"** → a 12-character code appears (valid for 2 minutes).
+3. Open UniversePen on the iPad → tap the Mac under "Pair new" → enter the code. From then on the iPad connects automatically whenever the Mac is reachable.
+4. Pick a source on the Mac: **Full display** (default, the choice is remembered; 16:10 Macs get thin bars at the top and bottom), **iPad region** (fills the iPad edge to edge), a single **Window**, or the experimental **Second screen**.
 
 ---
 
-## Phase 1: Was öffentliche APIs können – und was nicht
+## Phase 1: What public APIs can do – and what they can't
 
-### Bildübertragung
+### Video
 
-| Wunsch | Öffentliche API | Ergebnis |
+| Goal | Public API | Result |
 |---|---|---|
-| Mac-Bildschirm/Fenster aufnehmen | ScreenCaptureKit (`SCStream`, `SCContentFilter`) | ✅ Bildschirm, Ausschnitt (`sourceRect`) oder einzelnes Fenster |
-| Hardware-Encoding mit niedriger Latenz | VideoToolbox, `kVTVideoEncoderSpecification_EnableLowLatencyRateControl` | ✅ H.264 und HEVC, auf diesem Mac als Hardware-Encoder bestätigt |
-| Hardware-Decoding auf dem iPad | `AVSampleBufferDisplayLayer` mit „display immediately“ | ✅ |
-| **iPad als zusätzlicher, eigener Bildschirm** mit nativer Auflösung | nur `CGVirtualDisplay` – **privat** | ❌ nicht verwendet. Äbbls eigene Lösung dafür ist Sidecar. |
-| Native iPad-Auflösung ohne schwarze Ränder | Ausschnitt im iPad-Seitenverhältnis (2360×1640 ≈ 1,44:1) aus dem Mac-Bildschirm (1470×956 pt ≈ 1,54:1) | ✅ Modus „iPad-Ausschnitt“: füllt das iPad komplett, Größe und Position per Regler. Der Rest des Mac-Bildschirms ist auf dem iPad nicht sichtbar. |
+| Capture the Mac screen/a window | ScreenCaptureKit (`SCStream`, `SCContentFilter`) | ✅ screen, region (`sourceRect`) or a single window |
+| Low-latency hardware encoding | VideoToolbox, `kVTVideoEncoderSpecification_EnableLowLatencyRateControl` | ✅ H.264 and HEVC, confirmed as hardware encoder on this Mac |
+| Hardware decoding on the iPad | `AVSampleBufferDisplayLayer` with "display immediately" | ✅ |
+| **iPad as an additional, separate display** at native resolution | only `CGVirtualDisplay` – **private** | ⚠️ not available through public APIs. Äbbl's own solution is Sidecar. UniversePen offers it as a deliberate, experimental exception (see "Second screen"). |
+| Native iPad resolution without black bars | region in the iPad aspect ratio (2360×1640 ≈ 1.44:1) taken from the Mac screen (1470×956 pt ≈ 1.54:1) | ✅ "iPad region" mode: fills the iPad completely, size and position via sliders. The rest of the Mac screen is not visible on the iPad. |
 
-### Verbindung
+### Connection
 
-| Wunsch | Ergebnis |
+| Goal | Result |
 |---|---|
-| WLAN | ✅ Bonjour + TCP, `Network.framework` |
-| Ohne Router | ✅ Äbbl Peer-to-Peer-WLAN (AWDL, `includePeerToPeer`), **standardmäßig aus**: solange AWDL aktiv ist, springt das WLAN-Modul periodisch den Kanal, das kostet im normalen WLAN spürbar Latenz. Schalter auf beiden Seiten. |
-| **USB** | ⚠️ Kein eigenes USB-Protokoll (usbmuxd ist undokumentiert, DriverKit braucht Äbbl-Berechtigungen). **Aber:** Mit Kabel stellt iPadOS dem Mac ein normales USB-Ethernet-Interface (NCM, am Mac z. B. `en8`) bereit. UniversePen nutzt dafür nur normales Network.framework: der Mac lauscht auf allen Interfaces, das iPad verbindet zuerst mit `requiredInterfaceType = .wiredEthernet` und fällt nach 2,5 s auf WLAN zurück. **Befund 15.11.2026:** `NWPathMonitor` auf dem iPad zeigt nur `en0` (WLAN), `requiredInterfaceType = .wiredEthernet` scheitert also. Aber Bonjour findet den Mac zusätzlich über `en2` und `anpi0`; bindet man die Verbindung mit `requiredInterface` an das von Bonjour gelieferte `en2`, läuft sie über das Kabel (Mac-Seite `en8`). Das ist reines Network.framework, aber **nicht dokumentiert** – ein iPadOS-Update kann es ändern; dann greift der WLAN-Fallback. iPad → Einstellungen zeigt „Weg“, der Mac zeigt „Über USB-Kabel (en8)“. |
+| Wi-Fi | ✅ Bonjour + TCP, `Network.framework` |
+| Without a router | ✅ Äbbl peer-to-peer Wi-Fi (AWDL, `includePeerToPeer`), **off by default**: while AWDL is active the Wi-Fi radio hops channels periodically, which costs noticeable latency on normal Wi-Fi. Switch on both sides. |
+| **USB** | ⚠️ No custom USB protocol (usbmuxd is undocumented, DriverKit needs Äbbl entitlements). **But:** with a cable, iPadOS gives the Mac a normal USB Ethernet interface (NCM, e.g. `en8` on the Mac). UniversePen only uses plain Network.framework for it: the Mac listens on all interfaces, the iPad first connects with `requiredInterfaceType = .wiredEthernet` and falls back to Wi-Fi after 2.5 s. **Finding 2026-11-15:** `NWPathMonitor` on the iPad only shows `en0` (Wi-Fi), so `requiredInterfaceType = .wiredEthernet` fails. But Bonjour also finds the Mac via `en2` and `anpi0`; pinning the connection with `requiredInterface` to the `en2` that Bonjour returns makes it run over the cable (Mac side `en8`). That is plain Network.framework, but **undocumented** – an iPadOS update may change it; then the Wi-Fi fallback kicks in. iPad → Settings shows "Path", the Mac shows "Via USB cable (en8)". |
 
-### Stifteingabe auf dem iPad (UIKit, alles öffentlich)
+### Pen input on the iPad (UIKit, all public)
 
-| Eigenschaft | API | Ergebnis |
+| Property | API | Result |
 |---|---|---|
-| Position, bis 240 Hz | `UITouch.preciseLocation`, `coalescedTouches` | ✅ alle Zwischenwerte werden gesendet |
-| Druck | `force / maximumPossibleForce` | ✅ mit einstellbarer Kurve |
-| Neigung, Azimut | `altitudeAngle`, `azimuthAngle(in:)` | ✅ als Neigungsvektor −1…1 |
-| Barrel Roll (Pencil Pro) | `UITouch.rollAngle`, `UIHoverGestureRecognizer.rollAngle` (iPadOS 17.5+) | ✅ als Rotation in Grad |
-| Hover | `UIHoverGestureRecognizer` (iPads mit Hover, M4 Air ✅) | ✅ als Proximity + Mausbewegung |
-| Squeeze, Doppeltippen | `UIPencilInteraction` `didReceiveSqueeze` / `didReceiveTap` | ✅ frei belegbare Shortcuts |
-| Vorhergesagte Touches | `predictedTouches` | bewusst **nicht** genutzt: würden Striche erzeugen, die nie gezeichnet wurden |
-| Nachgelieferte Druckwerte | `estimatedPropertiesExpectingUpdates` | **nicht** genutzt: der erste Wert wird sofort gesendet (Latenz vor Genauigkeit) |
+| Position, up to 240 Hz | `UITouch.preciseLocation`, `coalescedTouches` | ✅ all intermediate samples are sent |
+| Pressure | `force / maximumPossibleForce` | ✅ with an adjustable curve |
+| Tilt, azimuth | `altitudeAngle`, `azimuthAngle(in:)` | ✅ as a tilt vector −1…1 |
+| Barrel roll (Pencil Pro) | `UITouch.rollAngle`, `UIHoverGestureRecognizer.rollAngle` (iPadOS 17.5+) | ✅ as rotation in degrees |
+| Hover | `UIHoverGestureRecognizer` (iPads with hover, M4 Air ✅) | ✅ as proximity + mouse movement |
+| Squeeze, double-tap | `UIPencilInteraction` `didReceiveSqueeze` / `didReceiveTap` | ✅ freely assignable shortcuts |
+| Predicted touches | `predictedTouches` | deliberately **not** used: they would create strokes that were never drawn |
+| Late pressure updates | `estimatedPropertiesExpectingUpdates` | **not** used: the first value is sent right away (latency before accuracy) |
 
-### Eingabe auf dem Mac
+### Input on the Mac
 
-| Eigenschaft | Öffentliche API | Ergebnis |
+| Property | Public API | Result |
 |---|---|---|
-| Stiftposition, Klick, Ziehen | `CGEvent` Mausereignisse, `CGEvent.post` (braucht Bedienungshilfen) | ✅ |
-| Druck, Neigung, Rotation, Proximity | `CGEventTypes.h`: Subtyp `kCGEventMouseSubtypeTabletPoint`, Felder `kCGMouseEventPressure`, `kCGTabletEventPointPressure`, `kCGTabletEventTiltX/Y`, `kCGTabletEventRotation`, Ereignistyp `kCGEventTabletProximity` | ✅ implementiert. Cocoa-Apps lesen das als `NSEvent.pressure/.tilt/.rotation`. **Ob Affinity synthetische Tablet-Events akzeptiert, ist ungetestet.** |
-| Echtes virtuelles Tablet-HID-Gerät | DriverKit `HIDDriverKit` mit Virtual-HID-Entitlement | ❌ Entitlement wird nur von Äbbl auf Antrag vergeben |
-| Zoomen per Pinch | Magnify-Gesten-Events sind nicht öffentlich erzeugbar | Ersatz: Scrollen mit ⌘/⌥/⌃ oder ⌘+/⌘−, wählbar |
-| Arbeitsfläche drehen | keine öffentliche Rotations-Geste | Ersatz: frei belegbare Shortcuts pro Drehschritt (Standard: aus) |
-| Verschieben | `CGEvent` Scroll-Events in Pixeln | ✅ zwei Finger |
+| Pen position, click, drag | `CGEvent` mouse events, `CGEvent.post` (needs Accessibility) | ✅ |
+| Pressure, tilt, rotation, proximity | `CGEventTypes.h`: subtype `kCGEventMouseSubtypeTabletPoint`, fields `kCGMouseEventPressure`, `kCGTabletEventPointPressure`, `kCGTabletEventTiltX/Y`, `kCGTabletEventRotation`, event type `kCGEventTabletProximity` | ✅ implemented. Cocoa apps read this as `NSEvent.pressure/.tilt/.rotation`. **Whether Affinity accepts synthetic tablet events is untested.** |
+| Real virtual tablet HID device | DriverKit `HIDDriverKit` with the virtual HID entitlement | ❌ Äbbl only grants the entitlement on request |
+| Pinch to zoom | magnify gesture events can't be created with public APIs | substitute: scrolling with ⌘/⌥/⌃ or ⌘+/⌘−, selectable |
+| Rotate the canvas | no public rotation gesture | substitute: freely assignable shortcuts per rotation step (default: off) |
+| Pan | `CGEvent` scroll events in pixels | ✅ two fingers |
 
-**Alternative, falls Affinity die Tablet-Felder ignoriert:** Mit öffentlichen APIs gibt es keinen besseren Weg als `CGEvent`. Dann bleiben Position/Klick (Zeichnen ohne Druck) plus Druck-Ersatz über Shortcuts (z. B. Pinselgröße `[` / `]` auf der Shortcut-Leiste). Das wäre eine echte Einschränkung, kein Workaround.
+**Fallback if Affinity ignores the tablet fields:** with public APIs there is no better way than `CGEvent`. What's left is position/click (drawing without pressure) plus pressure substitutes via shortcuts (e.g. brush size `[` / `]` on the shortcut bar). That would be a real limitation, not a workaround.
 
 ---
 
-## Architektur
+## Architecture
 
 ```
 iPad (UniversePen)                                 Mac (UniversePen Host)
 ┌──────────────────────────┐   TLS 1.2 PSK / TCP   ┌─────────────────────────────┐
-│ CanvasView (UIKit)       │  Control-Verbindung   │ HostServer                  │
+│ CanvasView (UIKit)       │  control connection   │ HostServer                  │
 │  Pencil → PenSample ─────┼──────────────────────►│  → InputInjector → CGEvent  │
-│  Gesten → Scroll/Shortcut│  (noDelay, klein)     │     (Tablet-Felder, Tasten) │
-│  Ping ◄──────────────────┼───────────────────────┤  Pong                       │
+│  gestures → scroll/keys  │  (noDelay, small)     │     (tablet fields, keys)   │
+│  ping ◄──────────────────┼───────────────────────┤  pong                       │
 │                          │                       │                             │
-│ VideoRenderer            │  Video-Verbindung     │ ScreenStreamer              │
+│ VideoRenderer            │  video connection     │ ScreenStreamer              │
 │  AVSampleBufferDisplay◄──┼───────────────────────┤  ScreenCaptureKit           │
-│  Layer (HW-Decode)       │  (H.264/HEVC)         │  → VideoEncoder (VT, HW)    │
+│  Layer (HW decode)       │  (H.264/HEVC)         │  → VideoEncoder (VT, HW)    │
 └──────────────────────────┘                       └─────────────────────────────┘
-              Bonjour _tafel._tcp (+ _tafelpair._tcp nur während Kopplung)
+              Bonjour _tafel._tcp (+ _tafelpair._tcp only while pairing)
 ```
 
-- **Zwei Verbindungen**, damit große Videoframes Stift-Pakete nie aufhalten (kein Head-of-Line-Blocking).
-- **Frame-Dropping vor dem Encoder:** liegen mehr als ~2 Frames im Socket, wird das nächste Bild gar nicht erst kodiert – das Bild bleibt aktuell statt zu verzögern.
-- Keine B-Frames, Echtzeit-Modus, Keyframe bei Verbindung und auf Anforderung (Decoder-Fehler).
-- `Packages/TafelKit`: gemeinsamer Code (Protokoll, Kopplung, Geometrie, Transport, Keychain).
-- `Host/`: Mac-App. `Client/`: iPad-App. `PipelineTests/`: Integrationstests auf dem Mac.
+- **Two connections**, so large video frames never hold up pen packets (no head-of-line blocking).
+- **Frame dropping before the encoder:** if more than ~2 frames are queued in the socket, the next frame isn't encoded at all – the image stays current instead of lagging.
+- No B-frames, real-time mode, keyframe on connect and on request (decoder errors).
+- `Packages/TafelKit`: shared code (protocol, pairing, geometry, transport, keychain).
+- `Host/`: Mac app. `Client/`: iPad app. `PipelineTests/`: integration tests on the Mac.
 
-### Sicherheit
+### Security
 
-- Verbindungen nur mit gekoppelten Geräten: Ohne Schlüssel scheitert der TLS-Handshake (getestet).
-- Kopplung: 12 Zeichen Crockford-Base32 (60 Bit), Kopplungs-Listener nur 2 Minuten offen und schließt nach der ersten Kopplung. Daraus per HKDF ein TLS-PSK. Darüber wird der zufällige 256-Bit-Host-Schlüssel übergeben, gespeichert im Schlüsselbund (nur dieses Gerät).
-- Verschlüsselung: TLS 1.2 mit `TLS_PSK_WITH_AES_128_GCM_SHA256` (wie in Äbbls Peer-to-Peer-Beispielcode). Einschränkung: **keine Forward Secrecy** – wer später den Host-Schlüssel erbeutet, könnte zuvor mitgeschnittenen Verkehr entschlüsseln.
-- Ein Host-Schlüssel für alle gekoppelten iPads. „Alle Kopplungen aufheben“ erzeugt einen neuen; einzelne iPads lassen sich am Mac nicht getrennt widerrufen (am iPad schon: Mac entfernen).
-- Keine externen Server, keine Telemetrie. Nur lokales Netz.
+- Connections only with paired devices: without the key the TLS handshake fails (tested).
+- Pairing: 12 characters of Crockford Base32 (60 bits); the pairing listener is open for only 2 minutes and closes after the first pairing. A TLS PSK is derived from it via HKDF. Over that, the random 256-bit host key is handed over and stored in the keychain (this device only).
+- Encryption: TLS 1.2 with `TLS_PSK_WITH_AES_128_GCM_SHA256` (as in Äbbl's peer-to-peer sample code). Limitation: **no forward secrecy** – anyone who later gets hold of the host key could decrypt previously recorded traffic.
+- One host key for all paired iPads. "Unpair all" creates a new one; individual iPads can't be revoked separately on the Mac (they can on the iPad: remove the Mac).
+- No external servers, no telemetry. Local network only.
 
-### Schulverwaltete Geräte
+### School-managed devices
 
-UniversePen ändert keine Profile, Einschränkungen oder MDM-Einstellungen und versucht nicht, sie zu umgehen. Auf einem verwalteten iPad kann die Installation per Xcode (Entwicklermodus) oder der Zugriff aufs lokale Netzwerk per Richtlinie gesperrt sein – dann funktioniert UniversePen dort nicht, und das ist so gewollt.
-
----
-
-## Verbindungsabbrüche
-
-- Der USB-Netzwerklink zum iPad fällt gelegentlich für ~3 s weg (im Mac-Log von `remoted`: `kIONetworkLinkStateInactive`). Beobachtet bei einer USB-2-Verbindung (High Speed); ob ein anderes Kabel hilft, ist offen.
-- UniversePen erkennt das nach 2,5 s ohne Ping-Antwort (statt nach einem langen TCP-Timeout), lässt das letzte Bild stehen und verbindet sich bis zu 30 s lang automatisch neu: zuerst über das Kabel, sonst WLAN. Über WLAN prüft UniversePen alle 10 s, ob das Kabel wieder geht, und wechselt zurück (bei Fehlschlag höchstens einmal pro Minute). Auf echter Hardware bestätigt (15.11.2026).
-- Am Mac werden beim Abbruch gedrückte Stift-/Maus-/Tastenzustände losgelassen.
-- Encoder- oder Decoder-Fehler lösen sofort ein neues Vollbild aus, statt bis zum nächsten periodischen Keyframe (5 s) einzufrieren.
-
-## Zweiter Bildschirm (experimentell, private API)
-
-**Bewusste Ausnahme von der Regel „nur öffentliche APIs“, auf Wunsch eingebaut (15.11.2026).**
-
-- Modus „Zweiter Bildschirm“: UniversePen legt mit der **privaten** CoreGraphics-Klasse `CGVirtualDisplay` einen zusätzlichen Mac-Bildschirm „UniversePen (iPad)“ an – 1180×820 pt, HiDPI (2360×1640 Pixel), 60 Hz, bei Hochformat gedreht – und überträgt ihn randlos. Wie Sidecar, aber ohne gleiche Äbbl-ID (Kopplung per Code), also auch mit Geräten, auf denen man sich nicht mit dem eigenen Account anmelden kann.
-- Anordnung unter Systemeinstellungen → Displays. Ohne iPad wird der Bildschirm nach 10 s wieder entfernt (kurze USB-Aussetzer überbrückt), macOS holt die Fenster zurück; beim Beenden von UniversePen Host sofort.
-- Auf echter Hardware geprüft (macOS auf MacBook Air M5): Bildschirm erscheint, Stream 2360×1640.
-- **Risiko:** Äbbl kann die Schnittstelle mit jedem macOS-Update ändern oder entfernen. UniversePen meldet dann „nicht verfügbar“; alle anderen Modi bleiben unberührt. Die Deklarationen liegen isoliert in `Host/Private/CGVirtualDisplayPrivate.h`, genutzt nur von `Host/VirtualDisplay.swift`.
-- Kein Eingriff in MDM, Profile oder Systemeinstellungen; es wird nur eine Bildschirm-Sitzung angelegt.
-- Kostenlose Alternative ohne private API: ein HDMI-/USB-C-Display-Dummy-Stecker + Modus „Ganzer Bildschirm“ mit diesem Bildschirm (meist 16:9 → Ränder).
-
-## Finger & Multi-Touch (wie bei einem Stift-Display)
-
-Auf echter Hardware bestätigt (15.11.2026).
-
-- **Ein Finger** (Einstellung „Ein Finger“: Maus / Stift mit festem Druck / Aus): Tippen = Klick an der Aufsetzstelle, zweimal = Doppelklick, Ziehen = Klicken und Ziehen (zeichnet in Affinity ohne Druck), Halten ≈ 0,55 s = Rechtsklick.
-- **Handballen-Schutz:** Finger lösen nichts aus, solange der Pencil schwebt, aufliegt oder vor < 0,6 s benutzt wurde, und nicht bei großer Auflagefläche (`majorRadius`, Schwelle einstellbar). Ein zweiter Finger beendet eine laufende Ein-Finger-Aktion sauber (kein Fehlklick vor Pinch/Scroll).
-- **Mehrere Finger:** zwei Finger scrollen, Pinch zoomt (Methode wählbar), Drehen → Shortcuts, Zwei-/Drei-/Vier-Finger-Tipp und Drei-Finger-Wischen in alle Richtungen frei belegbar (Standard wie am Mac-Trackpad: links/rechts = Schreibtisch wechseln, oben = Mission Control, unten = App-Exposé; auf echter Hardware bestätigt).
-- Vier-Finger-Gesten fängt iPadOS ab, wenn Multitasking-Gesten in den iPad-Einstellungen aktiv sind.
-- Echte Trackpad-Gesten (Magnify/Rotate) kann der Mac mit öffentlichen APIs nicht erzeugen, deshalb Zoom über Scroll + Modifier.
-
-## Tastatur
-
-- **Hardware-Tastatur am iPad** (z. B. Logi Combo Touch): jede Taste geht als physische Tastenposition (USB-HID-Usage → macOS-Keycode) an den Mac, inkl. ⌘ ⌥ ⌃ ⇧, Pfeile, F-Tasten. Welches Zeichen entsteht, bestimmt das **Tastaturlayout des Mac** – bei gleichem Layout auf beiden Seiten (z. B. Deutsch) passt alles inkl. ä ö ü ß.
-- iPadOS behält einige Kurzbefehle für sich (⌘-Tab, ⌘-Leertaste, Globus-Taste, ⌘-H …), die kommen nie bei UniversePen an.
-- Manche ISO-Tastaturen melden `^` und `<` vertauscht → Einstellungen → Tastatur → „Tasten ^ und < tauschen“.
-- **Trackpad / Maus am iPad** (auf echter Hardware bestätigt, Logi Combo Touch) steuert den Mac-Zeiger: Position absolut (dort, wo der iPad-Zeiger über dem Bild steht), Klick, Zwei-Finger-Klick = Rechtsklick, Doppel-/Dreifachklick, Ziehen, Zwei-Finger-Scrollen, Pinch/Drehen wie die Finger-Gesten. Der iPad-Zeiger wird ausgeblendet (der Mac-Cursor ist im Video zu sehen) – abschaltbar. Modifier der Tastatur gelten auch für Klicks (z. B. ⌥-Ziehen).
-- **Bildschirmtastatur** (…-Menü): sendet getippten Text als Unicode (unabhängig vom Mac-Layout), ohne Autokorrektur.
-- Gehaltene Tasten werden beim Trennen und beim Öffnen von Einstellungen losgelassen, damit am Mac nichts „hängt“.
-
-## Weitere bekannte Grenzen
-
-- **Kein erweiterter Bildschirm**, sondern Spiegelung eines Bereichs (siehe oben).
-- **Fenster-Modus:** Position wird alle 0,5 s nachgeführt; bei Größenänderung des Fensters Stream neu starten (Modus kurz wechseln).
-- **Neigungsrichtung** ist nicht an echter Hardware geprüft → Umkehr-Schalter für X und Y.
-- **Zoom-Belegung in Affinity:** ob ⌘+Scrollen oder ⌥+Scrollen zoomt, hängt von Affinitys Einstellungen ab → wählbar.
-- **Latenzanzeige:** „RTT“ ist die echte Netz-Umlaufzeit. „Bild“ ist das Alter eines Frames bei Empfang (Aufnahme + Kodierung + Netz), geschätzt über einen Uhrenabgleich per Ping; Dekodierung und Anzeige (typisch wenige ms) sind nicht enthalten.
-- **Mauszeiger** wird mit übertragen (hilft beim Hover).
-- **Tablet-Kennung:** UniversePen meldet sich mit einer eigenen, erfundenen Vendor-ID und gibt sich nicht als Wacom aus. Apps, die nur bestimmte Hersteller akzeptieren, würden Druck dann ignorieren.
+UniversePen does not change profiles, restrictions or MDM settings and does not try to get around them. On a managed iPad, installing via Xcode (Developer Mode) or local network access may be blocked by policy – then UniversePen won't work there, and that is intended.
 
 ---
 
-## Phase 5: Testplan auf echter Hardware
+## Connection drops
 
-Bitte der Reihe nach, Ergebnis jeweils notieren:
+- The USB network link to the iPad occasionally drops for ~3 s (in the Mac log from `remoted`: `kIONetworkLinkStateInactive`). Seen on a USB 2 connection (High Speed); whether another cable helps is still open.
+- UniversePen detects this after 2.5 s without a ping reply (instead of after a long TCP timeout), keeps the last frame on screen and reconnects automatically for up to 30 s: over the cable first, otherwise Wi-Fi. While on Wi-Fi, UniversePen checks every 10 s whether the cable works again and switches back (after a failure at most once per minute). Confirmed on real hardware (2026-11-15).
+- On the Mac, any pressed pen/mouse/key state is released when the connection drops.
+- Encoder or decoder errors trigger a new full frame immediately instead of freezing until the next periodic keyframe (5 s).
 
-1. **Verbindung:** Koppeln, Verbinden. Statusanzeige (… → „Status anzeigen“): RTT im WLAN typischerweise < 10 ms, 60 fps bei Bewegung.
-2. **Bild:** Modus „iPad-Ausschnitt“ → keine schwarzen Ränder, scharf? Encoder-Zeile am Mac soll „Hardware · Low-Latency-RC“ zeigen.
-3. **Stifttest-Fenster** (Mac: „Stifttest öffnen …“, in den Ausschnitt schieben) – das ist die entscheidende Prüfung, ob macOS die Daten liefert:
-   - Hover → `tabletProximity: in`, dann `hover`-Zeilen
-   - Zeichnen mit wechselndem Druck → `subtype=tabletPoint`, `pressure` ändert sich, Linienbreite variiert
-   - Stift neigen → `tilt` ändert sich; Richtung prüfen, ggf. Umkehr-Schalter
-   - Pencil Pro drehen → `rotation` ändert sich
-4. **Affinity:** Pinsel mit Druck→Größe (Pinsel-Dynamik), Strich leicht → fest. Dann Neigung/Rotation-Dynamik, falls der Pinsel sie nutzt.
-   - Wenn 3. Druck zeigt, Affinity aber nicht: Affinity ignoriert synthetische Tablet-Events → als Einschränkung dokumentieren.
-5. **Gesten:** zwei Finger verschieben, Pinch zoomen (Zoom-Methode anpassen), Zwei-/Drei-Finger-Tipp = Undo/Redo.
-6. **Squeeze / Doppeltippen** → konfigurierte Aktion in Affinity (Standard: Doppeltippen = Radierer E, Squeeze = Undo).
-7. **Abbruch-Fall:** Mitten im Strich WLAN am iPad aus → am Mac darf die Maustaste nicht „hängen“ bleiben.
+## Second screen (experimental, private API)
 
-## Phase 7: Optimierungsideen (noch nicht umgesetzt)
+**A deliberate exception to the "public APIs only" rule, added on request (2026-11-15).**
 
-- Video über UDP/DTLS statt TCP (kein Warten auf verlorene Pakete).
-- Bitrate automatisch an RTT/Backlog anpassen.
-- Dirty-Region-Erkennung, um bei Standbildern Bandbreite zu sparen (ScreenCaptureKit liefert bei Stillstand ohnehin kaum Frames).
-- Per-Gerät-Schlüssel für einzelnes Widerrufen.
+- "Second screen" mode: UniversePen uses the **private** CoreGraphics class `CGVirtualDisplay` to create an additional Mac display "UniversePen (iPad)" – 1180×820 pt, HiDPI (2360×1640 pixels), 60 Hz, rotated in portrait – and streams it edge to edge. Like Sidecar, but without needing the same Äbbl ID (pairing by code), so it also works with devices you can't sign in to with your own account.
+- Arrange it under System Settings → Displays. Without the iPad the display is removed after 10 s (short USB dropouts are bridged) and macOS brings the windows back; when UniversePen Host quits, it's removed immediately.
+- Checked on real hardware (macOS on MacBook Air M5): the display appears, stream at 2360×1640.
+- **Risk:** Äbbl can change or remove this interface with any macOS update. UniversePen then reports "not available"; all other modes are unaffected. The declarations are isolated in `Host/Private/CGVirtualDisplayPrivate.h` and only used by `Host/VirtualDisplay.swift`.
+- No changes to MDM, profiles or system settings; it only creates a display session.
+- Free alternative without a private API: an HDMI/USB-C display dummy plug + "Full display" mode on that display (usually 16:9 → bars).
 
-## Steuerung von außen & Protokoll
+## Fingers & multi-touch (like on a pen display)
 
-- **[UniversePen SDK](SDK/README.md) – MIT-Lizenz, für jeden nutzbar:** lokale Entwickler-API (in der Mac-App einschalten, nur `127.0.0.1:47800`) mit **Input API** (Druck, Neigung, Drehung, Hover, Touch, Gesten live), **Display API** (Modus, zweiter Bildschirm, Auflösung, Bildrate, Verbindungsstatus) und **Control API** (Shortcuts, App-Profile, Druckkurven, alle iPad-Einstellungen). Swift-Paket `UniversePenKit`, Beispiele in Python, JavaScript und Swift. Auf echter Hardware getestet (15.11.2026).
+Confirmed on real hardware (2026-11-15).
 
-- [`docs/API.md`](docs/API.md): `universepen://…`-URLs für Kurzbefehle, Terminal, Stream Deck (Modus wechseln, Koppeln).
-- [`docs/PROTOCOL.md`](docs/PROTOCOL.md): vollständiges Wire-Protokoll – Grundlage für eigene Clients/Hosts (z. B. Android, Windows).
+- **One finger** (setting "One finger": Mouse / Pen with fixed pressure / Off): tap = click where you touch, tap twice = double-click, drag = click and drag (draws in Affinity without pressure), hold ≈ 0.55 s = right-click.
+- **Palm rejection:** fingers do nothing while the Pencil hovers, touches, or was used less than 0.6 s ago, nor with a large contact area (`majorRadius`, adjustable threshold). A second finger cleanly ends a running one-finger action (no stray click before pinch/scroll).
+- **Multiple fingers:** two fingers scroll, pinch zooms (method selectable), rotate → shortcuts, two-/three-/four-finger tap and three-finger swipe in all directions are freely assignable (defaults like a Mac trackpad: left/right = switch desktop, up = Mission Control, down = App Exposé; confirmed on real hardware).
+- iPadOS intercepts four-finger gestures if multitasking gestures are enabled in the iPad settings.
+- The Mac can't create real trackpad gestures (magnify/rotate) with public APIs, so zoom works via scroll + modifier.
 
-## Sprachen & Übersetzungen
+## Keyboard
 
-Die Apps haben eine eigene Sprachwahl (erster Schritt der Einrichtung, später in den Einstellungen), unabhängig von der Systemsprache. Standard ist Englisch.
+- **Hardware keyboard on the iPad** (e.g. Logi Combo Touch): every key is sent to the Mac as a physical key position (USB HID usage → macOS keycode), including ⌘ ⌥ ⌃ ⇧, arrows, F keys. Which character comes out is decided by the **Mac's keyboard layout** – with the same layout on both sides (e.g. German) everything matches, including ä ö ü ß.
+- iPadOS keeps some shortcuts for itself (⌘-Tab, ⌘-Space, Globe key, ⌘-H …); those never reach UniversePen.
+- Some ISO keyboards report `^` and `<` swapped → Settings → Keyboard → "Swap the ^ and < keys".
+- **Trackpad / mouse on the iPad** (confirmed on real hardware, Logi Combo Touch) controls the Mac pointer: absolute position (where the iPad pointer is over the image), click, two-finger click = right-click, double/triple click, drag, two-finger scroll, pinch/rotate like the finger gestures. The iPad pointer is hidden (the Mac cursor is visible in the video) – can be turned off. Keyboard modifiers also apply to clicks (e.g. ⌥-drag).
+- **On-screen keyboard** (… menu): sends typed text as Unicode (independent of the Mac layout), without autocorrect.
+- Held keys are released on disconnect and when opening settings, so nothing gets "stuck" on the Mac.
 
-- Texte stehen in `Packages/TafelKit/Sources/TafelKit/Translations*.swift`, Schlüssel ist jeweils der deutsche Originaltext.
-- `python3 Tools/check-l10n.py` zeigt fehlende Übersetzungen.
-- **Fehler gefunden?** Die meisten Übersetzungen sind maschinell entstanden. Bitte ein Issue mit der Vorlage „Translation fix“ anlegen (Sprache, Stelle in der App, aktueller Text, Vorschlag) – oder direkt einen Pull Request auf die passende Tabelle.
+## Other known limits
 
-## Lizenz
+- **Mirroring, not an extended display**, in all modes except the experimental "Second screen" (see above).
+- **Window mode:** the position is tracked every 0.5 s; if the window is resized, restart the stream (switch the mode briefly).
+- **Tilt direction** hasn't been checked on real hardware → invert switches for X and Y.
+- **Zoom mapping in Affinity:** whether ⌘+scroll or ⌥+scroll zooms depends on Affinity's settings → selectable.
+- **Latency display:** "RTT" is the real network round-trip time. "Frame" is the age of a frame on arrival (capture + encoding + network), estimated via a clock sync over ping; decoding and display (typically a few ms) are not included.
+- **Mouse pointer** is streamed too (helps with hover).
+- **Tablet identity:** UniversePen reports its own, made-up vendor ID and doesn't pretend to be Wacom. Apps that only accept certain vendors would then ignore pressure.
+
+---
+
+## Phase 5: Test plan on real hardware
+
+Please go through in order and note each result:
+
+1. **Connection:** pair, connect. Status display (… → "Show status"): RTT on Wi-Fi typically < 10 ms, 60 fps while moving.
+2. **Image:** "iPad region" mode → no black bars, sharp? The encoder line on the Mac should say "Hardware · Low-Latency-RC".
+3. **Pen test window** (Mac: "Open Pen Test …", move it into the region) – this is the decisive check whether macOS gets the data:
+   - hover → `tabletProximity: in`, then `hover` lines
+   - draw with varying pressure → `subtype=tabletPoint`, `pressure` changes, line width varies
+   - tilt the pen → `tilt` changes; check the direction, use the invert switch if needed
+   - roll the Pencil Pro → `rotation` changes
+4. **Affinity:** brush with pressure→size (brush dynamics), stroke light → firm. Then tilt/rotation dynamics if the brush uses them.
+   - If step 3 shows pressure but Affinity doesn't: Affinity ignores synthetic tablet events → document as a limitation.
+5. **Gestures:** pan with two fingers, pinch to zoom (adjust the zoom method), two-/three-finger tap = undo/redo.
+6. **Squeeze / double-tap** → the configured action in Affinity (default: double-tap = eraser E, squeeze = undo).
+7. **Drop case:** turn off Wi-Fi on the iPad mid-stroke → the mouse button on the Mac must not stay "stuck".
+
+## Phase 7: Optimisation ideas (not implemented yet)
+
+- Video over UDP/DTLS instead of TCP (no waiting for lost packets).
+- Adapt the bitrate automatically to RTT/backlog.
+- Dirty-region detection to save bandwidth on still images (ScreenCaptureKit hardly delivers frames when nothing changes anyway).
+- Per-device keys for revoking devices individually.
+
+## External control & protocol
+
+- **[UniversePen SDK](SDK/README.md) – MIT licence, free for anyone to use:** local developer API (switch it on in the Mac app, `127.0.0.1:47800` only) with an **Input API** (pressure, tilt, rotation, hover, touch, gestures live), a **Display API** (mode, second screen, resolution, frame rate, connection status) and a **Control API** (shortcuts, app profiles, pressure curves, all iPad settings). Swift package `UniversePenKit`, examples in Python, JavaScript and Swift. Tested on real hardware (2026-11-15).
+- [`docs/API.md`](docs/API.md): `universepen://…` URLs for Shortcuts, Terminal, Stream Deck (switch mode, pair).
+- [`docs/PROTOCOL.md`](docs/PROTOCOL.md): the complete wire protocol – the basis for your own clients/hosts (e.g. Android, Windows).
+
+## Languages & translations
+
+The apps have their own language picker (first step of the setup, later in the settings), independent of the system language. The default is English.
+
+- Texts live in `Packages/TafelKit/Sources/TafelKit/Translations*.swift`; each key is the original German text.
+- `python3 Tools/check-l10n.py` lists missing translations.
+- **Found a mistake?** Most translations are machine-made. Please open an issue with the "Translation fix" template (language, where in the app, current text, suggestion) – or send a pull request for the matching table directly.
+
+## Licence
 
 Copyright © 2026 Biene
 
-UniversePen ist freie Software unter der **GNU General Public License v3.0** (siehe [`LICENSE`](LICENSE)): Du darfst den Code nutzen, verändern und weitergeben. Wer eine veränderte Version weitergibt, muss deren Quellcode ebenfalls unter der GPL-3.0 offenlegen. Es gibt keine Gewährleistung.
+UniversePen is free software under the **GNU General Public License v3.0** (see [`LICENSE`](LICENSE)): you may use, modify and share the code. If you distribute a modified version, you must publish its source code under the GPL-3.0 as well. There is no warranty.
 
-Ausnahme: Der Ordner [`SDK/`](SDK) (Entwickler-SDK, Beispiele, API-Beschreibung) steht unter der **MIT-Lizenz** ([`SDK/LICENSE`](SDK/LICENSE)) und darf auch in geschlossenen Programmen verwendet werden.
+Exception: the [`SDK/`](SDK) folder (developer SDK, examples, API description) is under the **MIT licence** ([`SDK/LICENSE`](SDK/LICENSE)) and may also be used in closed-source programs.

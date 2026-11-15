@@ -1,4 +1,4 @@
-name: Translation fix / Übersetzung verbessern
+name: Translation fix
 description: A text in the app is wrong, awkward or missing in your language.
 title: "[i18n] "
 labels: ["translation"]
@@ -7,7 +7,6 @@ body:
     attributes:
       value: |
         Thanks for helping! Most translations were machine-made, so native speakers are very welcome.
-        Danke fürs Mithelfen! Die meisten Übersetzungen sind maschinell entstanden.
   - type: dropdown
     id: language
     attributes:
@@ -28,8 +27,8 @@ body:
     attributes:
       label: App
       options:
-        - iPad (Tafel)
-        - Mac (Tafel Host)
+        - iPad (UniversePen)
+        - Mac (UniversePen Host)
     validations:
       required: true
   - type: input
