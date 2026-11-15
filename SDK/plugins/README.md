@@ -61,9 +61,11 @@ plugin as stopped (the Pencil keeps working unfiltered); reload it after fixing 
 `tap2 tap3 tap4`, `swipe3.left/right/up/down`, `pinch` (value = scale step), `rotate` (degrees),
 `undoScrub` (steps), `pencil.doubleTap`, `pencil.squeeze` (on release), and the squeeze phases
 `pencil.squeezeBegan` / `pencil.squeezeEnded` – e.g. to do something while the squeeze is held.
+If the Pencil touched the glass while squeezed, `pencil.squeezeEnded` has `value: 1` and the iPad
+does **not** run the squeeze's own action (radial menu, undo, …): the squeeze was used as a modifier.
 
 ## Examples
 
-- [`squeeze-scroll`](examples/squeeze-scroll/main.js) – hold the squeeze and move the hovering Pencil to scroll.
+- [`squeeze-scroll`](examples/squeeze-scroll/main.js) – hold the squeeze, put the Pencil down and drag to scroll.
 - [`smoothing`](examples/smoothing/main.js) – exponential smoothing filter with an on/off action for the iPad.
 - [`affinity-actions`](examples/affinity-actions/main.js) – new layer / duplicate / swap colours as iPad actions.

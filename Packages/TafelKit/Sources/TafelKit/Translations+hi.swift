@@ -353,7 +353,6 @@ extension Translations {
         "Als Preset speichern": "प्रीसेट के रूप में सेव करें",
         "Bereich %d": "क्षेत्र %d",
         "Name": "नाम",
-        "Noch keine gespeichert": "अभी कोई सेव नहीं है",
         "Presets": "प्रीसेट",
         "Speichern": "सेव करें",
         "%@ nicht gefunden": "%@ नहीं मिला",
@@ -386,5 +385,6 @@ extension Translations {
         "Gilt jetzt für %@ (Preset „%@“)": "अभी %@ के लिए इस्तेमाल हो रहा है (प्रीसेट “%@”)",
         "Normaler Bereich (alle anderen Apps)": "सामान्य क्षेत्र (बाकी सभी ऐप)",
         "Von der App lösen": "ऐप से अलग करें",
+        "Ganze Fläche": "पूरा क्षेत्र",
     ]
 }

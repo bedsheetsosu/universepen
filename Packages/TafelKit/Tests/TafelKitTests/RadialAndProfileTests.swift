@@ -102,6 +102,12 @@ final class TabletAreaTests: XCTestCase {
         XCTAssertEqual(s.effective(for: nil).tabletArea, s.tabletArea)
     }
 
+    func testDefaultTabletAreaIsFullArea() {
+        XCTAssertEqual(InputSettings().tabletArea, .full)
+        XCTAssertTrue(TabletPreset.fullArea.matches(.full))
+        XCTAssertTrue(TabletPreset.fullArea.isBuiltIn)
+    }
+
     func testTabletModeRestartsStream() {
         let a = ClientConfig(viewPixelWidth: 10, viewPixelHeight: 10, quality: StreamQuality())
         var b = a; b.tabletMode = true

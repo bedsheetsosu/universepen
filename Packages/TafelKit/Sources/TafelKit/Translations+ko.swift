@@ -353,7 +353,6 @@ extension Translations {
         "Als Preset speichern": "프리셋으로 저장",
         "Bereich %d": "영역 %d",
         "Name": "이름",
-        "Noch keine gespeichert": "아직 저장된 항목 없음",
         "Presets": "프리셋",
         "Speichern": "저장",
         "%@ nicht gefunden": "%@을(를) 찾을 수 없음",
@@ -386,5 +385,6 @@ extension Translations {
         "Gilt jetzt für %@ (Preset „%@“)": "지금 %@에 사용 중(프리셋 '%@')",
         "Normaler Bereich (alle anderen Apps)": "기본 영역(그 밖의 모든 앱)",
         "Von der App lösen": "앱 연결 해제",
+        "Ganze Fläche": "전체 영역",
     ]
 }

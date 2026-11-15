@@ -353,7 +353,6 @@ extension Translations {
         "Als Preset speichern": "Guardar como preajuste",
         "Bereich %d": "Área %d",
         "Name": "Nombre",
-        "Noch keine gespeichert": "Aún no hay ninguno guardado",
         "Presets": "Preajustes",
         "Speichern": "Guardar",
         "%@ nicht gefunden": "%@ no encontrado",
@@ -386,5 +385,6 @@ extension Translations {
         "Gilt jetzt für %@ (Preset „%@“)": "Ahora se usa para %@ (preajuste «%@»)",
         "Normaler Bereich (alle anderen Apps)": "Área normal (todas las demás apps)",
         "Von der App lösen": "Desvincular de la app",
+        "Ganze Fläche": "Área completa",
     ]
 }

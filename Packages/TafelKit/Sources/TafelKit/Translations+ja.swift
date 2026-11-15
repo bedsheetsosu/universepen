@@ -353,7 +353,6 @@ extension Translations {
         "Als Preset speichern": "プリセットとして保存",
         "Bereich %d": "エリア %d",
         "Name": "名前",
-        "Noch keine gespeichert": "まだ保存されていません",
         "Presets": "プリセット",
         "Speichern": "保存",
         "%@ nicht gefunden": "%@ が見つかりません",
@@ -386,5 +385,6 @@ extension Translations {
         "Gilt jetzt für %@ (Preset „%@“)": "現在 %@ で使用中（プリセット「%@」）",
         "Normaler Bereich (alle anderen Apps)": "通常のエリア（その他すべてのアプリ）",
         "Von der App lösen": "アプリから解除",
+        "Ganze Fläche": "全面",
     ]
 }

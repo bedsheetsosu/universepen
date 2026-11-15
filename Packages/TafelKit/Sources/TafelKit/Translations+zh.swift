@@ -353,7 +353,6 @@ extension Translations {
         "Als Preset speichern": "存储为预设",
         "Bereich %d": "区域 %d",
         "Name": "名称",
-        "Noch keine gespeichert": "尚未保存任何预设",
         "Presets": "预设",
         "Speichern": "存储",
         "%@ nicht gefunden": "未找到 %@",
@@ -386,5 +385,6 @@ extension Translations {
         "Gilt jetzt für %@ (Preset „%@“)": "现在用于 %@（预设“%@”）",
         "Normaler Bereich (alle anderen Apps)": "普通区域（其他所有应用）",
         "Von der App lösen": "取消与应用的绑定",
+        "Ganze Fläche": "整个区域",
     ]
 }

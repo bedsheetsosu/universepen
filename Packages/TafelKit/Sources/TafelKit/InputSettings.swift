@@ -203,10 +203,10 @@ public struct InputSettings: Codable, Equatable, Sendable {
 
     /// Tablet mode: black dotted surface, no picture; the active area maps onto a Mac display.
     public var tabletMode = false
-    /// Active area in the iPad's view, normalised (0…1).
-    public var tabletArea = TabletArea()
+    /// Active area in the iPad's view, normalised (0…1). Default: the whole iPad.
+    public var tabletArea = TabletArea.full
     /// Keep the area in the Mac display's aspect ratio (no stretching, like Wacom's "force proportions").
-    public var tabletLockAspect = true
+    public var tabletLockAspect = false
     /// Saved active areas (e.g. "osu! small", "drawing").
     public var tabletPresets: [TabletPreset] = []
 
@@ -347,6 +347,8 @@ public struct TabletArea: Codable, Equatable, Sendable {
     public var width: Double = 0.6
     public var height: Double = 0.6
     public init() {}
+    /// The whole iPad.
+    public static let full = TabletArea(x: 0, y: 0, width: 1, height: 1)
     public init(x: Double, y: Double, width: Double, height: Double) {
         self.x = x; self.y = y; self.width = width; self.height = height
     }
@@ -390,6 +392,14 @@ public struct TabletPreset: Codable, Equatable, Identifiable, Sendable {
         self.id = id; self.name = name; self.area = area; self.lockAspect = lockAspect
         self.appBundleID = appBundleID; self.appName = appName
     }
+
+    /// Built-in "Full area" preset (whole iPad, not stretched to the display's shape). Always listed
+    /// first, cannot be deleted or bound to an app.
+    public static let fullArea = TabletPreset(id: UUID(uuidString: "00000000-0000-0000-0000-00000000F011")!,
+                                              name: "Full area", area: .full, lockAspect: false)
+    public var isBuiltIn: Bool { id == Self.fullArea.id }
+    /// Name to show (the built-in preset in the app language).
+    public var title: String { isBuiltIn ? L("Ganze Fläche") : name }
 
     /// Whether `a` is (practically) this preset's area.
     public func matches(_ a: TabletArea) -> Bool {

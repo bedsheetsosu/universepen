@@ -396,7 +396,6 @@ enum Translations {
         "Als Preset speichern": "Save as preset",
         "Bereich %d": "Area %d",
         "Name": "Name",
-        "Noch keine gespeichert": "None saved yet",
         "Presets": "Presets",
         "Speichern": "Save",
         "%@ nicht gefunden": "%@ not found",
@@ -429,5 +428,6 @@ enum Translations {
         "Gilt jetzt für %@ (Preset „%@“)": "Now used for %@ (preset “%@”)",
         "Normaler Bereich (alle anderen Apps)": "Normal area (all other apps)",
         "Von der App lösen": "Unbind from the app",
+        "Ganze Fläche": "Full area",
     ]
 }

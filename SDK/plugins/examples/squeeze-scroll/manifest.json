@@ -1,7 +1,7 @@
 {
   "id": "squeeze-scroll",
   "name": "Squeeze-Scroll",
-  "version": "1.0",
-  "description": "Hold the squeeze and move the hovering Pencil up/down to scroll. Set Squeeze on the iPad to “None”.",
+  "version": "1.1",
+  "description": "Hold the squeeze, put the Pencil on the glass and drag to scroll. The squeeze action (e.g. radial menu) does not run after a scroll.",
   "main": "main.js"
 }

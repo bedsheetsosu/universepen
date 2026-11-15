@@ -515,6 +515,9 @@ final class ClientModel: ObservableObject {
         }
     }
 
+    /// "Full area" first, then the saved presets.
+    var allTabletPresets: [TabletPreset] { [TabletPreset.fullArea] + settings.tabletPresets }
+
     /// App-bound preset in use right now (the app in front on the Mac has one).
     var activeAppPreset: TabletPreset? { settings.tabletPreset(for: frontApp?.bundleID) }
     /// The area in use right now (app-bound preset or the normal area).

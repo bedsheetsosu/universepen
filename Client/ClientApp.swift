@@ -218,8 +218,8 @@ private struct OverlayMenuPanel: View {
                     close()
                 }
                 if model.settings.tabletMode {
-                    ForEach(model.settings.tabletPresets) { p in
-                        row(p.name + (p.appName.map { " · " + $0 } ?? ""), icon: p.appBundleID != nil ? "link" : "rectangle.dashed",
+                    ForEach(model.allTabletPresets) { p in
+                        row(p.title + (p.appName.map { " · " + $0 } ?? ""), icon: p.appBundleID != nil ? "link" : "rectangle.dashed",
                             checked: p.matches(model.tabletArea), indent: true) {
                             model.applyTabletPreset(p); close()
                         }

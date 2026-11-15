@@ -32,6 +32,8 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     private var scrubOriginX: CGFloat = 0
     private var scrubDone = 0
     private var lastHoverPoint: CGPoint?
+    private var squeezing = false
+    private var touchedWhileSqueezing = false
     var videoSize: CGSize = .zero { didSet { setNeedsLayout() } }
     /// Hidden text field for the on-screen keyboard.
     let keyboardProxy = KeyboardProxy()
@@ -207,6 +209,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
             sendMouse(.down, t.location(in: self), button: right ? .right : .left)
         }
         for t in touches where t.type == .pencil && pencilTouch == nil {
+            if squeezing { touchedWhileSqueezing = true }
             // The Pencil always wins over a finger in progress.
             emitFinger(oneFinger.cancel())
             pencilTouch = t
@@ -438,10 +441,20 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     }
 
     func pencilInteraction(_ interaction: UIPencilInteraction, didReceiveSqueeze squeeze: UIPencilInteraction.Squeeze) {
-        // Begin/end for plugins (e.g. "hold squeeze and move the Pencil to scroll").
-        if squeeze.phase == .began { onGesture?(GestureEvent(name: "pencil.squeezeBegan")) }
-        if squeeze.phase == .ended || squeeze.phase == .cancelled { onGesture?(GestureEvent(name: "pencil.squeezeEnded")) }
+        // Begin/end for plugins (e.g. "hold squeeze and drag the Pencil to scroll").
+        if squeeze.phase == .began {
+            squeezing = true
+            touchedWhileSqueezing = false
+            onGesture?(GestureEvent(name: "pencil.squeezeBegan"))
+        }
+        if squeeze.phase == .ended || squeeze.phase == .cancelled {
+            onGesture?(GestureEvent(name: "pencil.squeezeEnded", value: touchedWhileSqueezing ? 1 : 0))
+            squeezing = false
+        }
         guard squeeze.phase == .ended else { return }
+        // The Pencil touched the glass while squeezed: the squeeze was used as a modifier
+        // (e.g. squeeze-scroll), so its own action (radial menu, undo, …) does not run.
+        if touchedWhileSqueezing { touchedWhileSqueezing = false; return }
         onGesture?(GestureEvent(name: "pencil.squeeze"))
         perform(settings.squeeze, at: squeeze.hoverPose?.location)
     }

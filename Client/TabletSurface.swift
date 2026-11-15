@@ -224,10 +224,7 @@ struct TabletAreaEditor: View {
             Text(L("Presets")).foregroundStyle(.secondary)
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
-                    if model.settings.tabletPresets.isEmpty && !naming {
-                        Text(L("Noch keine gespeichert")).foregroundStyle(.tertiary)
-                    }
-                    ForEach(model.settings.tabletPresets) { p in
+                    ForEach(model.allTabletPresets) { p in
                         let on = p.matches(current)
                         let r = p.area.rect(in: size)
                         HStack(spacing: 6) {
@@ -235,7 +232,7 @@ struct TabletAreaEditor: View {
                                 withAnimation(Brand.spring) { area = nil; model.applyTabletPreset(p) }
                             } label: {
                                 VStack(alignment: .leading, spacing: 0) {
-                                    Text(p.name).font(.callout.weight(.semibold)).lineLimit(1)
+                                    Text(p.title).font(.callout.weight(.semibold)).lineLimit(1)
                                     Text(String(format: "%.0f × %.0f mm", r.width * Self.mmPerPoint, r.height * Self.mmPerPoint)
                                          + (p.appName.map { " · " + $0 } ?? ""))
                                         .font(.caption2.monospacedDigit()).opacity(0.75)
@@ -243,7 +240,7 @@ struct TabletAreaEditor: View {
                             }
                             .buttonStyle(.plain)
                             // Bind to the app in front on the Mac (used automatically while it is in front).
-                            if p.appBundleID != nil || model.frontApp != nil {
+                            if !p.isBuiltIn, p.appBundleID != nil || model.frontApp != nil {
                                 Button {
                                     withAnimation(Brand.spring) { model.bindTabletPreset(p, toFrontApp: p.appBundleID == nil) }
                                 } label: {
@@ -252,12 +249,14 @@ struct TabletAreaEditor: View {
                                 .buttonStyle(.plain)
                                 .accessibilityLabel(p.appBundleID != nil ? L("Von der App lösen") : L("An %@ binden", model.frontApp?.name ?? ""))
                             }
-                            Button {
-                                withAnimation(Brand.spring) { model.settings.tabletPresets.removeAll { $0.id == p.id } }
-                            } label: {
-                                Image(systemName: "xmark").font(.caption2.bold()).opacity(0.7)
+                            if !p.isBuiltIn {
+                                Button {
+                                    withAnimation(Brand.spring) { model.settings.tabletPresets.removeAll { $0.id == p.id } }
+                                } label: {
+                                    Image(systemName: "xmark").font(.caption2.bold()).opacity(0.7)
+                                }
+                                .buttonStyle(.plain)
                             }
-                            .buttonStyle(.plain)
                         }
                         .foregroundStyle(on ? Brand.slateDeep : .primary)
                         .padding(.horizontal, 12).padding(.vertical, 6)
