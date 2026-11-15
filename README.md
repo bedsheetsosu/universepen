@@ -64,7 +64,7 @@ xcodebuild -project Tafel.xcodeproj -scheme PipelineTests -derivedDataPath build
    Hinweis: Bei ad-hoc signierten Builds kann macOS die Berechtigungen nach einem Neubau vergessen – dann in den Systemeinstellungen den alten Eintrag entfernen und neu erlauben.
 2. Am Mac **„iPad koppeln …“** → 12-stelliger Code erscheint (2 Minuten gültig).
 3. Tafel auf dem iPad öffnen → unter „Neu koppeln“ den Mac antippen → Code eingeben. Danach verbindet sich das iPad automatisch, sobald der Mac erreichbar ist.
-4. Am Mac Quelle wählen: **iPad-Ausschnitt** (empfohlen), ganzer Bildschirm oder Fenster.
+4. Am Mac Quelle wählen: **Ganzer Bildschirm** (Standard, Wahl wird gemerkt; bei 16:10-Macs schmale Ränder oben/unten), **iPad-Ausschnitt** (füllt das iPad randlos) oder ein einzelnes **Fenster**.
 
 ---
 

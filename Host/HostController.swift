@@ -5,13 +5,20 @@ import CoreGraphics
 import TafelKit
 
 enum CaptureMode: String, CaseIterable, Identifiable {
-    case region, display, window
+    case display, region, window
     var id: String { rawValue }
     var title: String {
         switch self {
         case .region: return "iPad-Ausschnitt"
         case .display: return "Ganzer Bildschirm"
         case .window: return "Fenster"
+        }
+    }
+    var symbol: String {
+        switch self {
+        case .region: return "ipad.landscape"
+        case .display: return "display"
+        case .window: return "macwindow"
         }
     }
     var help: String {
@@ -60,7 +67,14 @@ final class HostController: ObservableObject {
     @Published var lastPaired: String?
 
     // Source
-    @Published var mode: CaptureMode = .region { didSet { if mode != oldValue { restartStream() } } }
+    /// Default: whole screen. The user's choice is remembered.
+    @Published var mode: CaptureMode = CaptureMode(rawValue: UserDefaults.standard.string(forKey: "captureMode") ?? "") ?? .display {
+        didSet {
+            guard mode != oldValue else { return }
+            UserDefaults.standard.set(mode.rawValue, forKey: "captureMode")
+            restartStream()
+        }
+    }
     @Published var displays: [DisplayChoice] = []
     @Published var windows: [WindowChoice] = []
     @Published var selectedDisplay: CGDirectDisplayID = CGMainDisplayID() { didSet { if selectedDisplay != oldValue { restartStream() } } }
