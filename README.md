@@ -72,7 +72,7 @@ xcodebuild -project Tafel.xcodeproj -scheme PipelineTests -derivedDataPath build
 
 ## Getting started
 
-On first launch both apps walk you through a short **setup** (iPad: connection, Pencil pressure feel and gestures, finger mode, image quality and sound, drawing hand for the shortcut bar; Mac: permissions, source, pairing). You can open it again from iPad → Settings, or at the bottom of the UniversePen window on the Mac.
+On first launch both apps walk you through a short **setup**. On the iPad it is an assistant: it asks what you use UniversePen for (drawing, gaming/aiming with tablet mode, or both) and which Pencil you have (Pro, with hover, without hover), then only shows the pages that fit – drawing extras, tablet area / key pad / tip threshold, colours – and creates "Drawing" and "Gaming" profiles if you pick both. On the Mac: permissions, source, pairing. You can run it again from iPad → Settings, or at the bottom of the UniversePen window on the Mac.
 
 1. Start UniversePen Host. Allow **Screen Recording** and **Accessibility** (buttons in the app). Without Accessibility, macOS silently drops all input.
    Note: with ad-hoc signed builds macOS may forget the permissions after a rebuild – then remove the old entry in System Settings and allow it again.

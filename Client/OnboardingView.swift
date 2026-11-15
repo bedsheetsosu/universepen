@@ -1,7 +1,8 @@
 import SwiftUI
 import TafelKit
 
-/// First-run setup: explains the connection and sets the most important preferences.
+/// First-run setup: a short assistant that asks what you want to do and with which Pencil, then
+/// only shows the pages that matter and sets everything up (incl. profiles when you want both).
 /// Everything chosen here can be changed later in Settings.
 struct OnboardingView: View {
     /// Redraw when the colours change.
@@ -10,20 +11,40 @@ struct OnboardingView: View {
     @State private var step = 0
     @State private var forward = true
 
-    private let steps = 7
+    enum Use: Hashable { case drawing, tablet, both }
+    enum PencilKind: Hashable { case pro, hover, noHover }
+    enum AreaSize: Hashable { case full, medium, small }
+
+    @State private var use: Use = .drawing
+    @State private var pencilKind: PencilKind = .pro
+    // Tablet choices (applied to the tablet profile at the end)
+    @State private var areaSize: AreaSize = .medium
+    @State private var keysOn = true
+    @State private var keysSide: TabletKeys.Side = .left
+    @State private var tip: Double = 0
+
+    private enum Page: Hashable { case language, welcome, connection, use, pencil, fingers, drawing, tablet, look, done }
+
+    private var pages: [Page] {
+        var p: [Page] = [.language, .welcome, .connection, .use, .pencil]
+        if use != .tablet { p += [.fingers, .drawing] }
+        if use != .drawing { p.append(.tablet) }
+        p += [.look, .done]
+        return p
+    }
 
     var body: some View {
         ZStack {
             ThemeBackground().ignoresSafeArea()
             VStack(spacing: 0) {
                 ZStack {
-                    page(step)
-                        .id(step)
+                    page(pages[min(step, pages.count - 1)])
+                        .id(pages[min(step, pages.count - 1)])
                         .transition(.asymmetric(
                             insertion: .move(edge: forward ? .trailing : .leading).combined(with: .opacity),
                             removal: .move(edge: forward ? .leading : .trailing).combined(with: .opacity)))
                 }
-                .frame(maxWidth: 640, maxHeight: .infinity)
+                .frame(maxWidth: 680, maxHeight: .infinity)
                 .padding(.horizontal, 28)
                 footer
             }
@@ -31,15 +52,18 @@ struct OnboardingView: View {
         .animation(.spring(response: 0.5, dampingFraction: 0.86), value: step)
     }
 
-    @ViewBuilder private func page(_ i: Int) -> some View {
-        switch i {
-        case 0: language
-        case 1: welcome
-        case 2: connection
-        case 3: pencil
-        case 4: fingers
-        case 5: picture
-        default: hand
+    @ViewBuilder private func page(_ p: Page) -> some View {
+        switch p {
+        case .language: language
+        case .welcome: welcome
+        case .connection: connection
+        case .use: usePage
+        case .pencil: pencil
+        case .fingers: fingers
+        case .drawing: drawing
+        case .tablet: tablet
+        case .look: look
+        case .done: done
         }
     }
 
@@ -52,7 +76,7 @@ struct OnboardingView: View {
                 .disabled(step == 0)
             Spacer()
             HStack(spacing: 8) {
-                ForEach(0..<steps, id: \.self) { i in
+                ForEach(0..<pages.count, id: \.self) { i in
                     Capsule()
                         .fill(i == step ? Brand.mint : .white.opacity(0.2))
                         .frame(width: i == step ? 22 : 8, height: 8)
@@ -60,9 +84,9 @@ struct OnboardingView: View {
             }
             Spacer()
             Button {
-                if step == steps - 1 { model.onboardingDone = true } else { go(1) }
+                if step == pages.count - 1 { finish() } else { go(1) }
             } label: {
-                Text(step == steps - 1 ? L("Los geht’s") : L("Weiter"))
+                Text(step == pages.count - 1 ? L("Los geht’s") : L("Weiter"))
                     .fontWeight(.semibold)
                     .foregroundStyle(Brand.slateDeep)
                     .padding(.horizontal, 22).padding(.vertical, 11)
@@ -70,14 +94,14 @@ struct OnboardingView: View {
             }
             .buttonStyle(PressScale())
         }
-        .frame(maxWidth: 640)
+        .frame(maxWidth: 680)
         .padding(.horizontal, 28)
         .padding(.bottom, 28)
     }
 
     private func go(_ d: Int) {
         forward = d > 0
-        step = max(0, min(steps - 1, step + d))
+        step = max(0, min(pages.count - 1, step + d))
     }
 
     // MARK: Pages
@@ -129,18 +153,54 @@ struct OnboardingView: View {
         }
     }
 
+    private var usePage: some View {
+        PageScaffold(symbol: "sparkles", title: L("Wofür nutzt du UniversePen?"),
+                     subtitle: L("Danach zeigen wir nur, was dazu passt.")) {
+            BigChoice(symbol: "paintbrush.pointed", title: L("Zeichnen"),
+                      text: L("Das iPad zeigt den Mac – du zeichnest direkt aufs Bild, wie auf einem Cintiq."),
+                      on: use == .drawing) { use = .drawing }
+            BigChoice(symbol: "scope", title: L("Spielen und Zielen"),
+                      text: L("Tablett-Modus wie ein Intuos: schwarze Fläche mit aktivem Bereich, kein Bild, minimale Latenz – z. B. für osu!."),
+                      on: use == .tablet) { use = .tablet }
+            BigChoice(symbol: "square.split.2x1", title: L("Beides"),
+                      text: L("Zwei Profile „Zeichnen“ und „Spielen“, im …-Menü mit einem Tipp umschaltbar."),
+                      on: use == .both) { use = .both }
+        }
+    }
+
     private var pencil: some View {
         PageScaffold(symbol: "applepencil.tip", title: L("Dein Pencil"),
-                     subtitle: L("Wie soll sich der Druck anfühlen, und was machen die Pencil-Gesten?")) {
+                     subtitle: L("Welchen Pencil benutzt du? Danach stellen wir Schweben, Squeeze und Klicken passend ein.")) {
+            ChoiceRow(title: L("Modell"), options: [
+                (L("Pencil Pro"), "applepencil.and.scribble", PencilKind.pro),
+                (L("Mit Schweben"), "applepencil.tip", PencilKind.hover),
+                (L("Ohne Schweben"), "applepencil", PencilKind.noHover),
+            ], selected: pencilKind) { k in
+                pencilKind = k
+                model.settings.sendHover = k != .noHover
+                model.settings.doubleTapToClick = k == .noHover
+                if k == .noHover && model.settings.fingerMode == .mouse { model.settings.fingerMode = .pointer }
+                if k == .pro && model.settings.squeeze == .undo { model.settings.squeeze = .radialMenu }
+            }
+            Text(pencilHelp).font(.callout).foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
             ChoiceRow(title: L("Druckgefühl"), options: [
                 (L("Weich"), "feather", 0.6), (L("Normal"), "pencil", 1.0), (L("Fest"), "pencil.tip", 1.6),
             ], selected: closest(model.settings.pressure.gamma, in: [0.6, 1.0, 1.6])) { model.settings.pressure.gamma = $0; model.settings.pressure.points = [] }
-            ActionChoice(title: L("Doppeltippen"), action: $model.settings.doubleTap)
-            ActionChoice(title: L("Squeeze (Pencil Pro)"), action: $model.settings.squeeze)
-            Toggle(L("Schweben anzeigen (Hover)"), isOn: $model.settings.sendHover).tint(Brand.mint)
-                .tafelCard(padding: 14)
-            Toggle(L("Doppeltippen zum Klicken (Pencil ohne Hover)"), isOn: $model.settings.doubleTapToClick).tint(Brand.mint)
-                .tafelCard(padding: 14)
+            if pencilKind != .noHover {
+                ActionChoice(title: L("Doppeltippen"), action: $model.settings.doubleTap)
+            }
+            if pencilKind == .pro {
+                ActionChoice(title: L("Squeeze"), action: $model.settings.squeeze)
+            }
+        }
+    }
+
+    private var pencilHelp: String {
+        switch pencilKind {
+        case .pro: return L("Schweben, Barrel Roll, Squeeze und Haptik. Squeeze öffnet das Radialmenü an der Stiftspitze.")
+        case .hover: return L("Pencil 2 auf einem iPad mit Schweben: der Zeiger folgt dem Stift, bevor er aufsetzt.")
+        case .noHover: return L("Ohne Schweben: Eine Berührung bewegt nur den Zeiger, sofort nochmal aufsetzen klickt bzw. zeichnet. Ein Finger zielt ohne zu klicken.")
         }
     }
 
@@ -156,6 +216,9 @@ struct OnboardingView: View {
             Text(fingerHelp).font(.callout).foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .contentTransition(.opacity)
+            FeatureToggle(symbol: "arrow.uturn.backward", title: L("Undo-Wischen"),
+                          text: L("Zwei Finger kurz halten, dann nach links ziehen = Undo, rechts = Redo."),
+                          on: $model.settings.undoScrub)
             InfoRow(symbol: "hand.draw", title: L("Zwei Finger"),
                     text: L("Verschieben = Scrollen, Pinch = Zoomen, Tippen = Widerrufen."))
             InfoRow(symbol: "hand.wave", title: L("Drei Finger"),
@@ -172,32 +235,146 @@ struct OnboardingView: View {
         }
     }
 
-    private var picture: some View {
-        PageScaffold(symbol: "sparkles.tv", title: L("Bild und Ton"),
-                     subtitle: L("Mit Kabel ist „Beste Qualität“ meist kein Problem. Im WLAN hilft „Flüssig“ gegen Ruckler.")) {
-            ChoiceRow(title: L("Qualität"), options: QualityPreset.allCases.map { ($0.title, $0.symbol, $0) },
+    private var drawing: some View {
+        PageScaffold(symbol: "paintbrush.pointed", title: L("Zum Zeichnen"),
+                     subtitle: L("Was das iPad beim Zeichnen zusätzlich macht. Alles später in den Einstellungen änderbar.")) {
+            FeatureToggle(symbol: "scribble.variable", title: L("Sofort-Tinte"),
+                          text: L("Der Strich erscheint sofort auf dem iPad und blendet aus, wenn das echte Bild vom Mac da ist – fühlt sich direkter an."),
+                          on: $model.settings.instantInk)
+            if pencilKind != .noHover {
+                FeatureToggle(symbol: "smallcircle.filled.circle", title: L("Hover-Punkt"),
+                              text: L("Ein kleiner Ring unter der schwebenden Stiftspitze zeigt genau, wo du ansetzt."),
+                              on: $model.settings.hoverDot)
+            }
+            FeatureToggle(symbol: "sidebar.leading", title: L("Shortcut-Leiste"),
+                          text: L("Tasten wie Undo, Pinsel, Radierer und ⇧ / ⌥ zum Halten am Rand."),
+                          on: $model.settings.showShortcutBar)
+            if model.settings.showShortcutBar {
+                ChoiceRow(title: L("Zeichenhand"), options: [
+                    (L("Rechts"), "hand.point.right", false), (L("Links"), "hand.point.left", true),
+                ], selected: model.settings.shortcutBarOnRight) { model.settings.shortcutBarOnRight = $0 }
+            }
+            ChoiceRow(title: L("Bildqualität"), options: QualityPreset.allCases.map { ($0.title, $0.symbol, $0) },
                       selected: QualityPreset(matching: model.quality)) { model.quality = $0.apply(to: model.quality) }
             Text(QualityPreset(matching: model.quality)?.detail ?? L("Eigene Einstellung"))
                 .font(.callout).foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            Toggle(L("Ton vom Mac auf dem iPad"), isOn: $model.quality.audio).tint(Brand.mint)
-                .tafelCard(padding: 14)
-            Toggle(L("Latenz immer anzeigen"), isOn: $model.showStatusOverlay).tint(Brand.mint)
-                .tafelCard(padding: 14)
+            FeatureToggle(symbol: "speaker.wave.2", title: L("Ton vom Mac auf dem iPad"),
+                          text: L("Der Mac spielt den Ton weiter selbst ab."), on: $model.quality.audio)
         }
     }
 
-    private var hand: some View {
-        PageScaffold(symbol: "hand.raised", title: L("Mit welcher Hand zeichnest du?"),
-                     subtitle: L("Die Shortcut-Leiste kommt auf die andere Seite, damit die Hand sie nicht verdeckt.")) {
-            ChoiceRow(title: L("Zeichenhand"), options: [
-                (L("Rechts"), "hand.point.right", false), (L("Links"), "hand.point.left", true),
-            ], selected: model.settings.shortcutBarOnRight) { model.settings.shortcutBarOnRight = $0 }
-            Toggle(L("Shortcut-Leiste anzeigen"), isOn: $model.settings.showShortcutBar).tint(Brand.mint)
-                .tafelCard(padding: 14)
-            InfoRow(symbol: "keyboard", title: L("Tastatur und Trackpad"),
-                    text: L("Eine angeschlossene Tastatur tippt direkt auf dem Mac, das Trackpad steuert den Mac-Zeiger."))
+    private var tablet: some View {
+        PageScaffold(symbol: "scope", title: L("Tablett-Modus"),
+                     subtitle: L("Wie ein Intuos: das iPad wird schwarz, der aktive Bereich wird auf den ganzen Mac-Bildschirm abgebildet.")) {
+            ChoiceRow(title: L("Aktiver Bereich"), options: [
+                (L("Ganze Fläche"), "rectangle", AreaSize.full),
+                (L("Mittel"), "rectangle.inset.filled", AreaSize.medium),
+                (L("Klein"), "smallcircle.filled.circle", AreaSize.small),
+            ], selected: areaSize) { areaSize = $0 }
+            Text(L("Kleiner Bereich = kurze Wege für schnelles Zielen (typisch für osu!). Genau einstellen und als Preset speichern kannst du später im …-Menü."))
+                .font(.callout).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
+            FeatureToggle(symbol: "keyboard", title: L("Tasten-Feld Z / X"),
+                          text: L("Große Touch-Tasten am Rand, mit der anderen Hand halten – wie ExpressKeys."), on: $keysOn)
+            if keysOn {
+                ChoiceRow(title: L("Seite"), options: [
+                    (L("Links"), "rectangle.lefthalf.filled", TabletKeys.Side.left),
+                    (L("Rechts"), "rectangle.righthalf.filled", TabletKeys.Side.right),
+                    (L("Oben"), "rectangle.tophalf.filled", TabletKeys.Side.top),
+                    (L("Unten"), "rectangle.bottomhalf.filled", TabletKeys.Side.bottom),
+                ], selected: keysSide) { keysSide = $0 }
+            }
+            ChoiceRow(title: L("Klick ab Druck"), options: [
+                (L("Sofort"), "hand.tap", 0.0), (L("Leicht"), "dial.low", 0.12), (L("Fest"), "dial.high", 0.3),
+            ], selected: closest(tip, in: [0, 0.12, 0.3])) { tip = $0 }
+            InfoRow(symbol: "gamecontroller", title: L("Tipp für osu!"),
+                    text: L("In osu! unter Input → Mouse „High precision mouse“ ausschalten, sonst springt der Cursor."))
         }
+    }
+
+    private var look: some View {
+        PageScaffold(symbol: "paintpalette", title: L("Aussehen"),
+                     subtitle: L("Deine Farbe für die App – auf Wunsch mit fließendem Hintergrund.")) {
+            ThemeChoice().tafelCard(padding: 16)
+        }
+    }
+
+    private var done: some View {
+        PageScaffold(symbol: "checkmark.seal", title: L("Alles bereit"),
+                     subtitle: L("So ist UniversePen jetzt eingestellt:")) {
+            if use != .tablet {
+                InfoRow(symbol: "paintbrush.pointed", title: use == .both ? L("Profil „Zeichnen“") : L("Zeichnen"),
+                        text: summaryDrawing)
+            }
+            if use != .drawing {
+                InfoRow(symbol: "scope", title: use == .both ? L("Profil „Spielen“") : L("Tablett-Modus"),
+                        text: summaryTablet)
+            }
+            if use == .both {
+                InfoRow(symbol: "person.crop.square", title: L("Umschalten"),
+                        text: L("Im …-Menü oben rechts unter „Profil“. Änderungen landen automatisch im aktiven Profil."))
+            }
+            InfoRow(symbol: "gearshape", title: L("Alles änderbar"),
+                    text: L("Jede Einstellung findest du später unter …-Menü → Einstellungen. Die Einrichtung kannst du dort auch neu starten."))
+        }
+    }
+
+    private var summaryDrawing: String {
+        var parts: [String] = []
+        parts.append(model.settings.instantInk ? L("Sofort-Tinte an") : L("Sofort-Tinte aus"))
+        if model.settings.showShortcutBar { parts.append(L("Shortcut-Leiste")) }
+        if let q = QualityPreset(matching: model.quality) { parts.append(q.title) }
+        if pencilKind == .pro { parts.append(L("Squeeze: %@", model.settings.squeeze.display)) }
+        if pencilKind == .noHover { parts.append(L("Doppeltippen zum Klicken")) }
+        return parts.joined(separator: " · ")
+    }
+
+    private var summaryTablet: String {
+        let area: String
+        switch areaSize {
+        case .full: area = L("Ganze Fläche")
+        case .medium: area = L("Mittel")
+        case .small: area = L("Klein")
+        }
+        var parts = [area]
+        if keysOn { parts.append(L("Tasten Z / X")) }
+        if tip > 0 { parts.append(L("Klick ab %d %% Druck", Int(tip * 100))) }
+        return parts.joined(separator: " · ")
+    }
+
+    // MARK: Finish
+
+    /// Applies the tablet choices and creates profiles when both uses were chosen.
+    private func finish() {
+        func tabletVersion(of base: InputSettings) -> InputSettings {
+            var t = base
+            t.tabletMode = true
+            switch areaSize {
+            case .full: t.tabletArea = .full; t.tabletLockAspect = false
+            case .medium: t.tabletArea = TabletArea(x: 0.2, y: 0.2, width: 0.6, height: 0.6); t.tabletLockAspect = true
+            case .small: t.tabletArea = TabletArea(x: 0.3, y: 0.3, width: 0.4, height: 0.4); t.tabletLockAspect = true
+            }
+            t.tabletKeys.enabled = keysOn
+            t.tabletKeys.side = keysSide
+            t.tipThreshold = tip
+            return t
+        }
+        switch use {
+        case .drawing:
+            model.settings.tabletMode = false
+        case .tablet:
+            model.settings = tabletVersion(of: model.settings)
+        case .both:
+            var drawing = model.settings
+            drawing.tabletMode = false
+            let gaming = tabletVersion(of: model.settings)
+            let pDraw = SettingsProfile(name: L("Zeichnen"), settings: drawing, quality: model.quality)
+            let pGame = SettingsProfile(name: L("Spielen"), settings: gaming, quality: model.quality)
+            model.profiles.removeAll { $0.name == pDraw.name || $0.name == pGame.name }
+            model.profiles += [pDraw, pGame]
+            model.switchProfile(pDraw)
+        }
+        model.onboardingDone = true
     }
 
     private func closest(_ v: Double, in options: [Double]) -> Double? {
@@ -342,6 +519,69 @@ private struct ChoiceRow<Value: Hashable>: View {
     }
 }
 
+/// Large selectable card with icon, title and explanation.
+private struct BigChoice: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
+    let symbol: String
+    let title: String
+    let text: String
+    let on: Bool
+    let choose: () -> Void
+
+    var body: some View {
+        Button {
+            withAnimation(Brand.spring) { choose() }
+        } label: {
+            HStack(alignment: .top, spacing: 16) {
+                Image(systemName: symbol)
+                    .font(.system(size: 28, weight: .semibold))
+                    .frame(width: 40)
+                    .symbolEffect(.bounce, value: on)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title).font(.title3.weight(.semibold))
+                    Text(text).font(.callout).opacity(0.8).multilineTextAlignment(.leading)
+                }
+                Spacer(minLength: 8)
+                Image(systemName: on ? "checkmark.circle.fill" : "circle").font(.title2)
+            }
+            .padding(18)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .foregroundStyle(on ? Brand.slateDeep : .primary)
+            .background(on ? AnyShapeStyle(Brand.mint) : AnyShapeStyle(Color.white.opacity(0.06)),
+                        in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(.white.opacity(on ? 0 : 0.08)))
+        }
+        .buttonStyle(PressScale())
+    }
+}
+
+/// Feature card with a switch.
+private struct FeatureToggle: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
+    let symbol: String
+    let title: String
+    let text: String
+    @Binding var on: Bool
+
+    var body: some View {
+        Toggle(isOn: $on.animation(Brand.spring)) {
+            HStack(alignment: .top, spacing: 14) {
+                Image(systemName: symbol)
+                    .font(.title3).foregroundStyle(on ? Brand.mint : .secondary)
+                    .frame(width: 28)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(title).font(.headline)
+                    Text(text).font(.callout).foregroundStyle(.secondary)
+                }
+            }
+        }
+        .tint(Brand.mint)
+        .tafelCard(padding: 14)
+    }
+}
+
 /// Compact choice of the common Pencil actions.
 private struct ActionChoice: View {
     /// Redraw when the colours change.
@@ -350,7 +590,8 @@ private struct ActionChoice: View {
     @Binding var action: PencilAction
 
     private let options: [(String, PencilAction)] = [
-        (L("Radierer"), .eraser), (L("Widerrufen"), .undo), (L("Pinsel"), .brush), (L("Hand"), .hand), (L("Nichts"), .none),
+        (L("Radialmenü"), .radialMenu), (L("Radierer"), .eraser), (L("Widerrufen"), .undo), (L("Pinsel"), .brush), (L("Hand"), .hand),
+        (L("Nichts"), .none),
     ]
 
     var body: some View {
