@@ -263,6 +263,7 @@ final class HostController: ObservableObject {
             stream["bitrateMbps"] = cfg.quality.bitrateMbps
             stream["resolutionScale"] = cfg.quality.resolutionScale
             stream["adaptive"] = cfg.quality.adaptive
+            stream["fullSource"] = cfg.quality.fullSource
             stream["audio"] = cfg.quality.audio
         }
         if let s = streamer { stream["width"] = s.outputWidth; stream["height"] = s.outputHeight }
@@ -670,9 +671,13 @@ final class HostController: ObservableObject {
                     rect = local
                 }
                 currentRegionLocal = rect
-                let size = Geometry.streamSize(sourceAspect: Double(rect.width / rect.height),
+                var size = Geometry.streamSize(sourceAspect: Double(rect.width / rect.height),
                                                targetWidth: cfg.viewPixelWidth, targetHeight: cfg.viewPixelHeight,
                                                scale: cfg.quality.resolutionScale)
+                if cfg.quality.fullSource, let full = Self.sourcePixelSize(rect, display: display.displayID, codec: cfg.quality.codec),
+                   full.width > size.width {
+                    size = full
+                }
                 // Our own window is never mirrored onto the iPad.
                 let filter = SCContentFilter(display: display, excludingApplications: ownApps, exceptingWindows: ownVisibleWindows)
                 injector.region = rect.offsetBy(dx: display.frame.minX, dy: display.frame.minY)
@@ -699,6 +704,18 @@ final class HostController: ObservableObject {
             lastError = L("Stream konnte nicht starten: %@", error.localizedDescription)
             await streamer.stop()
         }
+    }
+
+    /// Backing pixels of `rect` (points) on a display, even, capped to what the encoders and the
+    /// iPad's decoder handle (H.264 4096, HEVC 8192 per side).
+    static func sourcePixelSize(_ rect: CGRect, display: CGDirectDisplayID, codec: VideoCodec) -> (width: Int, height: Int)? {
+        guard let m = CGDisplayCopyDisplayMode(display), m.width > 0 else { return nil }
+        let scale = Double(m.pixelWidth) / Double(m.width)
+        var w = Double(rect.width) * scale, h = Double(rect.height) * scale
+        let cap = codec == .hevc ? 8192.0 : 4096.0
+        let f = min(1, cap / max(w, h))
+        w *= f; h *= f
+        return (max(2, Int(w) & ~1), max(2, Int(h) & ~1))
     }
 
     // MARK: Display changes

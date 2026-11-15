@@ -312,5 +312,7 @@ extension Translations {
         "Verbunden: %@": "कनेक्टेड: %@",
         "Warte auf das iPad …": "iPad की प्रतीक्षा …",
         "iPad-Akku: %d %%": "iPad बैटरी: %d %%",
+        "Volle Mac-Auflösung senden (Experiment)": "Mac का पूरा रिज़ॉल्यूशन भेजें (प्रयोग)",
+        "„Volle Mac-Auflösung“: Der Mac schickt alle Pixel unverkleinert (z. B. beim zweiten Bildschirm mit mehr Platz), das iPad verkleinert beim Anzeigen. Kann schärfer sein, braucht aber mehr Bitrate.": "“Mac का पूरा रिज़ॉल्यूशन”: Mac सभी पिक्सेल बिना छोटा किए भेजता है (जैसे ज़्यादा जगह वाली दूसरी स्क्रीन) और iPad दिखाते समय उन्हें छोटा करता है। ज़्यादा शार्प हो सकता है, लेकिन ज़्यादा बिटरेट चाहिए।",
     ]
 }

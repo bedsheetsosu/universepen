@@ -91,6 +91,7 @@ struct SettingsView: View {
                 Text("75 %").tag(0.75)
                 Text("50 %").tag(0.5)
             }
+            Toggle(L("Volle Mac-Auflösung senden (Experiment)"), isOn: $model.quality.fullSource)
             VStack(alignment: .leading) {
                 Text(L("Bitrate: %d Mbit/s", Int(model.quality.bitrateMbps)))
                 Slider(value: $model.quality.bitrateMbps, in: 5...100, step: 5)
@@ -98,7 +99,8 @@ struct SettingsView: View {
         } header: {
             Text(L("Bild"))
         } footer: {
-            Text(L("Höhere Bitrate = schärfer, braucht aber stabiles WLAN. Bei Rucklern Bitrate senken oder 30 fps wählen."))
+            Text(L("Höhere Bitrate = schärfer, braucht aber stabiles WLAN. Bei Rucklern Bitrate senken oder 30 fps wählen.") + " " +
+                 L("„Volle Mac-Auflösung“: Der Mac schickt alle Pixel unverkleinert (z. B. beim zweiten Bildschirm mit mehr Platz), das iPad verkleinert beim Anzeigen. Kann schärfer sein, braucht aber mehr Bitrate."))
         }
     }
 

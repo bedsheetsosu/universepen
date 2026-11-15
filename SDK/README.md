@@ -47,7 +47,7 @@ Gestures still run their configured action; the event is additional.
 |---|---|---|
 | `api.info` | – | `api`, `topics` |
 | `status.get` | – | status object (see event) |
-| `display.get` | – | `mode`, `modes`, `secondScreen` {`available`, `active`, `displayID`, `pixelWidth`, `pixelHeight`}, `stream` {`running`, `encoder`, `width`, `height`, `ipadPixelWidth`, `ipadPixelHeight`, `fps`, `codec`, `bitrateMbps`, `resolutionScale`, `adaptive`, `audio`} |
+| `display.get` | – | `mode`, `modes`, `secondScreen` {`available`, `active`, `displayID`, `pixelWidth`, `pixelHeight`}, `stream` {`running`, `encoder`, `width`, `height`, `ipadPixelWidth`, `ipadPixelHeight`, `fps`, `codec`, `bitrateMbps`, `resolutionScale`, `adaptive`, `fullSource`, `audio`} |
 | `display.setMode` | `mode`: display \| second-screen \| region \| window | display object |
 | `display.setQuality` | any of `fps`, `bitrateMbps`, `resolutionScale`, `adaptive`, `audio`, `codec` | `{sent: true}` (applied on the iPad) |
 | `app.get` | – | front app or `null` |

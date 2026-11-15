@@ -312,5 +312,7 @@ extension Translations {
         "Verbunden: %@": "接続中：%@",
         "Warte auf das iPad …": "iPad を待っています …",
         "iPad-Akku: %d %%": "iPad のバッテリー：%d %%",
+        "Volle Mac-Auflösung senden (Experiment)": "Mac のフル解像度で送信（実験）",
+        "„Volle Mac-Auflösung“: Der Mac schickt alle Pixel unverkleinert (z. B. beim zweiten Bildschirm mit mehr Platz), das iPad verkleinert beim Anzeigen. Kann schärfer sein, braucht aber mehr Bitrate.": "「Mac のフル解像度」：Mac がすべてのピクセルを縮小せずに送り（例：スペースを広げた第 2 画面）、iPad が表示時に縮小します。よりシャープになる場合がありますが、より高いビットレートが必要です。",
     ]
 }

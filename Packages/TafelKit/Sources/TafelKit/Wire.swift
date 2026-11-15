@@ -128,9 +128,13 @@ public struct StreamQuality: Codable, Equatable, Sendable {
     public var audio: Bool
     /// Lower the bitrate automatically when the connection cannot keep up, raise it again after.
     public var adaptive: Bool
+    /// Experiment: send the captured pixels unscaled (e.g. 2952×2052 for a "more space" second
+    /// screen) and let the iPad scale them down when showing them. More bitrate and encoder load.
+    public var fullSource: Bool
 
     public init(codec: VideoCodec = .h264, bitrateMbps: Double = 30, fps: Int = 60, resolutionScale: Double = 1.0, audio: Bool = true,
-                adaptive: Bool = true) {
+                adaptive: Bool = true, fullSource: Bool = false) {
+        self.fullSource = fullSource
         self.codec = codec
         self.bitrateMbps = bitrateMbps
         self.fps = fps
@@ -139,7 +143,7 @@ public struct StreamQuality: Codable, Equatable, Sendable {
         self.adaptive = adaptive
     }
 
-    private enum CodingKeys: String, CodingKey { case codec, bitrateMbps, fps, resolutionScale, audio, adaptive }
+    private enum CodingKeys: String, CodingKey { case codec, bitrateMbps, fps, resolutionScale, audio, adaptive, fullSource }
 
     /// Tolerates settings saved by older versions (missing keys get defaults).
     public init(from decoder: Decoder) throws {
@@ -151,6 +155,7 @@ public struct StreamQuality: Codable, Equatable, Sendable {
         resolutionScale = try c.decodeIfPresent(Double.self, forKey: .resolutionScale) ?? d.resolutionScale
         audio = try c.decodeIfPresent(Bool.self, forKey: .audio) ?? d.audio
         adaptive = try c.decodeIfPresent(Bool.self, forKey: .adaptive) ?? d.adaptive
+        fullSource = try c.decodeIfPresent(Bool.self, forKey: .fullSource) ?? d.fullSource
     }
 }
 

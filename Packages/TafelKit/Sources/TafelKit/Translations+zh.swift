@@ -312,5 +312,7 @@ extension Translations {
         "Verbunden: %@": "已连接：%@",
         "Warte auf das iPad …": "正在等待 iPad …",
         "iPad-Akku: %d %%": "iPad 电量：%d %%",
+        "Volle Mac-Auflösung senden (Experiment)": "发送 Mac 完整分辨率（实验）",
+        "„Volle Mac-Auflösung“: Der Mac schickt alle Pixel unverkleinert (z. B. beim zweiten Bildschirm mit mehr Platz), das iPad verkleinert beim Anzeigen. Kann schärfer sein, braucht aber mehr Bitrate.": "“Mac 完整分辨率”：Mac 发送未缩小的全部像素（例如空间更大的第二屏幕），由 iPad 在显示时缩小。可能更清晰，但需要更高的码率。",
     ]
 }
