@@ -69,6 +69,7 @@ struct RootView: View {
         .id(l10n.language)   // re-render every text when the language changes
         .sheet(isPresented: $showSettings) {
             SettingsView().environmentObject(model)
+                .presentationBackground { ThemeBackground() }
         }
     }
 

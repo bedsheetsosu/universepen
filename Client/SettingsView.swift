@@ -41,6 +41,7 @@ struct SettingsView: View {
                     }
                 }
             }
+            .themedForm()
             .navigationTitle(L("Einstellungen"))
             .toolbar { Button(L("Fertig")) { dismiss() } }
         }
@@ -169,6 +170,7 @@ struct SettingsView: View {
                             Text(L("Punkte mit dem Finger ziehen. Unten mit dem Pencil drücken, um zu sehen, wo dein Druck auf der Kurve landet."))
                         }
                     }
+                    .themedForm()
                     .navigationTitle(L("Druckkurve"))
                 } label: {
                     LabeledContent(L("Druckkurve"), value: pen.wrappedValue.pressure.points.isEmpty ? L("Voreinstellung") : L("Eigene Kurve"))
@@ -614,6 +616,16 @@ struct ShortcutButtonEditor: View {
                 ShortcutEditor(shortcut: $button.shortcut)
             }
         }
+        .themedForm()
         .navigationTitle(button.title)
+    }
+}
+
+extension View {
+    /// Settings pages on the app's background (flowing if switched on), rows slightly see-through.
+    func themedForm() -> some View {
+        self
+            .scrollContentBackground(.hidden)
+            .background(ThemeBackground().ignoresSafeArea())
     }
 }
