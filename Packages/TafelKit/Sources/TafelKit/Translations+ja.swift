@@ -346,5 +346,9 @@ extension Translations {
         "Tablett-Modus": "タブレットモード",
         "Tablett-Modus (ohne Bild)": "タブレットモード（映像なし）",
         "Zurücksetzen": "リセット",
+        "Breite": "幅",
+        "Höhe": "高さ",
+        "Zentrieren": "中央に配置",
+        "Übernehmen": "適用",
     ]
 }

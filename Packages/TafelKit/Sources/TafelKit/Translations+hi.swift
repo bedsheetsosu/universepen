@@ -346,5 +346,9 @@ extension Translations {
         "Tablett-Modus": "टैबलेट मोड",
         "Tablett-Modus (ohne Bild)": "टैबलेट मोड (बिना तस्वीर)",
         "Zurücksetzen": "रीसेट करें",
+        "Breite": "चौड़ाई",
+        "Höhe": "ऊँचाई",
+        "Zentrieren": "बीच में करें",
+        "Übernehmen": "लागू करें",
     ]
 }

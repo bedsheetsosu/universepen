@@ -68,6 +68,12 @@ struct TabletAreaEditor: View {
     @ObservedObject var theme = Theme.shared
     @State private var area: TabletArea?
     @State private var dragStart: TabletArea?
+    // Typed values in millimetres (nil = not edited yet: show the current area).
+    @State private var mmW: Double?
+    @State private var mmH: Double?
+    @State private var mmX: Double?
+    @State private var mmY: Double?
+    @FocusState private var typing: Bool
 
     /// Points → millimetres on an 11" iPad Air (264 ppi, 2 px per point).
     private static let mmPerPoint = 2.0 / 264.0 * 25.4
@@ -116,8 +122,9 @@ struct TabletAreaEditor: View {
                     .tafelOverlayGlass(Capsule())
                     .position(x: r.midX, y: r.midY)
                     .allowsHitTesting(false)
-                VStack {
+                VStack(spacing: 10) {
                     toolbar
+                    numbers(size)
                     Spacer()
                 }
                 .padding(.top, 14)
@@ -142,6 +149,64 @@ struct TabletAreaEditor: View {
         }
         .padding(.horizontal, 18).padding(.vertical, 10)
         .tafelOverlayGlass(Capsule())
+    }
+
+    /// Width, height and offset (from the top-left of the iPad) typed in millimetres.
+    private func numbers(_ size: CGSize) -> some View {
+        let r = (area ?? model.settings.tabletArea).rect(in: size)
+        let cur = (w: r.width * Self.mmPerPoint, h: r.height * Self.mmPerPoint, x: r.minX * Self.mmPerPoint, y: r.minY * Self.mmPerPoint)
+        return HStack(spacing: 12) {
+            field(L("Breite"), $mmW, cur.w)
+            Text("×").foregroundStyle(.secondary)
+            field(L("Höhe"), $mmH, cur.h)
+                .disabled(model.settings.tabletLockAspect)
+                .opacity(model.settings.tabletLockAspect ? 0.5 : 1)
+            Divider().frame(height: 22)
+            field("X", $mmX, cur.x)
+            field("Y", $mmY, cur.y)
+            Button(L("Zentrieren")) {
+                mmX = nil; mmY = nil
+                apply(size, center: true)
+            }
+            Button(L("Übernehmen")) { apply(size, center: false) }
+                .buttonStyle(.borderedProminent).tint(Brand.mint).foregroundStyle(Brand.slateDeep)
+        }
+        .font(.callout)
+        .padding(.horizontal, 18).padding(.vertical, 8)
+        .tafelOverlayGlass(Capsule())
+    }
+
+    private func field(_ label: String, _ value: Binding<Double?>, _ current: Double) -> some View {
+        HStack(spacing: 4) {
+            Text(label).foregroundStyle(.secondary)
+            TextField(label, value: Binding(get: { value.wrappedValue ?? (current * 10).rounded() / 10 }, set: { value.wrappedValue = $0 }),
+                      format: .number.precision(.fractionLength(0...1)))
+                .keyboardType(.decimalPad)
+                .focused($typing)
+                .multilineTextAlignment(.trailing)
+                .frame(width: 58)
+                .padding(.horizontal, 6).padding(.vertical, 4)
+                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            Text("mm").foregroundStyle(.secondary)
+        }
+    }
+
+    /// Applies the typed millimetres (clamped to the iPad), keeping the aspect lock.
+    private func apply(_ size: CGSize, center: Bool) {
+        typing = false
+        let cur = (area ?? model.settings.tabletArea).rect(in: size)
+        var w = (mmW.map { $0 / Self.mmPerPoint }) ?? cur.width
+        var h = (mmH.map { $0 / Self.mmPerPoint }) ?? cur.height
+        if model.settings.tabletLockAspect { h = w / model.tabletAspect }
+        w = min(max(w, 40), size.width); h = min(max(h, 30), size.height)
+        if model.settings.tabletLockAspect { let asp = model.tabletAspect; if w / h > asp { w = h * asp } else { h = w / asp } }
+        var x = center ? (size.width - w) / 2 : ((mmX.map { $0 / Self.mmPerPoint }) ?? cur.minX)
+        var y = center ? (size.height - h) / 2 : ((mmY.map { $0 / Self.mmPerPoint }) ?? cur.minY)
+        x = min(max(x, 0), size.width - w); y = min(max(y, 0), size.height - h)
+        area = nil
+        model.settings.tabletArea = TabletArea(x: Double(x / size.width), y: Double(y / size.height),
+                                               width: Double(w / size.width), height: Double(h / size.height))
+        mmW = nil; mmH = nil; mmX = nil; mmY = nil
     }
 
     /// New area with its bottom-right corner at `p` (top-left stays), aspect-locked if wanted.

@@ -346,5 +346,9 @@ extension Translations {
         "Tablett-Modus": "Modo tableta",
         "Tablett-Modus (ohne Bild)": "Modo tableta (sin imagen)",
         "Zurücksetzen": "Restablecer",
+        "Breite": "Ancho",
+        "Höhe": "Alto",
+        "Zentrieren": "Centrar",
+        "Übernehmen": "Aplicar",
     ]
 }

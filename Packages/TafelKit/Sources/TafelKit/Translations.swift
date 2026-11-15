@@ -389,5 +389,9 @@ enum Translations {
         "Tablett-Modus": "Tablet mode",
         "Tablett-Modus (ohne Bild)": "Tablet mode (no picture)",
         "Zurücksetzen": "Reset",
+        "Breite": "Width",
+        "Höhe": "Height",
+        "Zentrieren": "Centre",
+        "Übernehmen": "Apply",
     ]
 }

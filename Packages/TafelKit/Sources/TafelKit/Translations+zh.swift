@@ -346,5 +346,9 @@ extension Translations {
         "Tablett-Modus": "数位板模式",
         "Tablett-Modus (ohne Bild)": "数位板模式（无画面）",
         "Zurücksetzen": "重置",
+        "Breite": "宽度",
+        "Höhe": "高度",
+        "Zentrieren": "居中",
+        "Übernehmen": "应用",
     ]
 }

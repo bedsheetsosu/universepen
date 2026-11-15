@@ -346,5 +346,9 @@ extension Translations {
         "Tablett-Modus": "태블릿 모드",
         "Tablett-Modus (ohne Bild)": "태블릿 모드(화면 없음)",
         "Zurücksetzen": "재설정",
+        "Breite": "너비",
+        "Höhe": "높이",
+        "Zentrieren": "가운데 맞춤",
+        "Übernehmen": "적용",
     ]
 }
