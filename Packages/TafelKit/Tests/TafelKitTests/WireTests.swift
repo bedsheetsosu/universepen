@@ -215,3 +215,52 @@ final class GeometryTests: XCTestCase {
         XCTAssertThrowsError(try MouseEvent(decoding: bad))
     }
 }
+
+final class OneFingerGestureTests: XCTestCase {
+    func testTapIsClickAtStartPoint() {
+        var g = OneFingerGesture()
+        XCTAssertEqual(g.begin(CGPoint(x: 10, y: 10), at: 0), [])
+        XCTAssertEqual(g.move(CGPoint(x: 13, y: 12), at: 0.05), [])          // jitter below threshold
+        XCTAssertEqual(g.end(CGPoint(x: 13, y: 12)), [.click(CGPoint(x: 10, y: 10))])
+        XCTAssertFalse(g.isActive)
+    }
+
+    func testDragPressesAtStartThenDrags() {
+        var g = OneFingerGesture()
+        _ = g.begin(CGPoint(x: 0, y: 0), at: 0)
+        XCTAssertEqual(g.move(CGPoint(x: 20, y: 0), at: 0.1), [.press(.zero), .drag(CGPoint(x: 20, y: 0))])
+        XCTAssertEqual(g.move(CGPoint(x: 30, y: 0), at: 0.2), [.drag(CGPoint(x: 30, y: 0))])
+        XCTAssertEqual(g.end(CGPoint(x: 30, y: 0)), [.release(CGPoint(x: 30, y: 0))])
+    }
+
+    func testHoldIsRightClickOnce() {
+        var g = OneFingerGesture()
+        _ = g.begin(CGPoint(x: 5, y: 5), at: 1)
+        XCTAssertEqual(g.tick(at: 1.3), [])
+        XCTAssertEqual(g.tick(at: 1.6), [.rightClick(CGPoint(x: 5, y: 5))])
+        XCTAssertEqual(g.tick(at: 2.0), [])
+        XCTAssertEqual(g.move(CGPoint(x: 50, y: 5), at: 2.1), [])            // no drag after right click
+        XCTAssertEqual(g.end(CGPoint(x: 50, y: 5)), [])
+    }
+
+    func testLongPressCanBeDisabled() {
+        var g = OneFingerGesture()
+        g.longPressEnabled = false
+        _ = g.begin(.zero, at: 0)
+        XCTAssertEqual(g.tick(at: 5), [])
+        XCTAssertEqual(g.end(.zero), [.click(.zero)])
+    }
+
+    func testSecondFingerEndsDragAndSuppressesClick() {
+        var g = OneFingerGesture()
+        _ = g.begin(.zero, at: 0)
+        _ = g.move(CGPoint(x: 40, y: 0), at: 0.1)
+        XCTAssertEqual(g.cancel(), [.release(CGPoint(x: 40, y: 0))])
+        XCTAssertEqual(g.end(CGPoint(x: 60, y: 0)), [])
+
+        var tap = OneFingerGesture()
+        _ = tap.begin(.zero, at: 0)
+        XCTAssertEqual(tap.cancel(), [])                                       // two-finger tap: no click
+        XCTAssertEqual(tap.end(.zero), [])
+    }
+}

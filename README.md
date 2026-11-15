@@ -22,6 +22,7 @@ Zielhardware: iPad Air 11" M4 + Äbbl Pencil Pro, MacBook Air M5, Affinity.
 | Tablet-Events an macOS (Druck, Neigung, Rotation, Proximity) | implementiert, baut | **nicht getestet** – kein Pencil im Testlauf; Stifttest-Fenster zur Prüfung eingebaut |
 | Pencil-Eingabe, Hover, Squeeze, Doppeltippen, Gesten auf dem iPad | implementiert, baut | **nicht getestet** – kein iPad/Simulator im Testlauf (keine Simulator-Runtime installiert) |
 | Affinity-Kompatibilität | **unbekannt** | muss mit dem Testplan unten am echten Gerät geprüft werden |
+| Zweiter Bildschirm (wie Sidecar) | **läuft auf echter Hardware**, experimentell | einzige private API (`CGVirtualDisplay`), nur in diesem Modus |
 | USB-Kabel | **läuft auf echter Hardware** (15.11.2026, iPad Air M4 ↔ MacBook Air M5) | alle drei Verbindungen über das USB-Ethernet-Interface (Mac `en8`); Fallback WLAN. Nicht dokumentiert, siehe Grenzen |
 | Ton vom Mac | **Daten fließen** (Hörtest steht aus) | ScreenCaptureKit-Audio → 16-bit-PCM → iPad, Puffer max. ~100 ms; der Mac spielt den Ton weiter selbst ab |
 
@@ -159,6 +160,27 @@ Tafel ändert keine Profile, Einschränkungen oder MDM-Einstellungen und versuch
 - Tafel erkennt das nach 2,5 s ohne Ping-Antwort (statt nach einem langen TCP-Timeout), lässt das letzte Bild stehen und verbindet sich bis zu 30 s lang automatisch neu: zuerst über das Kabel, sonst WLAN. Über WLAN prüft Tafel alle 10 s, ob das Kabel wieder geht, und wechselt zurück (bei Fehlschlag höchstens einmal pro Minute). Auf echter Hardware bestätigt (15.11.2026).
 - Am Mac werden beim Abbruch gedrückte Stift-/Maus-/Tastenzustände losgelassen.
 - Encoder- oder Decoder-Fehler lösen sofort ein neues Vollbild aus, statt bis zum nächsten periodischen Keyframe (5 s) einzufrieren.
+
+## Zweiter Bildschirm (experimentell, private API)
+
+**Bewusste Ausnahme von der Regel „nur öffentliche APIs“, auf Wunsch eingebaut (15.11.2026).**
+
+- Modus „Zweiter Bildschirm“: Tafel legt mit der **privaten** CoreGraphics-Klasse `CGVirtualDisplay` einen zusätzlichen Mac-Bildschirm „Tafel (iPad)“ an – 1180×820 pt, HiDPI (2360×1640 Pixel), 60 Hz, bei Hochformat gedreht – und überträgt ihn randlos. Wie Sidecar, aber ohne gleiche Äbbl-ID (Kopplung per Code), also auch mit Geräten, auf denen man sich nicht mit dem eigenen Account anmelden kann.
+- Anordnung unter Systemeinstellungen → Displays. Ohne iPad wird der Bildschirm nach 10 s wieder entfernt (kurze USB-Aussetzer überbrückt), macOS holt die Fenster zurück; beim Beenden von Tafel Host sofort.
+- Auf echter Hardware geprüft (macOS auf MacBook Air M5): Bildschirm erscheint, Stream 2360×1640.
+- **Risiko:** Äbbl kann die Schnittstelle mit jedem macOS-Update ändern oder entfernen. Tafel meldet dann „nicht verfügbar“; alle anderen Modi bleiben unberührt. Die Deklarationen liegen isoliert in `Host/Private/CGVirtualDisplayPrivate.h`, genutzt nur von `Host/VirtualDisplay.swift`.
+- Kein Eingriff in MDM, Profile oder Systemeinstellungen; es wird nur eine Bildschirm-Sitzung angelegt.
+- Kostenlose Alternative ohne private API: ein HDMI-/USB-C-Display-Dummy-Stecker + Modus „Ganzer Bildschirm“ mit diesem Bildschirm (meist 16:9 → Ränder).
+
+## Finger & Multi-Touch (wie bei einem Stift-Display)
+
+Auf echter Hardware bestätigt (15.11.2026).
+
+- **Ein Finger** (Einstellung „Ein Finger“: Maus / Stift mit festem Druck / Aus): Tippen = Klick an der Aufsetzstelle, zweimal = Doppelklick, Ziehen = Klicken und Ziehen (zeichnet in Affinity ohne Druck), Halten ≈ 0,55 s = Rechtsklick.
+- **Handballen-Schutz:** Finger lösen nichts aus, solange der Pencil schwebt, aufliegt oder vor < 0,6 s benutzt wurde, und nicht bei großer Auflagefläche (`majorRadius`, Schwelle einstellbar). Ein zweiter Finger beendet eine laufende Ein-Finger-Aktion sauber (kein Fehlklick vor Pinch/Scroll).
+- **Mehrere Finger:** zwei Finger scrollen, Pinch zoomt (Methode wählbar), Drehen → Shortcuts, Zwei-/Drei-/Vier-Finger-Tipp und Drei-Finger-Wischen in alle Richtungen frei belegbar (Standard: links Undo, rechts Redo).
+- Vier-Finger-Gesten fängt iPadOS ab, wenn Multitasking-Gesten in den iPad-Einstellungen aktiv sind.
+- Echte Trackpad-Gesten (Magnify/Rotate) kann der Mac mit öffentlichen APIs nicht erzeugen, deshalb Zoom über Scroll + Modifier.
 
 ## Tastatur
 

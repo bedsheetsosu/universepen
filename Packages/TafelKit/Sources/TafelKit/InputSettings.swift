@@ -53,6 +53,24 @@ public enum ZoomMethod: String, Codable, CaseIterable, Sendable {
     }
 }
 
+/// What a single finger does on the canvas (like the touch ring of a pen display).
+public enum FingerMode: String, Codable, CaseIterable, Sendable {
+    /// Fingers only do multi-finger gestures (strict palm rejection).
+    case off
+    /// Tap = click, drag = click-and-drag, hold = right click. Draws without pressure in drawing apps.
+    case mouse
+    /// Like the Pencil with a fixed pressure (tablet events), hold = right click.
+    case pen
+
+    public var title: String {
+        switch self {
+        case .off: return "Aus"
+        case .mouse: return "Maus"
+        case .pen: return "Stift (fester Druck)"
+        }
+    }
+}
+
 public struct ShortcutButton: Codable, Hashable, Identifiable, Sendable {
     public var id: UUID
     public var title: String
@@ -83,6 +101,18 @@ public struct InputSettings: Codable, Equatable, Sendable {
     public var rotateRight: PencilAction = .none
     public var rotateStepDegrees: Double = 15
 
+    public var fingerMode: FingerMode = .mouse
+    /// Pressure used in `.pen` finger mode.
+    public var fingerPressure: Double = 0.5
+    public var longPressRightClick = true
+    /// Touches with a larger contact radius (points) count as palm and are ignored.
+    public var palmRadius: Double = 32
+    public var threeFingerSwipeLeft: PencilAction = .undo
+    public var threeFingerSwipeRight: PencilAction = .redo
+    public var threeFingerSwipeUp: PencilAction = .none
+    public var threeFingerSwipeDown: PencilAction = .none
+    public var fourFingerTap: PencilAction = .none
+
     /// Swap the ISO keys "^" and "<" (some keyboards report them the other way round).
     public var swapISOKeys = false
     /// Trackpad/mouse on the iPad controls the Mac's pointer.
@@ -104,6 +134,8 @@ public struct InputSettings: Codable, Equatable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case pressure, tilt, sendHover, sendRoll, doubleTap, squeeze, twoFingerTap, threeFingerTap
         case panEnabled, invertPan, zoomMethod, zoomSensitivity, rotateLeft, rotateRight, rotateStepDegrees
+        case fingerMode, fingerPressure, longPressRightClick, palmRadius
+        case threeFingerSwipeLeft, threeFingerSwipeRight, threeFingerSwipeUp, threeFingerSwipeDown, fourFingerTap
         case swapISOKeys, trackpadAsMouse, hideIPadPointer, showShortcutBar, shortcutBar
     }
 
@@ -121,6 +153,11 @@ public struct InputSettings: Codable, Equatable, Sendable {
         try get(.zoomMethod, &zoomMethod); try get(.zoomSensitivity, &zoomSensitivity)
         try get(.rotateLeft, &rotateLeft); try get(.rotateRight, &rotateRight)
         try get(.rotateStepDegrees, &rotateStepDegrees)
+        try get(.fingerMode, &fingerMode); try get(.fingerPressure, &fingerPressure)
+        try get(.longPressRightClick, &longPressRightClick); try get(.palmRadius, &palmRadius)
+        try get(.threeFingerSwipeLeft, &threeFingerSwipeLeft); try get(.threeFingerSwipeRight, &threeFingerSwipeRight)
+        try get(.threeFingerSwipeUp, &threeFingerSwipeUp); try get(.threeFingerSwipeDown, &threeFingerSwipeDown)
+        try get(.fourFingerTap, &fourFingerTap)
         try get(.swapISOKeys, &swapISOKeys)
         try get(.trackpadAsMouse, &trackpadAsMouse); try get(.hideIPadPointer, &hideIPadPointer)
         try get(.showShortcutBar, &showShortcutBar); try get(.shortcutBar, &shortcutBar)

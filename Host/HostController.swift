@@ -5,12 +5,13 @@ import CoreGraphics
 import TafelKit
 
 enum CaptureMode: String, CaseIterable, Identifiable {
-    case display, region, window
+    case display, virtual, region, window
     var id: String { rawValue }
     var title: String {
         switch self {
         case .region: return "iPad-Ausschnitt"
         case .display: return "Ganzer Bildschirm"
+        case .virtual: return "Zweiter Bildschirm"
         case .window: return "Fenster"
         }
     }
@@ -18,12 +19,14 @@ enum CaptureMode: String, CaseIterable, Identifiable {
         switch self {
         case .region: return "ipad.landscape"
         case .display: return "display"
+        case .virtual: return "rectangle.on.rectangle"
         case .window: return "macwindow"
         }
     }
     var help: String {
         switch self {
         case .region: return "Ausschnitt im iPad-Seitenverhältnis, füllt das iPad ohne schwarze Ränder."
+        case .virtual: return "Das iPad wird ein zusätzlicher Mac-Bildschirm (wie Sidecar), randlos in iPad-Auflösung. Anordnen unter Systemeinstellungen → Displays. Experimentell: nutzt eine nicht dokumentierte macOS-Schnittstelle (CGVirtualDisplay) und kann mit macOS-Updates aufhören zu funktionieren."
         case .display: return "Ganzer Bildschirm; bei abweichendem Seitenverhältnis gibt es Ränder auf dem iPad."
         case .window: return "Ein einzelnes Fenster (z. B. Affinity). Position wird alle 0,5 s nachgeführt."
         }
@@ -68,10 +71,12 @@ final class HostController: ObservableObject {
 
     // Source
     /// Default: whole screen. The user's choice is remembered.
-    @Published var mode: CaptureMode = CaptureMode(rawValue: UserDefaults.standard.string(forKey: "captureMode") ?? "") ?? .display {
+    @Published var mode: CaptureMode = HostController.initialMode {
         didSet {
             guard mode != oldValue else { return }
+            if mode == .virtual && !Self.secondScreenAvailable { mode = oldValue; return }
             UserDefaults.standard.set(mode.rawValue, forKey: "captureMode")
+            if oldValue == .virtual { removeVirtualDisplay() }
             restartStream()
         }
     }
@@ -94,6 +99,19 @@ final class HostController: ObservableObject {
     private var scDisplays: [CGDirectDisplayID: SCDisplay] = [:]
     private var scWindows: [CGWindowID: SCWindow] = [:]
     private var restartTask: Task<Void, Never>?
+    /// Whether the private API for "Zweiter Bildschirm" matches what Tafel expects on this macOS.
+    static let secondScreenAvailable = VirtualDisplay.availability.isAvailable
+
+    /// Saved mode, falling back to the whole screen if the second screen is unavailable now.
+    private static var initialMode: CaptureMode {
+        let saved = CaptureMode(rawValue: UserDefaults.standard.string(forKey: "captureMode") ?? "") ?? .display
+        return saved == .virtual && !secondScreenAvailable ? .display : saved
+    }
+
+    /// The extra display of the "Zweiter Bildschirm" mode (private API, see VirtualDisplay).
+    private var virtualDisplay: VirtualDisplay?
+    private var virtualTeardown: Task<Void, Never>?
+    @Published var virtualDisplayError: String?
     private var pairingTimer: Timer?
     private var windowTracker: Timer?
     private var permissionTimer: Timer?
@@ -177,6 +195,7 @@ final class HostController: ObservableObject {
                 guard let self else { return }
                 self.sessionDevice = name
                 self.sessionLink = link
+                self.scheduleVirtualTeardown(sessionActive: name != nil)
                 if name == nil {
                     self.clientConfig = nil
                     await self.stopStream()
@@ -313,8 +332,15 @@ final class HostController: ObservableObject {
 
         do {
             switch mode {
-            case .region, .display:
-                guard let display = scDisplays[selectedDisplay] ?? scDisplays.values.first else {
+            case .region, .display, .virtual:
+                let chosen: SCDisplay?
+                if mode == .virtual {
+                    chosen = await ensureVirtualDisplay(width: cfg.viewPixelWidth, height: cfg.viewPixelHeight)
+                    if chosen == nil { return }
+                } else {
+                    chosen = scDisplays[selectedDisplay] ?? scDisplays.values.first
+                }
+                guard let display = chosen else {
                     lastError = "Kein Bildschirm gefunden."
                     return
                 }
@@ -356,6 +382,52 @@ final class HostController: ObservableObject {
         } catch {
             lastError = "Stream konnte nicht starten: \(error.localizedDescription)"
             await streamer.stop()
+        }
+    }
+
+    // MARK: Second screen (virtual display, private API)
+
+    /// Creates (or re-creates after rotation) the virtual display and waits until ScreenCaptureKit
+    /// lists it.
+    private func ensureVirtualDisplay(width: Int, height: Int) async -> SCDisplay? {
+        virtualTeardown?.cancel()
+        if let v = virtualDisplay, v.pixelWidth != width || v.pixelHeight != height {
+            virtualDisplay = nil   // orientation changed
+        }
+        if virtualDisplay == nil {
+            guard let v = VirtualDisplay(pixelWidth: width, pixelHeight: height) else {
+                virtualDisplayError = "Zweiter Bildschirm ist auf diesem macOS nicht verfügbar (private Schnittstelle fehlt oder wurde geändert)."
+                lastError = virtualDisplayError
+                return nil
+            }
+            virtualDisplay = v
+            virtualDisplayError = nil
+        }
+        let id = virtualDisplay!.displayID
+        for _ in 0..<20 {
+            await refreshSources()
+            if let d = scDisplays[id] { return d }
+            try? await Task.sleep(nanoseconds: 150_000_000)
+        }
+        lastError = "Zweiter Bildschirm wurde angelegt, ist aber für die Aufnahme nicht sichtbar."
+        return nil
+    }
+
+    private func removeVirtualDisplay() {
+        virtualTeardown?.cancel()
+        virtualDisplay = nil
+        Task { await refreshSources() }
+    }
+
+    /// Without an iPad the extra display would hold windows nobody can see. Keep it through short
+    /// drop-outs (USB link resets take ~3 s), remove it after 10 s – macOS then moves the windows back.
+    private func scheduleVirtualTeardown(sessionActive: Bool) {
+        virtualTeardown?.cancel()
+        guard !sessionActive, virtualDisplay != nil else { return }
+        virtualTeardown = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 10_000_000_000)
+            guard !Task.isCancelled, let self, self.sessionDevice == nil else { return }
+            self.removeVirtualDisplay()
         }
     }
 

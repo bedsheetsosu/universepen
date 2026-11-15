@@ -196,21 +196,38 @@ struct HostView: View {
             SectionTitle("Quelle", symbol: "rectangle.dashed.badge.record")
             HStack(spacing: 8) {
                 ForEach(CaptureMode.allCases) { m in
+                    let unavailable = m == .virtual && !HostController.secondScreenAvailable
                     ModeButton(mode: m, selected: host.mode == m) { host.mode = m }
+                        .disabled(unavailable)
+                        .opacity(unavailable ? 0.4 : 1)
+                        .help(unavailable ? "Auf diesem macOS nicht verfügbar: die private Schnittstelle hat sich geändert." : m.title)
                 }
             }
             Text(host.mode.help).font(.caption).foregroundStyle(.secondary)
                 .contentTransition(.opacity)
+            if !HostController.secondScreenAvailable {
+                Label("„Zweiter Bildschirm“ ist auf diesem macOS nicht verfügbar – die private Schnittstelle hat sich geändert. Details stehen im Log (Konsole, Prozess „Tafel Host“).",
+                      systemImage: "exclamationmark.triangle")
+                    .font(.caption).foregroundStyle(.orange)
+            }
 
             if host.mode == .window {
                 Picker("Fenster", selection: $host.selectedWindow) {
                     ForEach(host.windows) { Text($0.title).lineLimit(1).tag($0.id) }
                 }
                 .transition(.opacity)
-            } else {
+            } else if host.mode != .virtual {
                 Picker("Bildschirm", selection: $host.selectedDisplay) {
                     ForEach(host.displays) { Text($0.title).tag($0.id) }
                 }
+            }
+            if host.mode == .virtual {
+                Label("Experimentell · private macOS-Schnittstelle", systemImage: "flask")
+                    .font(.caption.weight(.medium))
+                    .padding(.horizontal, 9).padding(.vertical, 4)
+                    .background(Color.orange.opacity(0.18), in: Capsule())
+                    .foregroundStyle(.orange)
+                    .transition(.opacity)
             }
             if host.mode == .region {
                 VStack(spacing: 8) {

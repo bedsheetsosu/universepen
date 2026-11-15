@@ -97,7 +97,7 @@ final class InputInjector {
             // Double/triple clicks: same button, close in time and space (system settings).
             let now = Date()
             if lastClick.button == m.button, now.timeIntervalSince(lastClick.time) < NSEvent.doubleClickInterval,
-               hypot(p.x - lastClick.point.x, p.y - lastClick.point.y) < 5 {
+               hypot(p.x - lastClick.point.x, p.y - lastClick.point.y) < 8 {  // fingers are less precise than a mouse
                 clickCount += 1
             } else {
                 clickCount = 1

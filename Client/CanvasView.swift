@@ -27,6 +27,11 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     private var pencilTouch: UITouch?
     /// Trackpad/mouse click in progress (indirect pointer touch).
     private var pointerTouch: UITouch?
+    /// Finger touches currently down that are not palms.
+    private var fingerTouches = Set<UITouch>()
+    private var oneFinger = OneFingerGesture()
+    private var trackedFinger: UITouch?
+    private var fingerTimer: Timer?
     private var lastScroll: CGPoint = .zero
     private var hovering = false
     private var lastPencilActivity = Date.distantPast
@@ -146,12 +151,15 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     // MARK: Pencil touches
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        fingersBegan(touches)
         if settings.trackpadAsMouse, pointerTouch == nil, let t = touches.first(where: { $0.type == .indirectPointer }) {
             pointerTouch = t
             let right = event?.buttonMask.contains(.secondary) == true
             sendMouse(.down, t.location(in: self), button: right ? .right : .left)
         }
         for t in touches where t.type == .pencil && pencilTouch == nil {
+            // The Pencil always wins over a finger in progress.
+            emitFinger(oneFinger.cancel())
             pencilTouch = t
             lastPencilActivity = Date()
             send(t, .down)
@@ -159,6 +167,11 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if let f = trackedFinger, touches.contains(f) {
+            for c in event?.coalescedTouches(for: f) ?? [f] {
+                emitFinger(oneFinger.move(c.location(in: self), at: c.timestamp))
+            }
+        }
         if let t = pointerTouch, touches.contains(t) {
             for c in event?.coalescedTouches(for: t) ?? [t] { sendMouse(.move, c.location(in: self)) }
         }
@@ -169,13 +182,81 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        fingersEnded(touches)
         endPointer(touches)
         endPencil(touches, phase: .up)
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        for t in touches where t === trackedFinger { emitFinger(oneFinger.cancel()) }
+        fingersEnded(touches)
         endPointer(touches)
         endPencil(touches, phase: .cancel)
+    }
+
+    // MARK: One finger (pen-display style touch)
+
+    /// Single-finger input is allowed only when it cannot be a resting hand: no Pencil in range
+    /// or in use (and not for 0.6 s after it), and not a large contact area.
+    private var fingerAllowed: Bool {
+        settings.fingerMode != .off && session != nil && !hovering && pencilTouch == nil
+            && Date().timeIntervalSince(lastPencilActivity) > 0.6
+    }
+
+    private func isPalm(_ t: UITouch) -> Bool { t.majorRadius > CGFloat(settings.palmRadius) }
+
+    private func fingersBegan(_ touches: Set<UITouch>) {
+        for t in touches where t.type == .direct && !isPalm(t) { fingerTouches.insert(t) }
+        if fingerTouches.count == 1, trackedFinger == nil, let t = fingerTouches.first, touches.contains(t), fingerAllowed {
+            trackedFinger = t
+            oneFinger.longPressEnabled = settings.longPressRightClick
+            emitFinger(oneFinger.begin(t.location(in: self), at: t.timestamp))
+            fingerTimer?.invalidate()
+            fingerTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
+                guard let self else { return }
+                self.emitFinger(self.oneFinger.tick(at: ProcessInfo.processInfo.systemUptime))
+            }
+        } else if fingerTouches.count > 1 {
+            // A multi-finger gesture is starting: end the single-finger action cleanly.
+            emitFinger(oneFinger.cancel())
+        }
+    }
+
+    private func fingersEnded(_ touches: Set<UITouch>) {
+        for t in touches { fingerTouches.remove(t) }
+        if let f = trackedFinger, touches.contains(f) {
+            emitFinger(oneFinger.end(f.location(in: self)))
+            trackedFinger = nil
+            fingerTimer?.invalidate()
+            fingerTimer = nil
+        }
+    }
+
+    private func emitFinger(_ outputs: [OneFingerGesture.Output]) {
+        for o in outputs {
+            switch (settings.fingerMode, o) {
+            case (_, .rightClick(let p)):
+                sendMouse(.down, p, button: .right)
+                sendMouse(.up, p)
+            case (.pen, .press(let p)): sendFingerPen(.down, p)
+            case (.pen, .drag(let p)): sendFingerPen(.move, p)
+            case (.pen, .release(let p)): sendFingerPen(.up, p); sendFingerPen(.exit, p)
+            case (.pen, .click(let p)): sendFingerPen(.down, p); sendFingerPen(.up, p); sendFingerPen(.exit, p)
+            case (_, .press(let p)): sendMouse(.down, p)
+            case (_, .drag(let p)): sendMouse(.move, p)
+            case (_, .release(let p)): sendMouse(.up, p)
+            case (_, .click(let p)): sendMouse(.down, p); sendMouse(.up, p)
+            }
+        }
+    }
+
+    private func sendFingerPen(_ phase: PenPhase, _ location: CGPoint) {
+        guard let session else { return }
+        let n = Geometry.normalized(location, in: videoRect)
+        let touching = phase == .down || phase == .move
+        session.send(PenSample(phase: phase, x: Float(n.x), y: Float(n.y),
+                               pressure: touching ? Float(settings.fingerPressure) : 0,
+                               tiltX: 0, tiltY: 0, rotation: 0, timestamp: ProcessInfo.processInfo.systemUptime))
     }
 
     // MARK: Trackpad / mouse
@@ -315,7 +396,16 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         tap2.numberOfTouchesRequired = 2
         let tap3 = UITapGestureRecognizer(target: self, action: #selector(handleThreeFingerTap))
         tap3.numberOfTouchesRequired = 3
-        for g in [pan, pinch, rotate, tap2, tap3] as [UIGestureRecognizer] {
+        let tap4 = UITapGestureRecognizer(target: self, action: #selector(handleFourFingerTap))
+        tap4.numberOfTouchesRequired = 4
+        var swipes: [UIGestureRecognizer] = []
+        for dir in [UISwipeGestureRecognizer.Direction.left, .right, .up, .down] {
+            let g = UISwipeGestureRecognizer(target: self, action: #selector(handleThreeFingerSwipe(_:)))
+            g.direction = dir
+            g.numberOfTouchesRequired = 3
+            swipes.append(g)
+        }
+        for g in [pan, pinch, rotate, tap2, tap3, tap4] + swipes as [UIGestureRecognizer] {
             g.allowedTouchTypes = direct
             g.cancelsTouchesInView = false
             g.delegate = self
@@ -408,6 +498,17 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
 
     @objc private func handleTwoFingerTap() { onAction?(settings.twoFingerTap) }
     @objc private func handleThreeFingerTap() { onAction?(settings.threeFingerTap) }
+    @objc private func handleFourFingerTap() { onAction?(settings.fourFingerTap) }
+
+    @objc private func handleThreeFingerSwipe(_ g: UISwipeGestureRecognizer) {
+        switch g.direction {
+        case .left: onAction?(settings.threeFingerSwipeLeft)
+        case .right: onAction?(settings.threeFingerSwipeRight)
+        case .up: onAction?(settings.threeFingerSwipeUp)
+        case .down: onAction?(settings.threeFingerSwipeDown)
+        default: break
+        }
+    }
 }
 
 struct CanvasRepresentable: UIViewRepresentable {

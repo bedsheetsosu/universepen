@@ -33,6 +33,8 @@ targets:
         # Not sandboxed: posting tablet/keyboard events needs Accessibility, which sandboxed apps cannot use.
         ENABLE_APP_SANDBOX: NO
         ENABLE_HARDENED_RUNTIME: NO
+        # Only for the optional "Zweiter Bildschirm" mode (private CGVirtualDisplay API).
+        SWIFT_OBJC_BRIDGING_HEADER: Host/Private/TafelHost-Bridging-Header.h
         GENERATE_INFOPLIST_FILE: NO
     info:
       path: Host/Info.plist

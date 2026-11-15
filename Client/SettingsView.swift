@@ -111,7 +111,23 @@ struct SettingsView: View {
     }
 
     private var gestureSection: some View {
-        Section("Finger-Gesten") {
+        Section {
+            Picker("Ein Finger", selection: $model.settings.fingerMode) {
+                ForEach(FingerMode.allCases, id: \.self) { Text($0.title).tag($0) }
+            }
+            if model.settings.fingerMode == .pen {
+                VStack(alignment: .leading) {
+                    Text("Druck beim Finger: \(Int(model.settings.fingerPressure * 100)) %")
+                    Slider(value: $model.settings.fingerPressure, in: 0.1...1)
+                }
+            }
+            if model.settings.fingerMode != .off {
+                Toggle("Halten = Rechtsklick", isOn: $model.settings.longPressRightClick)
+                VStack(alignment: .leading) {
+                    Text("Handballen-Erkennung: ab \(Int(model.settings.palmRadius)) pt Auflagefläche")
+                    Slider(value: $model.settings.palmRadius, in: 15...60, step: 1)
+                }
+            }
             Toggle("Zwei Finger verschieben (Scrollen)", isOn: $model.settings.panEnabled)
             Toggle("Verschieben umkehren", isOn: $model.settings.invertPan)
             Picker("Zoomen (Pinch)", selection: $model.settings.zoomMethod) {
@@ -128,6 +144,15 @@ struct SettingsView: View {
             Stepper("Drehschritt: \(Int(model.settings.rotateStepDegrees))°", value: $model.settings.rotateStepDegrees, in: 5...90, step: 5)
             ActionPicker(title: "Zwei-Finger-Tipp", action: $model.settings.twoFingerTap)
             ActionPicker(title: "Drei-Finger-Tipp", action: $model.settings.threeFingerTap)
+            ActionPicker(title: "Vier-Finger-Tipp", action: $model.settings.fourFingerTap)
+            ActionPicker(title: "Drei Finger nach links", action: $model.settings.threeFingerSwipeLeft)
+            ActionPicker(title: "Drei Finger nach rechts", action: $model.settings.threeFingerSwipeRight)
+            ActionPicker(title: "Drei Finger nach oben", action: $model.settings.threeFingerSwipeUp)
+            ActionPicker(title: "Drei Finger nach unten", action: $model.settings.threeFingerSwipeDown)
+        } header: {
+            Text("Finger & Multi-Touch")
+        } footer: {
+            Text("Wie bei einem Stift-Display: Ein Finger tippt (Klick), zieht (Klicken und Ziehen – zeichnet ohne Druck) und hält (Rechtsklick). Liegt der Stift in der Nähe oder wurde gerade benutzt, und bei großer Auflagefläche (Handballen), lösen Finger nichts aus. Vier-Finger-Gesten fängt iPadOS ab, wenn in den iPad-Einstellungen Multitasking-Gesten aktiv sind.")
         }
     }
 
