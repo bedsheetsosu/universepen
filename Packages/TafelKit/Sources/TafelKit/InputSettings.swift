@@ -186,7 +186,18 @@ public struct InputSettings: Codable, Equatable, Sendable {
     /// is in front on the Mac.
     public var appPenProfiles: [String: PenProfile] = [:]
 
+    /// Mac apps (bundle ID → name) that get game mode: maximum picture quality and no smoothing
+    /// while they are in front (e.g. osu!).
+    public var gameApps: [String: String] = [:]
+
+    /// Two fingers rest, then drag left/right = undo/redo step by step.
+    public var undoScrub = true
+    /// Finger travel (points) per undo/redo step.
+    public var undoScrubStep: Double = 40
+
     public init() {}
+
+    public func isGame(_ bundleID: String?) -> Bool { bundleID.map { gameApps[$0] != nil } ?? false }
 
     /// The Pencil part of these settings (what a per-app profile can override).
     public var penProfile: PenProfile {
@@ -203,9 +214,13 @@ public struct InputSettings: Codable, Equatable, Sendable {
 
     /// Settings in effect while the app with `bundleID` is in front on the Mac.
     public func effective(for bundleID: String?) -> InputSettings {
-        guard let bundleID, let p = appPenProfiles[bundleID] else { return self }
         var s = self
-        s.penProfile = p
+        if let bundleID, let p = appPenProfiles[bundleID] { s.penProfile = p }
+        if isGame(bundleID) {
+            // Smoothing adds lag; a game wants the raw Pencil.
+            s.positionSmoothing = 0
+            s.pressureSmoothing = 0
+        }
         return s
     }
 
@@ -216,7 +231,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         case fingerMode, fingerPressure, longPressRightClick, palmRadius
         case threeFingerSwipeLeft, threeFingerSwipeRight, threeFingerSwipeUp, threeFingerSwipeDown, fourFingerTap
         case swapISOKeys, trackpadAsMouse, hideIPadPointer, showShortcutBar, shortcutBarOnRight, shortcutBar
-        case appShortcutBars, appNames, radialMenu, appPenProfiles
+        case appShortcutBars, appNames, radialMenu, appPenProfiles, gameApps, undoScrub, undoScrubStep
     }
 
     /// Tolerates settings saved by older versions: missing keys keep their defaults.
@@ -245,6 +260,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         try get(.showShortcutBar, &showShortcutBar); try get(.shortcutBar, &shortcutBar)
         try get(.appShortcutBars, &appShortcutBars); try get(.appNames, &appNames)
         try get(.radialMenu, &radialMenu); try get(.appPenProfiles, &appPenProfiles)
+        try get(.gameApps, &gameApps); try get(.undoScrub, &undoScrub); try get(.undoScrubStep, &undoScrubStep)
     }
 }
 

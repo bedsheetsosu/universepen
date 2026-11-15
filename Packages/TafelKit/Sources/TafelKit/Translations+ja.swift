@@ -314,5 +314,13 @@ extension Translations {
         "iPad-Akku: %d %%": "iPad のバッテリー：%d %%",
         "Volle Mac-Auflösung senden": "Mac のフル解像度で送信",
         "„Volle Mac-Auflösung“: Der Mac schickt alle Pixel unverkleinert (z. B. beim zweiten Bildschirm mit mehr Platz), das iPad verkleinert beim Anzeigen. Kann schärfer sein, braucht aber mehr Bitrate.": "「Mac のフル解像度」：Mac がすべてのピクセルを縮小せずに送り（例：スペースを広げた第 2 画面）、iPad が表示時に縮小します。よりシャープになる場合がありますが、より高いビットレートが必要です。",
+        "Fensterliste aktualisieren": "ウィンドウ一覧を更新",
+        "Spielmodus": "ゲームモード",
+        "Spielmodus (z. B. für osu!): Solange die App am Mac vorne ist, gelten 60 fps, volle Auflösung, mindestens 60 Mbit/s, keine automatische Bitrate und keine Glättung. Mehr als 60 Hz kann das iPad-Display nicht zeigen.": "ゲームモード（例：osu!）：そのアプリが Mac で前面にある間は 60 fps、フル解像度、60 Mbit/s 以上、自動ビットレートなし、スムージングなし。iPad のディスプレイは 60 Hz を超えて表示できません。",
+        "Spielmodus für %@": "%@ のゲームモード",
+        "Spielmodus für %@ aus": "%@ のゲームモードをオフ",
+        "Undo-Wischen (zwei Finger halten, dann ziehen)": "取り消しスクラブ（2 本指で押さえてからドラッグ）",
+        "Weg pro Schritt: %d pt": "1 ステップの距離：%d pt",
+        "Ziehen: links Undo, rechts Redo": "ドラッグ：左で取り消し、右でやり直し",
     ]
 }

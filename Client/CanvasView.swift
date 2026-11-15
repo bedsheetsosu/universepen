@@ -23,6 +23,12 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     var onRadialOpen: ((CGPoint) -> Void)?
     var onRadialPick: (() -> Void)?
     var radialOpen = false
+    /// Undo scrub progress (steps, negative = undo), nil when it ends.
+    var onScrub: ((Int?) -> Void)?
+    private var undoScrub: UILongPressGestureRecognizer?
+    private var scrubbing = false
+    private var scrubOriginX: CGFloat = 0
+    private var scrubDone = 0
     private var lastHoverPoint: CGPoint?
     var videoSize: CGSize = .zero { didSet { setNeedsLayout() } }
     /// Hidden text field for the on-screen keyboard.
@@ -455,6 +461,16 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
             g.delegate = self
             addGestureRecognizer(g)
         }
+        // Undo scrub: two fingers rest briefly, then drag left (undo) / right (redo).
+        let scrub = UILongPressGestureRecognizer(target: self, action: #selector(handleUndoScrub(_:)))
+        scrub.numberOfTouchesRequired = 2
+        scrub.minimumPressDuration = 0.35
+        scrub.allowableMovement = 12
+        scrub.allowedTouchTypes = direct
+        scrub.cancelsTouchesInView = false
+        scrub.delegate = self
+        addGestureRecognizer(scrub)
+        undoScrub = scrub
         // Trackpad pinch / rotate use the same zoom and rotate settings as fingers.
         let indirect = NSNumber(value: UITouch.TouchType.indirectPointer.rawValue)
         pinch.allowedTouchTypes = direct + [indirect]
@@ -470,7 +486,31 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
 
     override func gestureRecognizerShouldBegin(_ g: UIGestureRecognizer) -> Bool {
         if g is UIHoverGestureRecognizer { return true }
+        if g === undoScrub { return settings.undoScrub && !pencilBusy }
+        // While scrubbing, the fingers only scrub (no scroll, zoom or rotate).
+        if scrubbing { return false }
         return !pencilBusy
+    }
+
+    @objc private func handleUndoScrub(_ g: UILongPressGestureRecognizer) {
+        let x = g.location(in: self).x
+        switch g.state {
+        case .began:
+            scrubbing = true
+            scrubOriginX = x
+            scrubDone = 0
+            onScrub?(0)
+        case .changed:
+            let target = Int(((x - scrubOriginX) / max(settings.undoScrubStep, 10)).rounded(.towardZero))
+            guard target != scrubDone, let session else { return }
+            while scrubDone > target { session.send(Shortcut("z", .command)); scrubDone -= 1 }
+            while scrubDone < target { session.send(Shortcut("z", [.command, .shift])); scrubDone += 1 }
+            onScrub?(scrubDone)
+        default:
+            if scrubbing { onGesture?(GestureEvent(name: "undoScrub", value: Double(scrubDone))) }
+            scrubbing = false
+            onScrub?(nil)
+        }
     }
 
     func gestureRecognizer(_ g: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool {
@@ -590,6 +630,7 @@ struct CanvasRepresentable: UIViewRepresentable {
         v.onPixelSize = { [weak model] w, h in model?.updateViewPixelSize(width: w, height: h) }
         v.onRadialOpen = { [weak model] p in model?.openRadial(at: p) }
         v.onRadialPick = { [weak model] in model?.pickRadial(model?.radialHighlight) }
+        v.onScrub = { [weak model] n in model?.scrubSteps = n }
         return v
     }
 

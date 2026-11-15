@@ -96,10 +96,23 @@ struct SettingsView: View {
                 Text(L("Bitrate: %d Mbit/s", Int(model.quality.bitrateMbps)))
                 Slider(value: $model.quality.bitrateMbps, in: 5...100, step: 5)
             }
+            if let app = model.frontApp {
+                Toggle(L("Spielmodus für %@", app.name), isOn: Binding(
+                    get: { model.settings.gameApps[app.bundleID] != nil },
+                    set: { _ in model.toggleGameMode() }))
+            }
+            let otherGames = model.settings.gameApps.sorted { $0.value < $1.value }.filter { $0.key != model.frontApp?.bundleID }
+            ForEach(otherGames, id: \.key) { _, name in
+                LabeledContent(L("Spielmodus"), value: name)
+            }
+            .onDelete { idx in
+                for i in idx where otherGames.indices.contains(i) { model.settings.gameApps[otherGames[i].key] = nil }
+            }
         } header: {
             Text(L("Bild"))
         } footer: {
             Text(L("Höhere Bitrate = schärfer, braucht aber stabiles WLAN. Bei Rucklern Bitrate senken oder 30 fps wählen.") + " " +
+                 L("Spielmodus (z. B. für osu!): Solange die App am Mac vorne ist, gelten 60 fps, volle Auflösung, mindestens 60 Mbit/s, keine automatische Bitrate und keine Glättung. Mehr als 60 Hz kann das iPad-Display nicht zeigen.") + " " +
                  L("„Volle Mac-Auflösung“: Der Mac schickt alle Pixel unverkleinert (z. B. beim zweiten Bildschirm mit mehr Platz), das iPad verkleinert beim Anzeigen. Kann schärfer sein, braucht aber mehr Bitrate."))
         }
     }
@@ -227,6 +240,13 @@ struct SettingsView: View {
                 VStack(alignment: .leading) {
                     Text(L("Handballen-Erkennung: ab %d pt Auflagefläche", Int(model.settings.palmRadius)))
                     Slider(value: $model.settings.palmRadius, in: 15...60, step: 1)
+                }
+            }
+            Toggle(L("Undo-Wischen (zwei Finger halten, dann ziehen)"), isOn: $model.settings.undoScrub)
+            if model.settings.undoScrub {
+                VStack(alignment: .leading) {
+                    Text(L("Weg pro Schritt: %d pt", Int(model.settings.undoScrubStep)))
+                    Slider(value: $model.settings.undoScrubStep, in: 15...100, step: 5)
                 }
             }
             Toggle(L("Zwei Finger verschieben (Scrollen)"), isOn: $model.settings.panEnabled)

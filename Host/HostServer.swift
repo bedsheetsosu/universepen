@@ -22,6 +22,7 @@ final class HostServer {
 
     // Callbacks, invoked on `queue`.
     var onClientConfig: ((ClientConfig) -> Void)?
+    var onSelectSource: ((SourceSelection) -> Void)?
     var onPen: ((PenSample) -> Void)?
     var onScroll: ((ScrollEvent) -> Void)?
     var onShortcut: ((Shortcut) -> Void)?
@@ -138,6 +139,7 @@ final class HostServer {
             }
             fc.sendJSON(.hostInfo, HostInfo(hostID: hostID, hostName: hostName, sourceDescription: sourceDescription()))
             if let frontApp { fc.sendJSON(.appInfo, frontApp) }
+            if let sourceList { fc.sendJSON(.sourceList, sourceList) }
             onSession?(hello.deviceName, fc.connection.linkDescription)
         case .video:
             guard hello.deviceID == sessionDeviceID else { fc.cancel(); return }
@@ -189,6 +191,8 @@ final class HostServer {
             if let c = try? JSONWire.decode(ClientConfig.self, f.payload) { onClientConfig?(c) }
         case .requestKeyframe:
             onRequestKeyframe?()
+        case .selectSource:
+            if let s = try? JSONWire.decode(SourceSelection.self, f.payload) { onSelectSource?(s) }
         default:
             break
         }
@@ -207,6 +211,17 @@ final class HostServer {
             guard let c = control else { return false }
             c.send(.settingsPatch, data)
             return true
+        }
+    }
+
+    /// Last source list, also sent to a newly connected iPad.
+    private var sourceList: SourceList?
+
+    func sendSourceList(_ list: SourceList) {
+        queue.async { [self] in
+            guard list != sourceList else { return }
+            sourceList = list
+            control?.sendJSON(.sourceList, list)
         }
     }
 

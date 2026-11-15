@@ -43,7 +43,17 @@ final class ClientModel: ObservableObject {
     @Published var paired: [PairedHost] = []
     @Published var hostInfo: HostInfo?
     /// App in front on the Mac.
-    @Published var frontApp: AppInfo?
+    @Published var frontApp: AppInfo? {
+        didSet { if settings.isGame(frontApp?.bundleID) != settings.isGame(oldValue?.bundleID) { sendConfig() } }
+    }
+    /// What the Mac can stream (source menu).
+    @Published var sourceList: SourceList?
+    /// Undo scrub in progress: steps so far (negative = undo), nil = not scrubbing.
+    @Published var scrubSteps: Int?
+
+    /// Game mode is on for the app in front (maximum quality, no smoothing).
+    var gameModeActive: Bool { settings.isGame(frontApp?.bundleID) }
+    var effectiveQuality: StreamQuality { gameModeActive ? quality.gameMode : quality }
 
     /// Settings in effect for the app in front on the Mac (its own Pencil profile, if any).
     var effectiveSettings: InputSettings { settings.effective(for: frontApp?.bundleID) }
@@ -360,6 +370,7 @@ final class ClientModel: ObservableObject {
         }
         s.onHostInfo = { [weak self] info in Task { @MainActor in self?.hostInfo = info } }
         s.onAppInfo = { [weak self] app in Task { @MainActor in self?.frontApp = app } }
+        s.onSourceList = { [weak self] l in Task { @MainActor in self?.sourceList = l } }
         s.onSettingsPatch = { [weak self] patch in Task { @MainActor in self?.applySettingsPatch(patch) } }
         s.onTiming = { [weak self] t in
             Task { @MainActor in
@@ -375,6 +386,7 @@ final class ClientModel: ObservableObject {
                 self.session = nil
                 self.hostInfo = nil
                 self.timing = nil
+                self.sourceList = nil
                 self.handleClosed(host: host, reason: reason)
             }
         }
@@ -439,7 +451,7 @@ final class ClientModel: ObservableObject {
     private func sendConfig() {
         guard let session, viewPixelSize.0 > 0 else { return }
         let b = battery
-        session.send(config: ClientConfig(viewPixelWidth: viewPixelSize.0, viewPixelHeight: viewPixelSize.1, quality: quality,
+        session.send(config: ClientConfig(viewPixelWidth: viewPixelSize.0, viewPixelHeight: viewPixelSize.1, quality: effectiveQuality,
                                           diagnostics: diagnostics, batteryLevel: b.level, batteryCharging: b.charging))
     }
 
@@ -463,6 +475,15 @@ final class ClientModel: ObservableObject {
     }
 
     func report(_ gesture: GestureEvent) { session?.send(gesture) }
+
+    func selectSource(_ sel: SourceSelection) { session?.send(sel) }
+
+    /// Toggles game mode for the app in front on the Mac.
+    func toggleGameMode() {
+        guard let app = frontApp else { return }
+        if settings.gameApps[app.bundleID] == nil { settings.gameApps[app.bundleID] = app.name } else { settings.gameApps[app.bundleID] = nil }
+        sendConfig()
+    }
 
     func hold(_ key: HoldKey, down: Bool) {
         session?.send(KeyEvent(hidUsage: key.rawValue, down: down))

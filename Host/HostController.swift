@@ -3,6 +3,7 @@ import AppKit
 import ScreenCaptureKit
 import CoreGraphics
 import TafelKit
+import Combine
 
 enum CaptureMode: String, CaseIterable, Identifiable {
     case display, virtual, region, window
@@ -167,6 +168,7 @@ final class HostController: ObservableObject {
         setupDevAPI()
         observeFrontApp()
         observeDisplayChanges()
+        observeSources()
         server.peerToPeer = peerToPeer
         server.start(key: hostKey)
         Task { await refreshSources() }
@@ -716,6 +718,41 @@ final class HostController: ObservableObject {
         let f = min(1, cap / max(w, h))
         w *= f; h *= f
         return (max(2, Int(w) & ~1), max(2, Int(h) & ~1))
+    }
+
+    // MARK: Source menu on the iPad
+
+    private var sourceObservers: Set<AnyCancellable> = []
+
+    private func observeSources() {
+        Publishers.CombineLatest4($mode, $displays, $windows, $selectedDisplay)
+            .combineLatest($selectedWindow)
+            .debounce(for: .milliseconds(200), scheduler: RunLoop.main)
+            .sink { [weak self] _ in self?.publishSourceList() }
+            .store(in: &sourceObservers)
+        server.onSelectSource = { [weak self] sel in
+            Task { @MainActor in await self?.selectSource(sel) }
+        }
+    }
+
+    private func publishSourceList() {
+        let modes = CaptureMode.allCases.map {
+            SourceOption(id: Self.modeName($0), title: $0.title, available: $0 != .virtual || Self.secondScreenAvailable)
+        }
+        server.sendSourceList(SourceList(
+            mode: Self.modeName(mode), modes: modes,
+            displays: displays.map { SourceOption(id: String($0.id), title: $0.title) }, selectedDisplay: String(selectedDisplay),
+            windows: windows.map { SourceOption(id: String($0.id), title: $0.title) }, selectedWindow: String(selectedWindow)))
+    }
+
+    private func selectSource(_ sel: SourceSelection) async {
+        if sel.refresh == true { await refreshSources(); publishSourceList() }
+        if let d = sel.display.flatMap({ CGDirectDisplayID($0) }), scDisplays[d] != nil { selectedDisplay = d }
+        if let w = sel.window.flatMap({ CGWindowID($0) }), scWindows[w] != nil { selectedWindow = w }
+        if let name = sel.mode, let m = CaptureMode.allCases.first(where: { Self.modeName($0) == name }),
+           m != .virtual || Self.secondScreenAvailable {
+            if m != mode { mode = m } else if sel.window != nil || sel.display != nil { restartStream() }
+        }
     }
 
     // MARK: Display changes

@@ -314,5 +314,13 @@ extension Translations {
         "iPad-Akku: %d %%": "iPad 电量：%d %%",
         "Volle Mac-Auflösung senden": "发送 Mac 完整分辨率",
         "„Volle Mac-Auflösung“: Der Mac schickt alle Pixel unverkleinert (z. B. beim zweiten Bildschirm mit mehr Platz), das iPad verkleinert beim Anzeigen. Kann schärfer sein, braucht aber mehr Bitrate.": "“Mac 完整分辨率”：Mac 发送未缩小的全部像素（例如空间更大的第二屏幕），由 iPad 在显示时缩小。可能更清晰，但需要更高的码率。",
+        "Fensterliste aktualisieren": "刷新窗口列表",
+        "Spielmodus": "游戏模式",
+        "Spielmodus (z. B. für osu!): Solange die App am Mac vorne ist, gelten 60 fps, volle Auflösung, mindestens 60 Mbit/s, keine automatische Bitrate und keine Glättung. Mehr als 60 Hz kann das iPad-Display nicht zeigen.": "游戏模式（例如 osu!）：当该应用在 Mac 前台时：60 fps、完整分辨率、至少 60 Mbit/s、关闭自动码率和平滑。iPad 屏幕最高只能显示 60 Hz。",
+        "Spielmodus für %@": "%@ 的游戏模式",
+        "Spielmodus für %@ aus": "关闭 %@ 的游戏模式",
+        "Undo-Wischen (zwei Finger halten, dann ziehen)": "滑动撤销（两指按住后拖动）",
+        "Weg pro Schritt: %d pt": "每步距离：%d pt",
+        "Ziehen: links Undo, rechts Redo": "拖动：向左撤销，向右重做",
     ]
 }

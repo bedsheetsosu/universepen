@@ -22,6 +22,7 @@ final class Session: @unchecked Sendable {
 
     var onHostInfo: ((HostInfo) -> Void)?
     var onAppInfo: ((AppInfo) -> Void)?
+    var onSourceList: ((SourceList) -> Void)?
     var onSettingsPatch: (([String: Any]) -> Void)?
     var onConnected: (() -> Void)?
     var onClosed: ((String?) -> Void)?
@@ -180,6 +181,8 @@ final class Session: @unchecked Sendable {
             if let o = try? JSONSerialization.jsonObject(with: f.payload) as? [String: Any] { onSettingsPatch?(o) }
         case .appInfo:
             if let a = try? JSONWire.decode(AppInfo.self, f.payload) { onAppInfo?(a) }
+        case .sourceList:
+            if let l = try? JSONWire.decode(SourceList.self, f.payload) { onSourceList?(l) }
         case .hostInfo:
             guard let info = try? JSONWire.decode(HostInfo.self, f.payload) else { return }
             if !connected {
@@ -252,6 +255,7 @@ final class Session: @unchecked Sendable {
     func send(_ key: KeyEvent) { control?.send(.key, key.encoded()) }
     func send(_ mouse: MouseEvent) { control?.send(.mouse, mouse.encoded()) }
     func send(_ gesture: GestureEvent) { control?.sendJSON(.gesture, gesture) }
+    func send(_ selection: SourceSelection) { control?.sendJSON(.selectSource, selection) }
 
     /// Settings snapshot for the developer API on the Mac (sent once ready, and on change).
     func send(settings: InputSettings, quality: StreamQuality) {

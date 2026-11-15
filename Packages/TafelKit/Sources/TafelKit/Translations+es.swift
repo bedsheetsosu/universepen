@@ -314,5 +314,13 @@ extension Translations {
         "iPad-Akku: %d %%": "Batería del iPad: %d %%",
         "Volle Mac-Auflösung senden": "Enviar resolución completa del Mac",
         "„Volle Mac-Auflösung“: Der Mac schickt alle Pixel unverkleinert (z. B. beim zweiten Bildschirm mit mehr Platz), das iPad verkleinert beim Anzeigen. Kann schärfer sein, braucht aber mehr Bitrate.": "«Resolución completa del Mac»: el Mac envía todos los píxeles sin reducir (p. ej. una segunda pantalla con más espacio) y el iPad los reduce al mostrarlos. Puede ser más nítido, pero necesita más tasa de bits.",
+        "Fensterliste aktualisieren": "Actualizar lista de ventanas",
+        "Spielmodus": "Modo juego",
+        "Spielmodus (z. B. für osu!): Solange die App am Mac vorne ist, gelten 60 fps, volle Auflösung, mindestens 60 Mbit/s, keine automatische Bitrate und keine Glättung. Mehr als 60 Hz kann das iPad-Display nicht zeigen.": "Modo juego (p. ej. para osu!): mientras la app esté en primer plano en el Mac: 60 fps, resolución completa, al menos 60 Mbit/s, sin tasa de bits automática y sin suavizado. La pantalla del iPad no muestra más de 60 Hz.",
+        "Spielmodus für %@": "Modo juego para %@",
+        "Spielmodus für %@ aus": "Desactivar modo juego para %@",
+        "Undo-Wischen (zwei Finger halten, dann ziehen)": "Deslizar para deshacer (mantén dos dedos y arrastra)",
+        "Weg pro Schritt: %d pt": "Distancia por paso: %d pt",
+        "Ziehen: links Undo, rechts Redo": "Arrastra: izquierda deshacer, derecha rehacer",
     ]
 }

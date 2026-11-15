@@ -34,7 +34,7 @@ On connect the server sends `{"event": "hello", "data": {"api": 1, "app": "Unive
 | `input` | `scroll` | `x`, `y`, `dx`, `dy` (fractions of the image), `modifiers` |
 | `input` | `key` | `hidUsage` (USB HID page 7), `down` |
 | `input` | `shortcut` | `key`, `modifiers` |
-| `gesture` | `gesture` | `name`: tap2, tap3, tap4, swipe3.left/right/up/down, pinch (`value` = scale factor since the last event, sent once it changed ≥ 0.5 %), rotate (`value` = degrees since the last event, sent once ≥ 0.1°), pencil.doubleTap, pencil.squeeze |
+| `gesture` | `gesture` | `name`: tap2, tap3, tap4, swipe3.left/right/up/down, pinch (`value` = scale factor since the last event, sent once it changed ≥ 0.5 %), rotate (`value` = degrees since the last event, sent once ≥ 0.1°), pencil.doubleTap, pencil.squeeze, undoScrub (`value` = undo (−) / redo (+) steps, when the scrub ends) |
 | `status` | `status` | every second: `connected`, `device`, `link`, `usb`, `fps`, `mbps`, `targetMbps`, `dropped`, `ipadBattery` (0…1 or null), `ipadCharging` (bool or null) |
 | `display` | `display` | same as `display.get`, on every change |
 | `app` | `app` | `bundleID`, `name` of the app in front on the Mac |

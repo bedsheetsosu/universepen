@@ -56,10 +56,14 @@ JSON messages use plain `JSONEncoder` key names (camelCase).
 |---|---|---|---|
 | 0x01 | hello | C→H | JSON `{protocolVersion: 2, role: "control"\|"video"\|"audio"\|"pair", deviceID, deviceName}` |
 | 0x02 | hostInfo | H→C | JSON `{hostID, hostName, protocolVersion, sourceDescription}` |
-| 0x03 | clientConfig | C→H | JSON `{viewPixelWidth, viewPixelHeight, quality: {codec: "h264"\|"hevc", bitrateMbps, fps, resolutionScale, audio, adaptive}, diagnostics?}` |
+| 0x03 | clientConfig | C→H | JSON `{viewPixelWidth, viewPixelHeight, quality: {codec: "h264"\|"hevc", bitrateMbps, fps, resolutionScale, audio, adaptive, fullSource}, diagnostics?, batteryLevel?, batteryCharging?}` |
 | 0x04 | pairGrant | H→C | JSON `{hostID, hostName, keyBase64}` (32-byte key) |
 | 0x05 | error | H→C | JSON `{message}` |
 | 0x06 | appInfo | H→C | JSON `{bundleID, name}` – app in front on the host |
+| 0x07 | clientSettings | C→H | JSON `{settings, quality}` – the iPad's settings (for the developer API) |
+| 0x08 | settingsPatch | H→C | JSON `{settings?, quality?, removeAppProfiles?}`, deep-merged on the iPad |
+| 0x09 | sourceList | H→C | JSON `{mode, modes: [{id, title, available}], displays: [...], selectedDisplay, windows: [...], selectedWindow}`; mode ids `display`, `second-screen`, `region`, `window`; display/window ids as text |
+| 0x0A | selectSource | C→H | JSON `{mode?, display?, window?, refresh?}` – `refresh: true` re-reads the window list first |
 | 0x10 | pen | C→H | `u8 phase, f32 x, f32 y, f32 pressure, f32 tiltX, f32 tiltY, f32 rotation°, f64 timestamp` |
 | 0x11 | scroll | C→H | `f32 x, f32 y, f32 dx, f32 dy, u8 modifiers` |
 | 0x12 | mouse | C→H | `u8 phase (0 move, 1 down, 2 up, 3 exit), u8 button (0 left, 1 right), f32 x, f32 y` |

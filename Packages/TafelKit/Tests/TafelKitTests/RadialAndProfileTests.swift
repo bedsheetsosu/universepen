@@ -50,3 +50,26 @@ final class RadialAndProfileTests: XCTestCase {
         XCTAssertEqual(try JSONWire.decode(ClientConfig.self, JSONWire.encode(c)), c)
     }
 }
+
+final class GameModeAndSourceTests: XCTestCase {
+    func testGameAppDropsSmoothingAndRaisesQuality() {
+        var s = InputSettings()
+        s.positionSmoothing = 0.5
+        s.gameApps["sh.ppy.osu.lazer"] = "osu!"
+        XCTAssertEqual(s.effective(for: "sh.ppy.osu.lazer").positionSmoothing, 0)
+        XCTAssertEqual(s.effective(for: "sh.ppy.osu.lazer").pressureSmoothing, 0)
+        XCTAssertEqual(s.effective(for: "com.other").positionSmoothing, 0.5)
+        let q = StreamQuality(fps: 30, resolutionScale: 0.5, adaptive: true, fullSource: false).gameMode
+        XCTAssertEqual(q.fps, 60); XCTAssertEqual(q.resolutionScale, 1)
+        XCTAssertTrue(q.fullSource); XCTAssertFalse(q.adaptive); XCTAssertGreaterThanOrEqual(q.bitrateMbps, 60)
+    }
+
+    func testSourceMessagesRoundTrip() throws {
+        let l = SourceList(mode: "window", modes: [SourceOption(id: "display", title: "Display")],
+                           displays: [SourceOption(id: "1", title: "Built-in")], selectedDisplay: "1",
+                           windows: [SourceOption(id: "42", title: "Affinity – x")], selectedWindow: "42")
+        XCTAssertEqual(try JSONWire.decode(SourceList.self, JSONWire.encode(l)), l)
+        let sel = SourceSelection(mode: "window", window: "42")
+        XCTAssertEqual(try JSONWire.decode(SourceSelection.self, JSONWire.encode(sel)), sel)
+    }
+}

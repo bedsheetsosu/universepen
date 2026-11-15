@@ -78,6 +78,16 @@ struct RootView: View {
                             .transition(.move(edge: .trailing).combined(with: .opacity))
                     }
                     Menu {
+                        SourceMenu()
+                        if let app = model.frontApp {
+                            Button {
+                                model.toggleGameMode()
+                            } label: {
+                                Label(model.gameModeActive ? L("Spielmodus für %@ aus", app.name) : L("Spielmodus für %@", app.name),
+                                      systemImage: "gamecontroller")
+                            }
+                        }
+                        Divider()
                         Button {
                             showStatus.toggle()
                         } label: {
@@ -107,6 +117,10 @@ struct RootView: View {
                             .opacity(0.7)
                     }
                 }
+                if let n = model.scrubSteps {
+                    ScrubPill(steps: n)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
                 if reconnecting {
                     ReconnectBanner()
                         .transition(.move(edge: .top).combined(with: .opacity))
@@ -116,7 +130,91 @@ struct RootView: View {
             .padding(10)
         }
         .animation(Brand.spring, value: reconnecting)
+        .animation(Brand.spring, value: model.scrubSteps != nil)
         .animation(Brand.spring, value: showStatus || model.showStatusOverlay)
+    }
+}
+
+/// Source picker in the … menu: what the Mac streams, switched from the iPad.
+private struct SourceMenu: View {
+    @EnvironmentObject var model: ClientModel
+
+    /// Mode names from the Mac, shown in the iPad's language.
+    private func title(_ o: SourceOption) -> String {
+        switch o.id {
+        case "display": return L("Ganzer Bildschirm")
+        case "second-screen": return L("Zweiter Bildschirm")
+        case "region": return L("iPad-Ausschnitt")
+        case "window": return L("Fenster")
+        default: return o.title
+        }
+    }
+
+    private func icon(_ id: String) -> String {
+        switch id {
+        case "display": return "display"
+        case "second-screen": return "rectangle.on.rectangle"
+        case "region": return "ipad.landscape"
+        default: return "macwindow"
+        }
+    }
+
+    var body: some View {
+        if let l = model.sourceList {
+            Menu {
+                ForEach(l.modes.filter { $0.id != "window" }) { m in
+                    Button {
+                        model.selectSource(SourceSelection(mode: m.id))
+                    } label: {
+                        Label(title(m), systemImage: l.mode == m.id ? "checkmark" : icon(m.id))
+                    }
+                    .disabled(!m.available)
+                }
+                Menu {
+                    ForEach(l.windows) { w in
+                        Button {
+                            model.selectSource(SourceSelection(mode: "window", window: w.id))
+                        } label: {
+                            if l.mode == "window" && l.selectedWindow == w.id { Label(w.title, systemImage: "checkmark") } else { Text(w.title) }
+                        }
+                    }
+                    Divider()
+                    Button(L("Fensterliste aktualisieren")) { model.selectSource(SourceSelection(refresh: true)) }
+                } label: {
+                    Label(L("Fenster"), systemImage: l.mode == "window" ? "checkmark" : "macwindow")
+                }
+                if l.displays.count > 1 {
+                    Divider()
+                    ForEach(l.displays) { d in
+                        Button {
+                            model.selectSource(SourceSelection(display: d.id))
+                        } label: {
+                            if l.selectedDisplay == d.id { Label(d.title, systemImage: "checkmark") } else { Text(d.title) }
+                        }
+                    }
+                }
+            } label: {
+                Label(L("Quelle"), systemImage: "rectangle.on.rectangle.angled")
+            }
+        }
+    }
+}
+
+/// Undo scrub feedback: "↶ 3" while dragging left, "↷ 2" right.
+private struct ScrubPill: View {
+    let steps: Int
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: steps < 0 ? "arrow.uturn.backward" : steps > 0 ? "arrow.uturn.forward" : "arrow.left.and.right")
+            Text(steps == 0 ? L("Ziehen: links Undo, rechts Redo") : "\(abs(steps))")
+                .monospacedDigit()
+                .contentTransition(.numericText())
+        }
+        .font(.callout.weight(.semibold))
+        .padding(.horizontal, 16).padding(.vertical, 10)
+        .tafelGlass(Capsule())
+        .animation(Brand.spring, value: steps)
+        .allowsHitTesting(false)
     }
 }
 

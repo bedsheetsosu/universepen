@@ -13,6 +13,8 @@ public enum MessageType: UInt8, Sendable {
     case appInfo = 0x06        // host -> client: app in front on the Mac
     case clientSettings = 0x07 // client -> host: JSON {settings, quality} (for the developer API)
     case settingsPatch = 0x08  // host -> client: JSON {settings?, quality?} deep-merged into the iPad's settings
+    case sourceList = 0x09     // host -> client: JSON SourceList (what the Mac can stream, for the iPad's source menu)
+    case selectSource = 0x0A   // client -> host: JSON SourceSelection
     // binary input
     case pen = 0x10
     case scroll = 0x11
@@ -159,6 +161,20 @@ public struct StreamQuality: Codable, Equatable, Sendable {
     }
 }
 
+public extension StreamQuality {
+    /// Game mode: everything up, nothing that waits (adaptive bitrate stays off so the picture
+    /// never gets softer mid-game). The iPad Air shows at most 60 Hz.
+    var gameMode: StreamQuality {
+        var q = self
+        q.fps = 60
+        q.resolutionScale = 1
+        q.fullSource = true
+        q.bitrateMbps = max(q.bitrateMbps, 60)
+        q.adaptive = false
+        return q
+    }
+}
+
 public struct ClientConfig: Codable, Equatable, Sendable {
     /// Drawable area of the iPad in physical pixels (full screen, current orientation).
     public var viewPixelWidth: Int
@@ -216,6 +232,40 @@ public func applyPatch<T: Codable>(_ value: T, _ patch: [String: Any]) -> T? {
 }
 
 /// The app in front on the Mac (for per-app shortcut bars).
+/// One choice in the iPad's source menu. `id`: mode name, display ID or window ID as text.
+public struct SourceOption: Codable, Equatable, Hashable, Identifiable, Sendable {
+    public var id: String
+    public var title: String
+    public var available: Bool
+    public init(id: String, title: String, available: Bool = true) { self.id = id; self.title = title; self.available = available }
+}
+
+/// What the Mac can stream. Modes: "display", "second-screen", "region", "window".
+public struct SourceList: Codable, Equatable, Sendable {
+    public var mode: String
+    public var modes: [SourceOption]
+    public var displays: [SourceOption]
+    public var selectedDisplay: String
+    public var windows: [SourceOption]
+    public var selectedWindow: String
+    public init(mode: String, modes: [SourceOption], displays: [SourceOption], selectedDisplay: String,
+                windows: [SourceOption], selectedWindow: String) {
+        self.mode = mode; self.modes = modes; self.displays = displays; self.selectedDisplay = selectedDisplay
+        self.windows = windows; self.selectedWindow = selectedWindow
+    }
+}
+
+/// iPad picks a source. All fields optional; `refresh` asks the Mac to re-read its window list first.
+public struct SourceSelection: Codable, Equatable, Sendable {
+    public var mode: String?
+    public var display: String?
+    public var window: String?
+    public var refresh: Bool?
+    public init(mode: String? = nil, display: String? = nil, window: String? = nil, refresh: Bool? = nil) {
+        self.mode = mode; self.display = display; self.window = window; self.refresh = refresh
+    }
+}
+
 public struct AppInfo: Codable, Equatable, Sendable {
     public var bundleID: String
     public var name: String
