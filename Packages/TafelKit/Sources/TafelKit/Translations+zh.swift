@@ -394,5 +394,18 @@ extension Translations {
         "Seite": "位置",
         "Tasten-Feld (wie ExpressKeys)": "按键区（类似 ExpressKeys）",
         "Tastengröße: %d pt": "按键大小：%d pt",
+        "%@ Kopie": "%@ 副本",
+        "Duplizieren": "复制",
+        "Löschen": "删除",
+        "Neues Profil": "新建配置",
+        "Neues Profil aus aktuellen Einstellungen": "用当前设置新建配置",
+        "Position: oben ↔ unten": "位置：上 ↔ 下",
+        "Profil": "配置",
+        "Profil %d": "配置 %d",
+        "Profil: %@": "配置：%@",
+        "Profile": "配置",
+        "Profile sind komplette Einstellungs-Sätze (z. B. „Zeichnen“ und „osu!“). Lege eins an, dann landen Änderungen automatisch im aktiven Profil.": "配置是一整套设置（例如“绘画”和“osu!”）。新建一个后，更改会自动保存到当前配置。",
+        "Umbenennen": "重命名",
+        "Änderungen landen automatisch im aktiven Profil. Gedrückt halten: umbenennen, duplizieren, löschen. Wechseln geht auch im …-Menü.": "更改会自动保存到当前配置。长按：重命名、复制、删除。也可以在 … 菜单中切换。",
     ]
 }

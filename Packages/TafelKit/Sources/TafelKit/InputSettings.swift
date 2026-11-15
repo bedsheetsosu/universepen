@@ -454,16 +454,19 @@ public struct TabletKeys: Codable, Equatable, Sendable {
     public var side: Side = .left
     /// Edge length of a key in points.
     public var size: Double = 120
+    /// Where the column sits: 0 = top, 0.5 = centred, 1 = bottom.
+    public var vertical: Double = 0.5
     public var keys: [TabletKey] = [TabletKey(title: "Z", key: "z"), TabletKey(title: "X", key: "x")]
     public init() {}
 
-    private enum CodingKeys: String, CodingKey { case enabled, side, size, keys }
+    private enum CodingKeys: String, CodingKey { case enabled, side, size, vertical, keys }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         let d = TabletKeys()
         enabled = try c.decodeIfPresent(Bool.self, forKey: .enabled) ?? d.enabled
         side = try c.decodeIfPresent(Side.self, forKey: .side) ?? d.side
         size = try c.decodeIfPresent(Double.self, forKey: .size) ?? d.size
+        vertical = try c.decodeIfPresent(Double.self, forKey: .vertical) ?? d.vertical
         keys = try c.decodeIfPresent([TabletKey].self, forKey: .keys) ?? d.keys
     }
 
@@ -472,7 +475,7 @@ public struct TabletKeys: Codable, Equatable, Sendable {
         let s = CGFloat(size), gap: CGFloat = 16, margin: CGFloat = 22
         let total = CGFloat(keys.count) * s + CGFloat(max(keys.count - 1, 0)) * gap
         let x = side == .left ? margin : view.width - margin - s
-        var y = (view.height - total) / 2
+        var y = margin + max(view.height - total - 2 * margin, 0) * CGFloat(min(max(vertical, 0), 1))
         return keys.map { _ in defer { y += s + gap }; return CGRect(x: x, y: y, width: s, height: s) }
     }
 }
@@ -514,5 +517,16 @@ public struct TipGate: Sendable {
         default:
             return phase
         }
+    }
+}
+
+/// A named set of all iPad settings (pressure, gestures, bars, tablet mode, …) plus picture quality.
+public struct SettingsProfile: Codable, Equatable, Identifiable, Sendable {
+    public var id: UUID
+    public var name: String
+    public var settings: InputSettings
+    public var quality: StreamQuality
+    public init(id: UUID = UUID(), name: String, settings: InputSettings, quality: StreamQuality) {
+        self.id = id; self.name = name; self.settings = settings; self.quality = quality
     }
 }

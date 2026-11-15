@@ -394,5 +394,18 @@ extension Translations {
         "Seite": "위치",
         "Tasten-Feld (wie ExpressKeys)": "키 패드(ExpressKeys처럼)",
         "Tastengröße: %d pt": "키 크기: %d pt",
+        "%@ Kopie": "%@ 복사본",
+        "Duplizieren": "복제",
+        "Löschen": "삭제",
+        "Neues Profil": "새 프로필",
+        "Neues Profil aus aktuellen Einstellungen": "현재 설정으로 새 프로필",
+        "Position: oben ↔ unten": "위치: 위 ↔ 아래",
+        "Profil": "프로필",
+        "Profil %d": "프로필 %d",
+        "Profil: %@": "프로필: %@",
+        "Profile": "프로필",
+        "Profile sind komplette Einstellungs-Sätze (z. B. „Zeichnen“ und „osu!“). Lege eins an, dann landen Änderungen automatisch im aktiven Profil.": "프로필은 설정 전체 묶음입니다(예: '그리기'와 'osu!'). 하나 만들면 변경 사항이 활성 프로필에 자동으로 저장됩니다.",
+        "Umbenennen": "이름 변경",
+        "Änderungen landen automatisch im aktiven Profil. Gedrückt halten: umbenennen, duplizieren, löschen. Wechseln geht auch im …-Menü.": "변경 사항은 활성 프로필에 자동으로 저장됩니다. 길게 누르기: 이름 변경, 복제, 삭제. … 메뉴에서도 전환할 수 있습니다.",
     ]
 }

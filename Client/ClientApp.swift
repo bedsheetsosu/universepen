@@ -213,6 +213,16 @@ private struct OverlayMenuPanel: View {
                     }
                     divider
                 }
+                if model.profiles.count > 1 {
+                    header(L("Profil"))
+                    ForEach(model.profiles) { p in
+                        row(p.name, icon: "person.crop.square", checked: model.activeProfileID == p.id) {
+                            if model.activeProfileID != p.id { withAnimation(Brand.spring) { model.switchProfile(p) } }
+                            close()
+                        }
+                    }
+                    divider
+                }
                 row(L("Tablett-Modus (ohne Bild)"), icon: "rectangle.dashed", checked: model.settings.tabletMode) {
                     withAnimation(Brand.spring) { model.settings.tabletMode.toggle() }
                     close()

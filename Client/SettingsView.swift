@@ -9,6 +9,7 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                profilesSection
                 Section {
                     LanguageChoice()
                         .listRowBackground(Color.clear)
@@ -207,6 +208,57 @@ struct SettingsView: View {
         }
     }
 
+    @State private var newProfileName = ""
+    @State private var askProfileName = false
+    @State private var renaming: SettingsProfile?
+    @State private var renameText = ""
+
+    private var profilesSection: some View {
+        Section {
+            ForEach(model.profiles) { p in
+                Button {
+                    if model.activeProfileID != p.id { withAnimation(Brand.spring) { model.switchProfile(p) } }
+                } label: {
+                    HStack {
+                        Image(systemName: model.activeProfileID == p.id ? "checkmark.circle.fill" : "circle")
+                            .foregroundStyle(model.activeProfileID == p.id ? Brand.mint : .secondary)
+                        Text(p.name).foregroundStyle(.primary)
+                        Spacer()
+                        if p.settings.tabletMode { Text(L("Tablett-Modus")).font(.caption).foregroundStyle(.secondary) }
+                    }
+                }
+                .contextMenu {
+                    Button(L("Umbenennen")) { renameText = p.name; renaming = p }
+                    Button(L("Duplizieren")) { model.duplicateProfile(p) }
+                    Button(L("Löschen"), role: .destructive) { model.deleteProfile(p) }
+                }
+            }
+            .onDelete { idx in for i in idx { model.deleteProfile(model.profiles[i]) } }
+            Button {
+                newProfileName = ""
+                askProfileName = true
+            } label: {
+                Label(L("Neues Profil aus aktuellen Einstellungen"), systemImage: "plus.circle")
+            }
+        } header: {
+            Text(L("Profile"))
+        } footer: {
+            Text(model.profiles.isEmpty
+                 ? L("Profile sind komplette Einstellungs-Sätze (z. B. „Zeichnen“ und „osu!“). Lege eins an, dann landen Änderungen automatisch im aktiven Profil.")
+                 : L("Änderungen landen automatisch im aktiven Profil. Gedrückt halten: umbenennen, duplizieren, löschen. Wechseln geht auch im …-Menü."))
+        }
+        .alert(L("Neues Profil"), isPresented: $askProfileName) {
+            TextField(L("Name"), text: $newProfileName)
+            Button(L("Anlegen")) { withAnimation(Brand.spring) { model.createProfile(named: newProfileName) } }
+            Button(L("Abbrechen"), role: .cancel) {}
+        }
+        .alert(L("Umbenennen"), isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } })) {
+            TextField(L("Name"), text: $renameText)
+            Button(L("Speichern")) { if let p = renaming { model.renameProfile(p, to: renameText) }; renaming = nil }
+            Button(L("Abbrechen"), role: .cancel) { renaming = nil }
+        }
+    }
+
     private var tabletSection: some View {
         Section {
             VStack(alignment: .leading) {
@@ -223,6 +275,10 @@ struct SettingsView: View {
                 VStack(alignment: .leading) {
                     Text(L("Tastengröße: %d pt", Int(model.settings.tabletKeys.size)))
                     Slider(value: $model.settings.tabletKeys.size, in: 70...200, step: 5)
+                }
+                VStack(alignment: .leading) {
+                    Text(L("Position: oben ↔ unten"))
+                    Slider(value: $model.settings.tabletKeys.vertical, in: 0...1)
                 }
                 ForEach($model.settings.tabletKeys.keys) { $k in
                     HStack {

@@ -437,5 +437,18 @@ enum Translations {
         "Seite": "Side",
         "Tasten-Feld (wie ExpressKeys)": "Key pad (like ExpressKeys)",
         "Tastengröße: %d pt": "Key size: %d pt",
+        "%@ Kopie": "%@ copy",
+        "Duplizieren": "Duplicate",
+        "Löschen": "Delete",
+        "Neues Profil": "New profile",
+        "Neues Profil aus aktuellen Einstellungen": "New profile from current settings",
+        "Position: oben ↔ unten": "Position: top ↔ bottom",
+        "Profil": "Profile",
+        "Profil %d": "Profile %d",
+        "Profil: %@": "Profile: %@",
+        "Profile": "Profiles",
+        "Profile sind komplette Einstellungs-Sätze (z. B. „Zeichnen“ und „osu!“). Lege eins an, dann landen Änderungen automatisch im aktiven Profil.": "Profiles are complete sets of settings (e.g. “Drawing” and “osu!”). Create one, and changes go into the active profile automatically.",
+        "Umbenennen": "Rename",
+        "Änderungen landen automatisch im aktiven Profil. Gedrückt halten: umbenennen, duplizieren, löschen. Wechseln geht auch im …-Menü.": "Changes go into the active profile automatically. Press and hold: rename, duplicate, delete. You can also switch in the … menu.",
     ]
 }

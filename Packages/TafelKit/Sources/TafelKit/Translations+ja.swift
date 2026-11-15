@@ -394,5 +394,18 @@ extension Translations {
         "Seite": "位置",
         "Tasten-Feld (wie ExpressKeys)": "キーパッド（ExpressKeys のように）",
         "Tastengröße: %d pt": "キーのサイズ：%d pt",
+        "%@ Kopie": "%@ のコピー",
+        "Duplizieren": "複製",
+        "Löschen": "削除",
+        "Neues Profil": "新規プロファイル",
+        "Neues Profil aus aktuellen Einstellungen": "現在の設定から新規プロファイル",
+        "Position: oben ↔ unten": "位置：上 ↔ 下",
+        "Profil": "プロファイル",
+        "Profil %d": "プロファイル %d",
+        "Profil: %@": "プロファイル：%@",
+        "Profile": "プロファイル",
+        "Profile sind komplette Einstellungs-Sätze (z. B. „Zeichnen“ und „osu!“). Lege eins an, dann landen Änderungen automatisch im aktiven Profil.": "プロファイルは設定一式です（例：「お絵かき」と「osu!」）。作成すると、変更はアクティブなプロファイルに自動で保存されます。",
+        "Umbenennen": "名前を変更",
+        "Änderungen landen automatisch im aktiven Profil. Gedrückt halten: umbenennen, duplizieren, löschen. Wechseln geht auch im …-Menü.": "変更はアクティブなプロファイルに自動で保存されます。長押し：名前変更、複製、削除。… メニューからも切り替えられます。",
     ]
 }

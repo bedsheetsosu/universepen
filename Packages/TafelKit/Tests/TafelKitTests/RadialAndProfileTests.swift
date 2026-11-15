@@ -159,6 +159,21 @@ final class TabletExtrasTests: XCTestCase {
         XCTAssertEqual(off.phase(for: .down, pressure: 0.01, threshold: 0), .down)
     }
 
+    func testKeyColumnVerticalPosition() {
+        var k = TabletKeys()
+        k.vertical = 0
+        XCTAssertEqual(Double(k.frames(in: CGSize(width: 1180, height: 820))[0].minY), 22, accuracy: 0.5)
+        k.vertical = 1
+        let f = k.frames(in: CGSize(width: 1180, height: 820))
+        XCTAssertEqual(Double(f.last!.maxY), 820 - 22, accuracy: 0.5)
+    }
+
+    func testProfileRoundTrip() throws {
+        var s = InputSettings(); s.tabletMode = true; s.tipThreshold = 0.2
+        let p = SettingsProfile(name: "osu!", settings: s, quality: StreamQuality(fps: 60))
+        XCTAssertEqual(try JSONDecoder().decode(SettingsProfile.self, from: JSONEncoder().encode(p)), p)
+    }
+
     func testKeyFramesOnTheChosenSide() {
         var k = TabletKeys(); k.side = .right
         let f = k.frames(in: CGSize(width: 1180, height: 820))

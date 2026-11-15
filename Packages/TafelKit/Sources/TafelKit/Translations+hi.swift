@@ -394,5 +394,18 @@ extension Translations {
         "Seite": "किनारा",
         "Tasten-Feld (wie ExpressKeys)": "की पैड (ExpressKeys जैसा)",
         "Tastengröße: %d pt": "कुंजी का आकार: %d pt",
+        "%@ Kopie": "%@ कॉपी",
+        "Duplizieren": "डुप्लिकेट करें",
+        "Löschen": "हटाएँ",
+        "Neues Profil": "नई प्रोफ़ाइल",
+        "Neues Profil aus aktuellen Einstellungen": "मौजूदा सेटिंग्स से नई प्रोफ़ाइल",
+        "Position: oben ↔ unten": "स्थिति: ऊपर ↔ नीचे",
+        "Profil": "प्रोफ़ाइल",
+        "Profil %d": "प्रोफ़ाइल %d",
+        "Profil: %@": "प्रोफ़ाइल: %@",
+        "Profile": "प्रोफ़ाइल",
+        "Profile sind komplette Einstellungs-Sätze (z. B. „Zeichnen“ und „osu!“). Lege eins an, dann landen Änderungen automatisch im aktiven Profil.": "प्रोफ़ाइल सेटिंग्स के पूरे सेट हैं (जैसे “ड्रॉइंग” और “osu!”)। एक बनाएँ, फिर बदलाव अपने आप सक्रिय प्रोफ़ाइल में सेव होते हैं।",
+        "Umbenennen": "नाम बदलें",
+        "Änderungen landen automatisch im aktiven Profil. Gedrückt halten: umbenennen, duplizieren, löschen. Wechseln geht auch im …-Menü.": "बदलाव अपने आप सक्रिय प्रोफ़ाइल में सेव होते हैं। दबाकर रखें: नाम बदलें, डुप्लिकेट करें, हटाएँ। … मेन्यू से भी बदल सकते हैं।",
     ]
 }

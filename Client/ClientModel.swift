@@ -87,7 +87,60 @@ final class ClientModel: ObservableObject {
             save(settings, "inputSettings")
             sendSettingsSnapshot()
             if settings.tabletMode != oldValue.tabletMode { sendConfig() }
+            storeIntoActiveProfile()
         }
+    }
+
+    // MARK: Profiles (named sets of all settings; changes go into the active one)
+
+    @Published var profiles: [SettingsProfile] { didSet { save(profiles, "profiles") } }
+    @Published var activeProfileID: UUID? {
+        didSet { UserDefaults.standard.set(activeProfileID?.uuidString, forKey: "activeProfile") }
+    }
+    var activeProfile: SettingsProfile? { profiles.first { $0.id == activeProfileID } }
+    private var switchingProfile = false
+
+    private func storeIntoActiveProfile() {
+        guard !switchingProfile, let id = activeProfileID, let i = profiles.firstIndex(where: { $0.id == id }) else { return }
+        if profiles[i].settings != settings || profiles[i].quality != quality {
+            profiles[i].settings = settings
+            profiles[i].quality = quality
+        }
+    }
+
+    /// New profile from the current settings; it becomes the active one.
+    func createProfile(named name: String) {
+        let n = name.trimmingCharacters(in: .whitespaces)
+        let p = SettingsProfile(name: n.isEmpty ? L("Profil %d", profiles.count + 1) : n, settings: settings, quality: quality)
+        profiles.append(p)
+        activeProfileID = p.id
+    }
+
+    func switchProfile(_ p: SettingsProfile) {
+        storeIntoActiveProfile()
+        switchingProfile = true
+        activeProfileID = p.id
+        settings = p.settings
+        quality = p.quality
+        switchingProfile = false
+        show(Toast(text: L("Profil: %@", p.name), seconds: 1.2))
+    }
+
+    func duplicateProfile(_ p: SettingsProfile) {
+        var copy = p
+        copy.id = UUID()
+        copy.name = L("%@ Kopie", p.name)
+        profiles.append(copy)
+    }
+
+    func renameProfile(_ p: SettingsProfile, to name: String) {
+        guard let i = profiles.firstIndex(where: { $0.id == p.id }), !name.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+        profiles[i].name = name.trimmingCharacters(in: .whitespaces)
+    }
+
+    func deleteProfile(_ p: SettingsProfile) {
+        profiles.removeAll { $0.id == p.id }
+        if activeProfileID == p.id { activeProfileID = nil }
     }
     /// Active area being edited (tablet mode).
     @Published var tabletEditing = false
@@ -96,7 +149,7 @@ final class ClientModel: ObservableObject {
         guard let l = sourceList else { return 16.0 / 10.0 }
         return l.displays.first { $0.id == l.selectedDisplay }?.aspect ?? l.displays.first?.aspect ?? 16.0 / 10.0
     }
-    @Published var quality: StreamQuality { didSet { save(quality, "quality"); sendConfig(); sendSettingsSnapshot() } }
+    @Published var quality: StreamQuality { didSet { save(quality, "quality"); sendConfig(); sendSettingsSnapshot(); storeIntoActiveProfile() } }
     @Published var showStatusOverlay: Bool { didSet { UserDefaults.standard.set(showStatusOverlay, forKey: "showStatusOverlay") } }
     /// Äbbl peer-to-peer Wi-Fi (AWDL). Off by default: it costs Wi-Fi latency.
     @Published var peerToPeer: Bool {
@@ -161,6 +214,8 @@ final class ClientModel: ObservableObject {
         showStatusOverlay = d.bool(forKey: "showStatusOverlay")
         peerToPeer = d.bool(forKey: "peerToPeer")
         paired = Self.load([PairedHost].self, "pairedHosts") ?? []
+        profiles = Self.load([SettingsProfile].self, "profiles") ?? []
+        activeProfileID = d.string(forKey: "activeProfile").flatMap(UUID.init(uuidString:))
         renderer.onSize = { [weak self] size in self?.videoSize = size }
         startWiredMonitor()
         startBatteryMonitor()
