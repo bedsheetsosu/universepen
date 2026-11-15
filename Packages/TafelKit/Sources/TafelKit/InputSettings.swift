@@ -202,6 +202,8 @@ public struct InputSettings: Codable, Equatable, Sendable {
     public var tabletArea = TabletArea()
     /// Keep the area in the Mac display's aspect ratio (no stretching, like Wacom's "force proportions").
     public var tabletLockAspect = true
+    /// Saved active areas (e.g. "osu! small", "drawing").
+    public var tabletPresets: [TabletPreset] = []
 
     /// Two fingers rest, then drag left/right = undo/redo step by step.
     public var undoScrub = true
@@ -244,7 +246,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         case fingerMode, fingerPressure, longPressRightClick, palmRadius
         case threeFingerSwipeLeft, threeFingerSwipeRight, threeFingerSwipeUp, threeFingerSwipeDown, fourFingerTap
         case swapISOKeys, trackpadAsMouse, hideIPadPointer, showShortcutBar, shortcutBarOnRight, shortcutBar
-        case appShortcutBars, appNames, radialMenu, appPenProfiles, gameApps, undoScrub, undoScrubStep, instantInk, hoverDot, tabletMode, tabletArea, tabletLockAspect
+        case appShortcutBars, appNames, radialMenu, appPenProfiles, gameApps, undoScrub, undoScrubStep, instantInk, hoverDot, tabletMode, tabletArea, tabletLockAspect, tabletPresets
     }
 
     /// Tolerates settings saved by older versions: missing keys keep their defaults.
@@ -276,6 +278,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         try get(.gameApps, &gameApps); try get(.undoScrub, &undoScrub); try get(.undoScrubStep, &undoScrubStep)
         try get(.instantInk, &instantInk); try get(.hoverDot, &hoverDot)
         try get(.tabletMode, &tabletMode); try get(.tabletArea, &tabletArea); try get(.tabletLockAspect, &tabletLockAspect)
+        try get(.tabletPresets, &tabletPresets)
     }
 }
 
@@ -356,5 +359,21 @@ public struct TabletArea: Codable, Equatable, Sendable {
         a.x = min(max(Double(c.x / size.width) - width / 2, 0), max(1 - width, 0))
         a.y = min(max(Double(c.y / size.height) - height / 2, 0), max(1 - height, 0))
         return a
+    }
+}
+
+/// A saved tablet-mode active area.
+public struct TabletPreset: Codable, Equatable, Identifiable, Sendable {
+    public var id: UUID
+    public var name: String
+    public var area: TabletArea
+    public var lockAspect: Bool
+    public init(id: UUID = UUID(), name: String, area: TabletArea, lockAspect: Bool) {
+        self.id = id; self.name = name; self.area = area; self.lockAspect = lockAspect
+    }
+
+    /// Whether `a` is (practically) this preset's area.
+    public func matches(_ a: TabletArea) -> Bool {
+        abs(a.x - area.x) < 0.001 && abs(a.y - area.y) < 0.001 && abs(a.width - area.width) < 0.001 && abs(a.height - area.height) < 0.001
     }
 }

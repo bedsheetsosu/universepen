@@ -76,6 +76,9 @@ struct TabletAreaEditor: View {
     /// The value a field showed before you tapped it (shown greyed while it is empty).
     @State private var before: [Field: String] = [:]
     @State private var viewSize: CGSize = .zero
+    @State private var presetName = ""
+    @State private var naming = false
+    @FocusState private var nameFocus: Bool
 
     /// Points → millimetres on an 11" iPad Air (264 ppi, 2 px per point).
     private static let mmPerPoint = 2.0 / 264.0 * 25.4
@@ -127,6 +130,7 @@ struct TabletAreaEditor: View {
                 VStack(spacing: 10) {
                     toolbar
                     numbers(size)
+                    presets(size)
                     Spacer()
                 }
                 .padding(.top, 14)
@@ -204,6 +208,78 @@ struct TabletAreaEditor: View {
             .background(.white.opacity(focus == f ? 0.16 : 0.08), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
             Text("mm").foregroundStyle(.secondary)
         }
+    }
+
+    /// Saved areas: tap to use, ✕ to delete; save the current area under a name.
+    private func presets(_ size: CGSize) -> some View {
+        let current = area ?? model.settings.tabletArea
+        return HStack(spacing: 8) {
+            Text(L("Presets")).foregroundStyle(.secondary)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    if model.settings.tabletPresets.isEmpty && !naming {
+                        Text(L("Noch keine gespeichert")).foregroundStyle(.tertiary)
+                    }
+                    ForEach(model.settings.tabletPresets) { p in
+                        let on = p.matches(current)
+                        let r = p.area.rect(in: size)
+                        HStack(spacing: 6) {
+                            Button {
+                                withAnimation(Brand.spring) { area = nil; model.applyTabletPreset(p) }
+                            } label: {
+                                VStack(alignment: .leading, spacing: 0) {
+                                    Text(p.name).font(.callout.weight(.semibold)).lineLimit(1)
+                                    Text(String(format: "%.0f × %.0f mm", r.width * Self.mmPerPoint, r.height * Self.mmPerPoint))
+                                        .font(.caption2.monospacedDigit()).opacity(0.75)
+                                }
+                            }
+                            .buttonStyle(.plain)
+                            Button {
+                                withAnimation(Brand.spring) { model.settings.tabletPresets.removeAll { $0.id == p.id } }
+                            } label: {
+                                Image(systemName: "xmark").font(.caption2.bold()).opacity(0.7)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .foregroundStyle(on ? Brand.slateDeep : .primary)
+                        .padding(.horizontal, 12).padding(.vertical, 6)
+                        .background(on ? AnyShapeStyle(Brand.mint) : AnyShapeStyle(Color.white.opacity(0.1)), in: Capsule())
+                    }
+                }
+            }
+            .frame(maxWidth: 520)
+            if naming {
+                TextField(L("Name"), text: $presetName)
+                    .focused($nameFocus)
+                    .submitLabel(.done)
+                    .onSubmit(save)
+                    .frame(width: 150)
+                    .padding(.horizontal, 8).padding(.vertical, 5)
+                    .background(.white.opacity(0.14), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                Button(L("Speichern"), action: save)
+                    .buttonStyle(.borderedProminent).tint(Brand.mint).foregroundStyle(Brand.slateDeep)
+                Button(L("Abbrechen")) { naming = false; presetName = "" }
+            } else {
+                Button {
+                    commit()
+                    naming = true
+                    nameFocus = true
+                } label: {
+                    Label(L("Als Preset speichern"), systemImage: "plus")
+                }
+            }
+        }
+        .font(.callout)
+        .padding(.horizontal, 18).padding(.vertical, 8)
+        .tafelOverlayGlass(Capsule())
+    }
+
+    private func save() {
+        commit()
+        withAnimation(Brand.spring) { model.saveTabletPreset(named: presetName) }
+        presetName = ""
+        naming = false
+        nameFocus = false
     }
 
     static func number(_ s: String) -> Double? {

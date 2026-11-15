@@ -350,5 +350,11 @@ extension Translations {
         "Höhe": "高さ",
         "Zentrieren": "中央に配置",
         "Übernehmen": "適用",
+        "Als Preset speichern": "プリセットとして保存",
+        "Bereich %d": "エリア %d",
+        "Name": "名前",
+        "Noch keine gespeichert": "まだ保存されていません",
+        "Presets": "プリセット",
+        "Speichern": "保存",
     ]
 }

@@ -350,5 +350,11 @@ extension Translations {
         "Höhe": "Alto",
         "Zentrieren": "Centrar",
         "Übernehmen": "Aplicar",
+        "Als Preset speichern": "Guardar como preajuste",
+        "Bereich %d": "Área %d",
+        "Name": "Nombre",
+        "Noch keine gespeichert": "Aún no hay ninguno guardado",
+        "Presets": "Preajustes",
+        "Speichern": "Guardar",
     ]
 }

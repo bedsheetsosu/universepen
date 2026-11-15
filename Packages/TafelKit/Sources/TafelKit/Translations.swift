@@ -393,5 +393,11 @@ enum Translations {
         "Höhe": "Height",
         "Zentrieren": "Centre",
         "Übernehmen": "Apply",
+        "Als Preset speichern": "Save as preset",
+        "Bereich %d": "Area %d",
+        "Name": "Name",
+        "Noch keine gespeichert": "None saved yet",
+        "Presets": "Presets",
+        "Speichern": "Save",
     ]
 }

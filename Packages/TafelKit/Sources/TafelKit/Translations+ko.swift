@@ -350,5 +350,11 @@ extension Translations {
         "Höhe": "높이",
         "Zentrieren": "가운데 맞춤",
         "Übernehmen": "적용",
+        "Als Preset speichern": "프리셋으로 저장",
+        "Bereich %d": "영역 %d",
+        "Name": "이름",
+        "Noch keine gespeichert": "아직 저장된 항목 없음",
+        "Presets": "프리셋",
+        "Speichern": "저장",
     ]
 }

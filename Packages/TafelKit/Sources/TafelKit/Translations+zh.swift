@@ -350,5 +350,11 @@ extension Translations {
         "Höhe": "高度",
         "Zentrieren": "居中",
         "Übernehmen": "应用",
+        "Als Preset speichern": "存储为预设",
+        "Bereich %d": "区域 %d",
+        "Name": "名称",
+        "Noch keine gespeichert": "尚未保存任何预设",
+        "Presets": "预设",
+        "Speichern": "存储",
     ]
 }

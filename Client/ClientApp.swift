@@ -208,6 +208,11 @@ private struct OverlayMenuPanel: View {
                     close()
                 }
                 if model.settings.tabletMode {
+                    ForEach(model.settings.tabletPresets) { p in
+                        row(p.name, icon: "rectangle.dashed", checked: p.matches(model.settings.tabletArea), indent: true) {
+                            model.applyTabletPreset(p); close()
+                        }
+                    }
                     row(L("Aktiven Bereich anpassen"), icon: "crop", indent: true) {
                         close()
                         withAnimation(Brand.spring) { model.tabletEditing = true }

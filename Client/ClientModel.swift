@@ -492,6 +492,26 @@ final class ClientModel: ObservableObject {
 
     func selectSource(_ sel: SourceSelection) { session?.send(sel) }
 
+    // MARK: Tablet presets
+
+    func saveTabletPreset(named name: String) {
+        let n = name.trimmingCharacters(in: .whitespaces)
+        let preset = TabletPreset(name: n.isEmpty ? L("Bereich %d", settings.tabletPresets.count + 1) : n,
+                                  area: settings.tabletArea, lockAspect: settings.tabletLockAspect)
+        // Same name again replaces the old one.
+        if let i = settings.tabletPresets.firstIndex(where: { $0.name == preset.name }) {
+            settings.tabletPresets[i].area = preset.area
+            settings.tabletPresets[i].lockAspect = preset.lockAspect
+        } else {
+            settings.tabletPresets.append(preset)
+        }
+    }
+
+    func applyTabletPreset(_ p: TabletPreset) {
+        settings.tabletLockAspect = p.lockAspect
+        settings.tabletArea = p.area
+    }
+
     /// Toggles game mode for the app in front on the Mac.
     func toggleGameMode() {
         guard let app = frontApp else { return }

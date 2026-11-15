@@ -350,5 +350,11 @@ extension Translations {
         "Höhe": "ऊँचाई",
         "Zentrieren": "बीच में करें",
         "Übernehmen": "लागू करें",
+        "Als Preset speichern": "प्रीसेट के रूप में सेव करें",
+        "Bereich %d": "क्षेत्र %d",
+        "Name": "नाम",
+        "Noch keine gespeichert": "अभी कोई सेव नहीं है",
+        "Presets": "प्रीसेट",
+        "Speichern": "सेव करें",
     ]
 }
