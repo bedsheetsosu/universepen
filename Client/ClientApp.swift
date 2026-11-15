@@ -142,7 +142,7 @@ struct RootView: View {
                                 close: { withAnimation(Brand.spring) { menuOpen = false } },
                                 toggleStatus: { showStatus.toggle() }, showStatus: showStatus,
                                 openSettings: { showSettings = true },
-                                maxHeight: max(g.size.height - 54 - 16, 200))
+                                maxHeight: max(g.size.height - 16, 200))
                         }
                         Spacer()
                     }
