@@ -37,6 +37,9 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     private var lastPencilActivity = Date.distantPast
     /// Last time the Pencil actually touched the glass (hover does not count).
     private var lastPencilContact = Date.distantPast
+    private var smoothX = SampleSmoother(amount: 0)
+    private var smoothY = SampleSmoother(amount: 0)
+    private var smoothP = SampleSmoother(amount: 0)
 
     private var lastPan: CGPoint = .zero
     private var lastPinchScale: CGFloat = 1
@@ -331,9 +334,18 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
 
     private func send(_ t: UITouch, _ phase: PenPhase) {
         guard let session else { return }
-        let n = Geometry.normalized(t.preciseLocation(in: self), in: videoRect)
+        var n = Geometry.normalized(t.preciseLocation(in: self), in: videoRect)
         let touching = phase == .down || phase == .move
-        let pressure = touching ? settings.pressure.apply(force: Double(t.force), maximumForce: Double(t.maximumPossibleForce)) : 0
+        var pressure = touching ? settings.pressure.apply(force: Double(t.force), maximumForce: Double(t.maximumPossibleForce)) : 0
+        if phase == .down {
+            smoothX = SampleSmoother(amount: settings.positionSmoothing)
+            smoothY = SampleSmoother(amount: settings.positionSmoothing)
+            smoothP = SampleSmoother(amount: settings.pressureSmoothing)
+        }
+        if touching {
+            n = CGPoint(x: smoothX.add(Double(n.x)), y: smoothY.add(Double(n.y)))
+            pressure = smoothP.add(pressure)
+        }
         let tilt = settings.tilt.tilt(altitude: Double(t.altitudeAngle), azimuth: Double(t.azimuthAngle(in: self)))
         let roll = settings.sendRoll ? Double(t.rollAngle) * 180 / .pi : 0
         session.send(PenSample(phase: phase, x: Float(n.x), y: Float(n.y), pressure: Float(pressure),

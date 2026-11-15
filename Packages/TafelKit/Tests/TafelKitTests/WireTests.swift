@@ -264,3 +264,42 @@ final class OneFingerGestureTests: XCTestCase {
         XCTAssertEqual(tap.end(.zero), [])
     }
 }
+
+final class PressureCurveTests: XCTestCase {
+    func testGammaFallback() {
+        let c = PressureCurve(gamma: 2)
+        XCTAssertEqual(c.map(0.5), 0.25, accuracy: 1e-9)
+    }
+
+    func testPointsHitControlPointsAndStayMonotone() {
+        let c = PressureCurve(points: [CurvePoint(0, 0), CurvePoint(0.3, 0.6), CurvePoint(0.6, 0.65), CurvePoint(1, 1)])
+        XCTAssertEqual(c.map(0.3), 0.6, accuracy: 1e-9)
+        XCTAssertEqual(c.map(1), 1, accuracy: 1e-9)
+        var last = -1.0
+        for i in 0...100 {
+            let y = c.map(Double(i) / 100)
+            XCTAssertGreaterThanOrEqual(y, last - 1e-12)
+            XCTAssertTrue((0...1).contains(y))
+            last = y
+        }
+    }
+
+    func testEditablePointsReproduceGamma() {
+        let c = PressureCurve(gamma: 0.6)
+        let e = PressureCurve(points: c.editablePoints())
+        XCTAssertEqual(e.map(0.5), c.map(0.5), accuracy: 1e-9)
+    }
+
+    func testOldSettingsDecode() throws {
+        let c = try JSONDecoder().decode(PressureCurve.self, from: Data(#"{"gamma":1.5,"minimum":0.02}"#.utf8))
+        XCTAssertEqual(c.gamma, 1.5); XCTAssertTrue(c.points.isEmpty)
+    }
+
+    func testSmoother() {
+        var s = SampleSmoother(amount: 0)
+        XCTAssertEqual(s.add(1), 1); XCTAssertEqual(s.add(0), 0)
+        var t = SampleSmoother(amount: 1)
+        _ = t.add(0)
+        XCTAssertEqual(t.add(1), 0.15, accuracy: 1e-9)
+    }
+}

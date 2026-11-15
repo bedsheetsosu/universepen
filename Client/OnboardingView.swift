@@ -132,7 +132,7 @@ struct OnboardingView: View {
                      subtitle: L("Wie soll sich der Druck anfühlen, und was machen die Pencil-Gesten?")) {
             ChoiceRow(title: L("Druckgefühl"), options: [
                 (L("Weich"), "feather", 0.6), (L("Normal"), "pencil", 1.0), (L("Fest"), "pencil.tip", 1.6),
-            ], selected: closest(model.settings.pressure.gamma, in: [0.6, 1.0, 1.6])) { model.settings.pressure.gamma = $0 }
+            ], selected: closest(model.settings.pressure.gamma, in: [0.6, 1.0, 1.6])) { model.settings.pressure.gamma = $0; model.settings.pressure.points = [] }
             ActionChoice(title: L("Doppeltippen"), action: $model.settings.doubleTap)
             ActionChoice(title: L("Squeeze (Pencil Pro)"), action: $model.settings.squeeze)
             Toggle(L("Schweben anzeigen (Hover)"), isOn: $model.settings.sendHover).tint(Brand.mint)

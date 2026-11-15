@@ -106,6 +106,10 @@ public struct InputSettings: Codable, Equatable, Sendable {
     public var rotateRight: PencilAction = .none
     public var rotateStepDegrees: Double = 15
 
+    /// Smoothing of the Pencil path and of the pressure (0 = off … 1 = strong, adds lag).
+    public var positionSmoothing: Double = 0
+    public var pressureSmoothing: Double = 0.15
+
     public var fingerMode: FingerMode = .mouse
     /// Pressure used in `.pen` finger mode.
     public var fingerPressure: Double = 0.5
@@ -142,6 +146,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case pressure, tilt, sendHover, sendRoll, doubleTap, squeeze, twoFingerTap, threeFingerTap
         case panEnabled, invertPan, zoomMethod, zoomSensitivity, rotateLeft, rotateRight, rotateStepDegrees
+        case positionSmoothing, pressureSmoothing
         case fingerMode, fingerPressure, longPressRightClick, palmRadius
         case threeFingerSwipeLeft, threeFingerSwipeRight, threeFingerSwipeUp, threeFingerSwipeDown, fourFingerTap
         case swapISOKeys, trackpadAsMouse, hideIPadPointer, showShortcutBar, shortcutBarOnRight, shortcutBar
@@ -161,6 +166,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         try get(.zoomMethod, &zoomMethod); try get(.zoomSensitivity, &zoomSensitivity)
         try get(.rotateLeft, &rotateLeft); try get(.rotateRight, &rotateRight)
         try get(.rotateStepDegrees, &rotateStepDegrees)
+        try get(.positionSmoothing, &positionSmoothing); try get(.pressureSmoothing, &pressureSmoothing)
         try get(.fingerMode, &fingerMode); try get(.fingerPressure, &fingerPressure)
         try get(.longPressRightClick, &longPressRightClick); try get(.palmRadius, &palmRadius)
         try get(.threeFingerSwipeLeft, &threeFingerSwipeLeft); try get(.threeFingerSwipeRight, &threeFingerSwipeRight)

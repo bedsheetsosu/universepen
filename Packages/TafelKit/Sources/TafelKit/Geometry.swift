@@ -81,21 +81,102 @@ public struct TiltConverter: Codable, Equatable, Sendable {
 
 /// Simple gamma pressure curve with a minimum output while touching, so very light strokes
 /// still register in apps that treat pressure 0 as "no stroke".
+public struct CurvePoint: Codable, Equatable, Sendable {
+    public var x: Double
+    public var y: Double
+    public init(_ x: Double, _ y: Double) { self.x = x; self.y = y }
+}
+
+/// Maps Pencil force (0…1) to the pressure sent to the Mac.
+/// Either a simple gamma, or – when `points` is set – a freely drawn curve through control points
+/// (monotone cubic interpolation, so it never overshoots or runs backwards).
 public struct PressureCurve: Codable, Equatable, Sendable {
-    /// < 1 = softer (more output for light pressure), > 1 = harder.
+    /// < 1 = softer (more output for light pressure), > 1 = harder. Used when `points` is empty.
     public var gamma: Double
     public var minimum: Double
+    /// Control points sorted by x, first at x = 0 and last at x = 1. Empty = use `gamma`.
+    public var points: [CurvePoint]
 
-    public init(gamma: Double = 1.0, minimum: Double = 0.01) {
+    public init(gamma: Double = 1.0, minimum: Double = 0.01, points: [CurvePoint] = []) {
         self.gamma = gamma
         self.minimum = minimum
+        self.points = points
+    }
+
+    private enum CodingKeys: String, CodingKey { case gamma, minimum, points }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        gamma = try c.decodeIfPresent(Double.self, forKey: .gamma) ?? 1
+        minimum = try c.decodeIfPresent(Double.self, forKey: .minimum) ?? 0.01
+        points = try c.decodeIfPresent([CurvePoint].self, forKey: .points) ?? []
+    }
+
+    /// Five editable points that reproduce the current gamma curve (start of the editor).
+    public func editablePoints() -> [CurvePoint] {
+        if points.count >= 2 { return points }
+        return [0, 0.25, 0.5, 0.75, 1].map { CurvePoint($0, map($0)) }
+    }
+
+    /// The curve itself, without the minimum.
+    public func map(_ n: Double) -> Double {
+        let x = min(max(n, 0), 1)
+        guard points.count >= 2 else { return pow(x, min(max(gamma, 0.2), 5)) }
+        return Self.monotoneCubic(points, at: x)
     }
 
     public func apply(force: Double, maximumForce: Double) -> Double {
         guard maximumForce > 0 else { return 1 }
-        let n = min(max(force / maximumForce, 0), 1)
-        let g = min(max(gamma, 0.2), 5)
-        return max(pow(n, g), minimum)
+        return max(map(force / maximumForce), minimum)
+    }
+
+    /// Fritsch–Carlson monotone cubic Hermite interpolation.
+    static func monotoneCubic(_ pts: [CurvePoint], at x: Double) -> Double {
+        let p = pts.sorted { $0.x < $1.x }
+        let n = p.count
+        if x <= p[0].x { return min(max(p[0].y, 0), 1) }
+        if x >= p[n - 1].x { return min(max(p[n - 1].y, 0), 1) }
+        var d = [Double](repeating: 0, count: n - 1)
+        for k in 0..<(n - 1) {
+            let dx = p[k + 1].x - p[k].x
+            d[k] = dx > 0 ? (p[k + 1].y - p[k].y) / dx : 0
+        }
+        var m = [Double](repeating: 0, count: n)
+        m[0] = d[0]
+        m[n - 1] = d[n - 2]
+        for k in 1..<(n - 1) { m[k] = d[k - 1] * d[k] <= 0 ? 0 : (d[k - 1] + d[k]) / 2 }
+        for k in 0..<(n - 1) where d[k] == 0 {
+            m[k] = 0; m[k + 1] = 0
+        }
+        for k in 0..<(n - 1) where d[k] != 0 {
+            let a = m[k] / d[k], b = m[k + 1] / d[k]
+            let s = a * a + b * b
+            if s > 9 { let t = 3 / s.squareRoot(); m[k] = t * a * d[k]; m[k + 1] = t * b * d[k] }
+        }
+        var k = 0
+        while k < n - 2 && x > p[k + 1].x { k += 1 }
+        let h = p[k + 1].x - p[k].x
+        guard h > 0 else { return p[k].y }
+        let t = (x - p[k].x) / h
+        let t2 = t * t, t3 = t2 * t
+        let y = (2 * t3 - 3 * t2 + 1) * p[k].y + (t3 - 2 * t2 + t) * h * m[k]
+            + (-2 * t3 + 3 * t2) * p[k + 1].y + (t3 - t2) * h * m[k + 1]
+        return min(max(y, 0), 1)
+    }
+}
+
+/// Exponential smoothing for Pencil samples (0 = off, 1 = very smooth / more lag).
+public struct SampleSmoother: Sendable {
+    public var amount: Double
+    private var last: Double?
+    public init(amount: Double) { self.amount = amount }
+    public mutating func reset() { last = nil }
+    public mutating func add(_ v: Double) -> Double {
+        guard amount > 0, let l = last else { last = v; return v }
+        let alpha = 1 - 0.85 * min(max(amount, 0), 1)
+        let r = l + alpha * (v - l)
+        last = r
+        return r
     }
 }
 

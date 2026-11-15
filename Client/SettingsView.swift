@@ -102,10 +102,26 @@ struct SettingsView: View {
 
     private var pencilSection: some View {
         Section {
+            NavigationLink {
+                Form {
+                    Section {
+                        PressureCurveEditor(curve: $model.settings.pressure)
+                            .listRowBackground(Color.clear)
+                    } footer: {
+                        Text(L("Punkte mit dem Finger ziehen. Unten mit dem Pencil drücken, um zu sehen, wo dein Druck auf der Kurve landet."))
+                    }
+                }
+                .navigationTitle(L("Druckkurve"))
+            } label: {
+                LabeledContent(L("Druckkurve"), value: model.settings.pressure.points.isEmpty ? L("Voreinstellung") : L("Eigene Kurve"))
+            }
             VStack(alignment: .leading) {
-                Text(L("Druckkurve: %.2f (%@)", model.settings.pressure.gamma,
-                       model.settings.pressure.gamma < 1 ? L("weicher") : model.settings.pressure.gamma > 1 ? L("härter") : L("linear")))
-                Slider(value: $model.settings.pressure.gamma, in: 0.3...3)
+                Text(L("Strich glätten: %d %%", Int(model.settings.positionSmoothing * 100)))
+                Slider(value: $model.settings.positionSmoothing, in: 0...1)
+            }
+            VStack(alignment: .leading) {
+                Text(L("Druck glätten: %d %%", Int(model.settings.pressureSmoothing * 100)))
+                Slider(value: $model.settings.pressureSmoothing, in: 0...1)
             }
             VStack(alignment: .leading) {
                 Text(L("Mindestdruck: %.2f", model.settings.pressure.minimum))
