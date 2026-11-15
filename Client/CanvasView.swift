@@ -143,7 +143,14 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     }
 
     /// Shows or hides the on-screen keyboard (does nothing visible with a hardware keyboard).
+    private var keyboardShown: Bool?
+
+    /// Called on every SwiftUI update (several times a second). Only act when the on-screen
+    /// keyboard setting actually changes: grabbing first responder on every update would steal
+    /// it from an open menu, which then blinks and loses the item you are holding.
     func setOnScreenKeyboard(_ visible: Bool) {
+        guard visible != keyboardShown else { return }
+        keyboardShown = visible
         if visible {
             if !keyboardProxy.isFirstResponder { keyboardProxy.becomeFirstResponder() }
         } else if keyboardProxy.isFirstResponder {
@@ -174,6 +181,8 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     // MARK: Pencil touches
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        // Back to the canvas after a menu or sheet took the keyboard focus (hardware keyboard).
+        if keyboardShown != true, !isFirstResponder { becomeFirstResponder() }
         fingersBegan(touches)
         if settings.trackpadAsMouse, pointerTouch == nil, let t = touches.first(where: { $0.type == .indirectPointer }) {
             pointerTouch = t
