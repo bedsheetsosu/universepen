@@ -180,7 +180,7 @@ Auf echter Hardware bestätigt (15.11.2026).
 
 - **Ein Finger** (Einstellung „Ein Finger“: Maus / Stift mit festem Druck / Aus): Tippen = Klick an der Aufsetzstelle, zweimal = Doppelklick, Ziehen = Klicken und Ziehen (zeichnet in Affinity ohne Druck), Halten ≈ 0,55 s = Rechtsklick.
 - **Handballen-Schutz:** Finger lösen nichts aus, solange der Pencil schwebt, aufliegt oder vor < 0,6 s benutzt wurde, und nicht bei großer Auflagefläche (`majorRadius`, Schwelle einstellbar). Ein zweiter Finger beendet eine laufende Ein-Finger-Aktion sauber (kein Fehlklick vor Pinch/Scroll).
-- **Mehrere Finger:** zwei Finger scrollen, Pinch zoomt (Methode wählbar), Drehen → Shortcuts, Zwei-/Drei-/Vier-Finger-Tipp und Drei-Finger-Wischen in alle Richtungen frei belegbar (Standard: links Undo, rechts Redo).
+- **Mehrere Finger:** zwei Finger scrollen, Pinch zoomt (Methode wählbar), Drehen → Shortcuts, Zwei-/Drei-/Vier-Finger-Tipp und Drei-Finger-Wischen in alle Richtungen frei belegbar (Standard wie am Mac-Trackpad: links/rechts = Schreibtisch wechseln, oben = Mission Control, unten = App-Exposé; auf echter Hardware bestätigt).
 - Vier-Finger-Gesten fängt iPadOS ab, wenn Multitasking-Gesten in den iPad-Einstellungen aktiv sind.
 - Echte Trackpad-Gesten (Magnify/Rotate) kann der Mac mit öffentlichen APIs nicht erzeugen, deshalb Zoom über Scroll + Modifier.
 
