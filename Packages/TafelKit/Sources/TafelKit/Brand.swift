@@ -36,10 +36,11 @@ public extension View {
 }
 
 /// Expanding rings, e.g. "searching" or "waiting for the iPad".
+/// Driven by a timeline (not an implicit repeatForever animation), so it never picks up the
+/// position of a sheet or page that is animating in.
 public struct PulseRings: View {
     var color: Color
     var active: Bool
-    @State private var phase = false
 
     public init(color: Color = Brand.mint, active: Bool = true) {
         self.color = color
@@ -47,18 +48,21 @@ public struct PulseRings: View {
     }
 
     public var body: some View {
-        ZStack {
-            ForEach(0..<3) { i in
-                Circle()
-                    .stroke(color.opacity(0.6), lineWidth: 1.5)
-                    .scaleEffect(phase ? 1.9 : 0.6)
-                    .opacity(phase ? 0 : 0.9)
-                    .animation(active ? .easeOut(duration: 2.4).repeatForever(autoreverses: false).delay(Double(i) * 0.8) : .default,
-                               value: phase)
+        TimelineView(.animation(paused: !active)) { context in
+            let t = context.date.timeIntervalSinceReferenceDate
+            ZStack {
+                ForEach(0..<3) { i in
+                    let p = (t / 2.4 + Double(i) / 3).truncatingRemainder(dividingBy: 1)
+                    Circle()
+                        .stroke(color.opacity(0.6), lineWidth: 1.5)
+                        .scaleEffect(0.6 + 1.3 * p)
+                        .opacity(0.9 * (1 - p))
+                }
             }
         }
         .opacity(active ? 1 : 0)
-        .onAppear { phase = true }
+        .animation(.easeInOut(duration: 0.4), value: active)
+        .allowsHitTesting(false)
     }
 }
 

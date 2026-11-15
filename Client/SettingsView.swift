@@ -16,6 +16,11 @@ struct SettingsView: View {
                 keyboardSection
                 Section {
                     Toggle("Latenz dauerhaft anzeigen", isOn: $model.showStatusOverlay)
+                    Toggle("Shortcut-Leiste rechts (Linkshänder)", isOn: $model.settings.shortcutBarOnRight)
+                    Button("Einrichtung erneut starten") {
+                        dismiss()
+                        model.onboardingDone = false
+                    }
                 }
             }
             .navigationTitle("Einstellungen")

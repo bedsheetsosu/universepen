@@ -61,6 +61,8 @@ xcodebuild -project Tafel.xcodeproj -scheme PipelineTests -derivedDataPath build
 
 ## Erste Schritte
 
+Beide Apps führen beim ersten Start durch eine kurze **Einrichtung** (iPad: Verbindung, Pencil-Druckgefühl und -Gesten, Finger-Modus, Bildqualität und Ton, Zeichenhand für die Shortcut-Leiste; Mac: Berechtigungen, Quelle, Koppeln). Erneut aufrufbar über iPad → Einstellungen bzw. am Mac unten im Tafel-Fenster.
+
 1. Tafel Host starten. **Bildschirmaufnahme** und **Bedienungshilfen** erlauben (Buttons in der App). Ohne Bedienungshilfen werden Eingaben von macOS still verworfen.
    Hinweis: Bei ad-hoc signierten Builds kann macOS die Berechtigungen nach einem Neubau vergessen – dann in den Systemeinstellungen den alten Eintrag entfernen und neu erlauben.
 2. Am Mac **„iPad koppeln …“** → 12-stelliger Code erscheint (2 Minuten gültig).

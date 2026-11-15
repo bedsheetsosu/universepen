@@ -30,7 +30,10 @@ struct RootView: View {
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-            if model.phase.showsCanvas {
+            if !model.onboardingDone {
+                OnboardingView()
+                    .transition(.opacity.combined(with: .scale(scale: 0.98)))
+            } else if model.phase.showsCanvas {
                 CanvasRepresentable(model: model)
                     .ignoresSafeArea()
                     .transition(.opacity)
@@ -42,6 +45,7 @@ struct RootView: View {
             }
         }
         .animation(.easeInOut(duration: 0.35), value: model.phase.showsCanvas)
+        .animation(.easeInOut(duration: 0.45), value: model.onboardingDone)
         .sheet(isPresented: $showSettings) {
             SettingsView().environmentObject(model)
         }
@@ -51,10 +55,11 @@ struct RootView: View {
         ZStack {
             if model.settings.showShortcutBar {
                 HStack {
+                    if model.settings.shortcutBarOnRight { Spacer() }
                     ShortcutBar()
-                    Spacer()
+                    if !model.settings.shortcutBarOnRight { Spacer() }
                 }
-                .padding(.leading, 8)
+                .padding(.horizontal, 8)
                 .transition(.move(edge: .leading).combined(with: .opacity))
             }
             VStack(spacing: 10) {

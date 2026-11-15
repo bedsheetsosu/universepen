@@ -121,6 +121,8 @@ public struct InputSettings: Codable, Equatable, Sendable {
     public var hideIPadPointer = true
 
     public var showShortcutBar = true
+    /// Shortcut bar on the right edge (for left-handed use, so the drawing hand doesn't cover it).
+    public var shortcutBarOnRight = false
     public var shortcutBar: [ShortcutButton] = [
         ShortcutButton(title: "Undo", shortcut: Shortcut("z", .command)),
         ShortcutButton(title: "Redo", shortcut: Shortcut("z", [.command, .shift])),
@@ -136,7 +138,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         case panEnabled, invertPan, zoomMethod, zoomSensitivity, rotateLeft, rotateRight, rotateStepDegrees
         case fingerMode, fingerPressure, longPressRightClick, palmRadius
         case threeFingerSwipeLeft, threeFingerSwipeRight, threeFingerSwipeUp, threeFingerSwipeDown, fourFingerTap
-        case swapISOKeys, trackpadAsMouse, hideIPadPointer, showShortcutBar, shortcutBar
+        case swapISOKeys, trackpadAsMouse, hideIPadPointer, showShortcutBar, shortcutBarOnRight, shortcutBar
     }
 
     /// Tolerates settings saved by older versions: missing keys keep their defaults.
@@ -160,6 +162,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         try get(.fourFingerTap, &fourFingerTap)
         try get(.swapISOKeys, &swapISOKeys)
         try get(.trackpadAsMouse, &trackpadAsMouse); try get(.hideIPadPointer, &hideIPadPointer)
+        try get(.shortcutBarOnRight, &shortcutBarOnRight)
         try get(.showShortcutBar, &showShortcutBar); try get(.shortcutBar, &shortcutBar)
     }
 }

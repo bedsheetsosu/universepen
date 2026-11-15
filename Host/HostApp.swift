@@ -25,6 +25,7 @@ struct HostView: View {
     @EnvironmentObject var host: HostController
     @Environment(\.openWindow) private var openWindow
     @State private var confirmUnpair = false
+    @AppStorage("hostOnboardingDone") private var onboardingDone = false
 
     private var connected: Bool { host.sessionDevice != nil }
     private var allGranted: Bool { host.screenRecordingGranted && host.accessibilityGranted }
@@ -39,6 +40,14 @@ struct HostView: View {
                 pairing
                 source
                 stream
+                Button {
+                    onboardingDone = false
+                } label: {
+                    Label("Einrichtung erneut starten", systemImage: "sparkles")
+                }
+                .buttonStyle(.borderless)
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
             .padding(18)
         }
@@ -49,6 +58,9 @@ struct HostView: View {
         .animation(Brand.spring, value: host.pairingCode)
         .animation(Brand.spring, value: host.mode)
         .task { await host.refreshSources() }
+        .sheet(isPresented: Binding(get: { !onboardingDone }, set: { if !$0 { onboardingDone = true } })) {
+            HostOnboarding(done: $onboardingDone).environmentObject(host)
+        }
     }
 
     // MARK: Hero: connection state
@@ -355,7 +367,7 @@ private struct StatTile: View {
     }
 }
 
-private struct CountdownRing: View {
+struct CountdownRing: View {
     let fraction: Double
     let seconds: Int
     var body: some View {
@@ -374,7 +386,7 @@ private struct CountdownRing: View {
     }
 }
 
-private struct ModeButton: View {
+struct ModeButton: View {
     let mode: CaptureMode
     let selected: Bool
     let action: () -> Void

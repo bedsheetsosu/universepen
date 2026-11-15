@@ -46,6 +46,10 @@ final class ClientModel: ObservableObject {
     @Published var videoSize: CGSize = .zero
     @Published var pairingBusy = false
     @Published var pairingError: String?
+    /// First-run setup finished (shown again via Settings → "Einrichtung erneut starten").
+    @Published var onboardingDone = UserDefaults.standard.bool(forKey: "onboardingDone") {
+        didSet { UserDefaults.standard.set(onboardingDone, forKey: "onboardingDone") }
+    }
     /// On-screen keyboard shown (hardware keyboards work without it).
     @Published var showKeyboard = false
 
