@@ -10,6 +10,7 @@ public enum MessageType: UInt8, Sendable {
     case clientConfig = 0x03   // client -> host
     case pairGrant = 0x04      // host -> client, only on the pairing listener
     case error = 0x05          // host -> client
+    case appInfo = 0x06        // host -> client: app in front on the Mac
     // binary input
     case pen = 0x10
     case scroll = 0x11
@@ -171,6 +172,13 @@ public struct ClientConfig: Codable, Equatable, Sendable {
         guard let other else { return false }
         return viewPixelWidth == other.viewPixelWidth && viewPixelHeight == other.viewPixelHeight && quality == other.quality
     }
+}
+
+/// The app in front on the Mac (for per-app shortcut bars).
+public struct AppInfo: Codable, Equatable, Sendable {
+    public var bundleID: String
+    public var name: String
+    public init(bundleID: String, name: String) { self.bundleID = bundleID; self.name = name }
 }
 
 public struct PairGrant: Codable, Equatable, Sendable {

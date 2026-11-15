@@ -21,6 +21,7 @@ final class Session: @unchecked Sendable {
     private let audioPlayer: AudioPlayer?
 
     var onHostInfo: ((HostInfo) -> Void)?
+    var onAppInfo: ((AppInfo) -> Void)?
     var onConnected: (() -> Void)?
     var onClosed: ((String?) -> Void)?
     var onTiming: ((Timing) -> Void)?
@@ -174,6 +175,8 @@ final class Session: @unchecked Sendable {
 
     private func handleControl(_ f: Frame) {
         switch f.type {
+        case .appInfo:
+            if let a = try? JSONWire.decode(AppInfo.self, f.payload) { onAppInfo?(a) }
         case .hostInfo:
             guard let info = try? JSONWire.decode(HostInfo.self, f.payload) else { return }
             if !connected {

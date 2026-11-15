@@ -167,20 +167,50 @@ struct ShortcutBar: View {
 
     var body: some View {
         VStack(spacing: 6) {
-            ForEach(model.settings.shortcutBar) { b in
-                Button {
-                    model.trigger(.shortcut(b.shortcut))
-                } label: {
-                    Text(b.title)
-                        .font(.caption2.weight(.semibold))
-                        .lineLimit(1)
-                        .frame(width: 60, height: 36)
-                        .tafelGlass(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            ForEach(model.currentBar) { b in
+                if let key = b.hold {
+                    HoldButton(title: b.title, key: key)
+                } else {
+                    Button {
+                        model.trigger(.shortcut(b.shortcut))
+                    } label: {
+                        barLabel(b.title, active: false)
+                    }
+                    .buttonStyle(PressScale())
                 }
-                .buttonStyle(PressScale())
             }
         }
         .opacity(0.85)
+        .animation(Brand.spring, value: model.currentBar.map(\.id))
+    }
+}
+
+func barLabel(_ title: String, active: Bool) -> some View {
+    Text(title)
+        .font(.caption2.weight(.semibold))
+        .lineLimit(1)
+        .frame(width: 60, height: 36)
+        .foregroundStyle(active ? Brand.slateDeep : .primary)
+        .background(active ? AnyShapeStyle(Brand.mint) : AnyShapeStyle(Color.clear), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .tafelGlass(RoundedRectangle(cornerRadius: 10, style: .continuous))
+}
+
+/// Holds a key (⇧, ⌥, ⌘, ⌃, Space) down while the finger rests on it – works while the Pencil
+/// draws with the other hand.
+struct HoldButton: View {
+    @EnvironmentObject var model: ClientModel
+    let title: String
+    let key: HoldKey
+    @State private var down = false
+
+    var body: some View {
+        barLabel(title, active: down)
+            .scaleEffect(down ? 0.92 : 1)
+            .animation(.spring(response: 0.25, dampingFraction: 0.6), value: down)
+            .gesture(DragGesture(minimumDistance: 0)
+                .onChanged { _ in if !down { down = true; model.hold(key, down: true) } }
+                .onEnded { _ in down = false; model.hold(key, down: false) })
+            .onDisappear { if down { down = false; model.hold(key, down: false) } }
     }
 }
 

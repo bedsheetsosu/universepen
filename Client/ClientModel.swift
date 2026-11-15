@@ -42,6 +42,13 @@ final class ClientModel: ObservableObject {
     @Published var pairable: [DiscoveredHost] = []
     @Published var paired: [PairedHost] = []
     @Published var hostInfo: HostInfo?
+    /// App in front on the Mac.
+    @Published var frontApp: AppInfo?
+
+    /// The bar for the app in front, or the standard bar.
+    var currentBar: [ShortcutButton] {
+        frontApp.flatMap { settings.appShortcutBars[$0.bundleID] } ?? settings.shortcutBar
+    }
     @Published var timing: Session.Timing?
     @Published var videoSize: CGSize = .zero
     @Published var pairingBusy = false
@@ -303,6 +310,7 @@ final class ClientModel: ObservableObject {
             }
         }
         s.onHostInfo = { [weak self] info in Task { @MainActor in self?.hostInfo = info } }
+        s.onAppInfo = { [weak self] app in Task { @MainActor in self?.frontApp = app } }
         s.onTiming = { [weak self] t in
             Task { @MainActor in
                 guard let self else { return }
@@ -382,6 +390,10 @@ final class ClientModel: ObservableObject {
         guard let session, viewPixelSize.0 > 0 else { return }
         session.send(config: ClientConfig(viewPixelWidth: viewPixelSize.0, viewPixelHeight: viewPixelSize.1, quality: quality,
                                           diagnostics: diagnostics))
+    }
+
+    func hold(_ key: HoldKey, down: Bool) {
+        session?.send(KeyEvent(hidUsage: key.rawValue, down: down))
     }
 
     func trigger(_ action: PencilAction) {

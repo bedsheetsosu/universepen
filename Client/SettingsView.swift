@@ -187,29 +187,65 @@ struct SettingsView: View {
         }
     }
 
+    /// "" = standard bar, otherwise the bundle ID of a Mac app with its own bar.
+    @State private var barTarget = ""
+
+    private var barApps: [(id: String, name: String)] {
+        var ids = Set(model.settings.appShortcutBars.keys)
+        if let f = model.frontApp { ids.insert(f.bundleID) }
+        return ids.map { id in (id, model.settings.appNames[id] ?? (model.frontApp?.bundleID == id ? model.frontApp!.name : id)) }
+            .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+    }
+
+    private var targetHasOwnBar: Bool { !barTarget.isEmpty && model.settings.appShortcutBars[barTarget] != nil }
+
+    private var bar: Binding<[ShortcutButton]> {
+        Binding(get: {
+            barTarget.isEmpty ? model.settings.shortcutBar : (model.settings.appShortcutBars[barTarget] ?? model.settings.shortcutBar)
+        }, set: { v in
+            if barTarget.isEmpty { model.settings.shortcutBar = v } else { model.settings.appShortcutBars[barTarget] = v }
+        })
+    }
+
     private var shortcutSection: some View {
         Section {
             Toggle(L("Shortcut-Leiste anzeigen"), isOn: $model.settings.showShortcutBar)
-            ForEach($model.settings.shortcutBar) { $b in
-                NavigationLink {
-                    Form {
-                        TextField(L("Titel"), text: $b.title)
-                        ShortcutEditor(shortcut: $b.shortcut)
-                    }
-                    .navigationTitle(b.title)
-                } label: {
-                    LabeledContent(b.title, value: b.shortcut.display)
+            Picker(L("Leiste für"), selection: $barTarget) {
+                Text(L("Standard (alle Apps)")).tag("")
+                ForEach(barApps, id: \.id) { app in
+                    Text(model.settings.appShortcutBars[app.id] == nil ? app.name : "\(app.name) ★").tag(app.id)
                 }
             }
-            .onDelete { model.settings.shortcutBar.remove(atOffsets: $0) }
-            .onMove { model.settings.shortcutBar.move(fromOffsets: $0, toOffset: $1) }
-            Button(L("Taste hinzufügen")) {
-                model.settings.shortcutBar.append(ShortcutButton(title: L("Neu"), shortcut: Shortcut("a")))
+            if !barTarget.isEmpty && !targetHasOwnBar {
+                Button(L("Eigene Leiste für diese App anlegen")) {
+                    model.settings.appShortcutBars[barTarget] = model.settings.shortcutBar
+                    model.settings.appNames[barTarget] = barApps.first { $0.id == barTarget }?.name
+                }
+            } else {
+                ForEach(bar) { $b in
+                    NavigationLink {
+                        ShortcutButtonEditor(button: $b)
+                    } label: {
+                        LabeledContent(b.title, value: b.hold.map { L("Halten: %@", $0.symbol) } ?? b.shortcut.display)
+                    }
+                }
+                .onDelete { bar.wrappedValue.remove(atOffsets: $0) }
+                .onMove { bar.wrappedValue.move(fromOffsets: $0, toOffset: $1) }
+                Button(L("Taste hinzufügen")) {
+                    bar.wrappedValue.append(ShortcutButton(title: L("Neu"), shortcut: Shortcut("a")))
+                }
+                if targetHasOwnBar {
+                    Button(L("Eigene Leiste löschen"), role: .destructive) {
+                        model.settings.appShortcutBars[barTarget] = nil
+                        model.settings.appNames[barTarget] = nil
+                        barTarget = ""
+                    }
+                }
             }
         } header: {
             Text(L("Shortcuts"))
         } footer: {
-            Text(L("Tasten werden auf dem Mac anhand des aktiven Tastaturlayouts aufgelöst (z. B. QWERTZ)."))
+            Text(L("Die Leiste wechselt automatisch mit der App, die am Mac vorne ist (★ = eigene Leiste). Halte-Tasten (⇧ ⌥ ⌘ ⌃ Leertaste) bleiben gedrückt, solange der Finger darauf liegt – zum Beispiel ⇧ beim Zeichnen gerader Linien. Tasten werden auf dem Mac anhand des aktiven Tastaturlayouts aufgelöst."))
         }
     }
 }
@@ -310,5 +346,32 @@ struct ShortcutEditor: View {
             get: { shortcut.modifiers.contains(m) },
             set: { on in if on { shortcut.modifiers.insert(m) } else { shortcut.modifiers.remove(m) } }))
         .toggleStyle(.button)
+    }
+}
+
+/// Edits one bar button: title, and either a shortcut or a key to hold.
+struct ShortcutButtonEditor: View {
+    @Binding var button: ShortcutButton
+
+    var body: some View {
+        Form {
+            TextField(L("Titel"), text: $button.title)
+            Picker(L("Art"), selection: Binding(get: { button.hold == nil ? 0 : 1 },
+                                                set: { button.hold = $0 == 0 ? nil : (button.hold ?? .shift) })) {
+                Text(L("Shortcut senden")).tag(0)
+                Text(L("Taste halten")).tag(1)
+            }
+            .pickerStyle(.segmented)
+            if button.hold != nil {
+                Picker(L("Taste"), selection: Binding(get: { button.hold ?? .shift }, set: { button.hold = $0 })) {
+                    ForEach(HoldKey.allCases, id: \.self) { k in
+                        Text(k == .space ? L("Leertaste") : k.symbol).tag(k)
+                    }
+                }
+            } else {
+                ShortcutEditor(shortcut: $button.shortcut)
+            }
+        }
+        .navigationTitle(button.title)
     }
 }

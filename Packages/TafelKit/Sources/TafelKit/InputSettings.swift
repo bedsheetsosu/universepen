@@ -76,12 +76,30 @@ public enum FingerMode: String, Codable, CaseIterable, Sendable {
     }
 }
 
+/// Keys a bar button can hold down while the finger rests on it (USB HID usages).
+public enum HoldKey: UInt16, CaseIterable, Codable, Sendable {
+    case shift = 0xE1, option = 0xE2, command = 0xE3, control = 0xE0, space = 0x2C
+
+    public var symbol: String {
+        switch self {
+        case .shift: return "⇧"
+        case .option: return "⌥"
+        case .command: return "⌘"
+        case .control: return "⌃"
+        case .space: return "␣"
+        }
+    }
+}
+
 public struct ShortcutButton: Codable, Hashable, Identifiable, Sendable {
     public var id: UUID
     public var title: String
     public var shortcut: Shortcut
-    public init(id: UUID = UUID(), title: String, shortcut: Shortcut) {
-        self.id = id; self.title = title; self.shortcut = shortcut
+    /// If set, the button holds this key down while touched (e.g. ⇧ or Space while drawing)
+    /// instead of sending `shortcut` once.
+    public var hold: HoldKey?
+    public init(id: UUID = UUID(), title: String, shortcut: Shortcut, hold: HoldKey? = nil) {
+        self.id = id; self.title = title; self.shortcut = shortcut; self.hold = hold
     }
 }
 
@@ -133,12 +151,18 @@ public struct InputSettings: Codable, Equatable, Sendable {
     public var showShortcutBar = true
     /// Shortcut bar on the right edge (for left-handed use, so the drawing hand doesn't cover it).
     public var shortcutBarOnRight = false
+    /// Own bars per Mac app (bundle ID); the bar switches automatically with the front app.
+    public var appShortcutBars: [String: [ShortcutButton]] = [:]
+    /// Display names of apps with an own bar (for the settings list).
+    public var appNames: [String: String] = [:]
     public var shortcutBar: [ShortcutButton] = [
         ShortcutButton(title: "Undo", shortcut: Shortcut("z", .command)),
         ShortcutButton(title: "Redo", shortcut: Shortcut("z", [.command, .shift])),
         ShortcutButton(title: L("Pinsel"), shortcut: Shortcut("b")),
         ShortcutButton(title: L("Radierer"), shortcut: Shortcut("e")),
         ShortcutButton(title: L("Hand"), shortcut: Shortcut("h")),
+        ShortcutButton(title: "⇧", shortcut: Shortcut("a"), hold: .shift),
+        ShortcutButton(title: "⌥", shortcut: Shortcut("a"), hold: .option),
     ]
 
     public init() {}
@@ -150,6 +174,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         case fingerMode, fingerPressure, longPressRightClick, palmRadius
         case threeFingerSwipeLeft, threeFingerSwipeRight, threeFingerSwipeUp, threeFingerSwipeDown, fourFingerTap
         case swapISOKeys, trackpadAsMouse, hideIPadPointer, showShortcutBar, shortcutBarOnRight, shortcutBar
+        case appShortcutBars, appNames
     }
 
     /// Tolerates settings saved by older versions: missing keys keep their defaults.
@@ -176,5 +201,6 @@ public struct InputSettings: Codable, Equatable, Sendable {
         try get(.trackpadAsMouse, &trackpadAsMouse); try get(.hideIPadPointer, &hideIPadPointer)
         try get(.shortcutBarOnRight, &shortcutBarOnRight)
         try get(.showShortcutBar, &showShortcutBar); try get(.shortcutBar, &shortcutBar)
+        try get(.appShortcutBars, &appShortcutBars); try get(.appNames, &appNames)
     }
 }

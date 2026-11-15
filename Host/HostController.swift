@@ -145,6 +145,7 @@ final class HostController: ObservableObject {
             Keychain.set(hostKey, account: Self.hostKeyAccount)
         }
         wireServer()
+        observeFrontApp()
         server.peerToPeer = peerToPeer
         server.start(key: hostKey)
         Task { await refreshSources() }
@@ -157,6 +158,23 @@ final class HostController: ObservableObject {
     }
 
     var keyFingerprint: String { HostKey.fingerprint(hostKey) }
+
+    // MARK: Front app (per-app shortcut bars on the iPad)
+
+    private var frontAppObserver: NSObjectProtocol?
+
+    private func observeFrontApp() {
+        let send: (NSRunningApplication?) -> Void = { [weak self] app in
+            guard let app, let id = app.bundleIdentifier, id != Bundle.main.bundleIdentifier else { return }
+            self?.server.sendAppInfo(AppInfo(bundleID: id, name: app.localizedName ?? id))
+        }
+        send(NSWorkspace.shared.frontmostApplication)
+        frontAppObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main
+        ) { note in
+            send(note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)
+        }
+    }
 
     // MARK: Server wiring
 

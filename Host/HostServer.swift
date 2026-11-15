@@ -134,6 +134,7 @@ final class HostServer {
                 self.onSession?(nil, "")
             }
             fc.sendJSON(.hostInfo, HostInfo(hostID: hostID, hostName: hostName, sourceDescription: sourceDescription()))
+            if let frontApp { fc.sendJSON(.appInfo, frontApp) }
             onSession?(hello.deviceName, fc.connection.linkDescription)
         case .video:
             guard hello.deviceID == sessionDeviceID else { fc.cancel(); return }
@@ -183,6 +184,16 @@ final class HostServer {
             onRequestKeyframe?()
         default:
             break
+        }
+    }
+
+    /// Last front app, also sent to a newly connected iPad.
+    private var frontApp: AppInfo?
+
+    func sendAppInfo(_ info: AppInfo) {
+        queue.async { [self] in
+            frontApp = info
+            control?.sendJSON(.appInfo, info)
         }
     }
 

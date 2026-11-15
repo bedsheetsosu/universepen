@@ -223,6 +223,8 @@ final class InputInjector {
         e.setIntegerValueField(.tabletEventPointY, value: Int64(Double(s.y) * 65535))
         e.setIntegerValueField(.tabletEventPointButtons, value: buttons)
         e.setIntegerValueField(.tabletEventDeviceID, value: deviceID)
+        // Keys held on the iPad (keyboard or hold buttons, e.g. ⇧ for straight lines) apply to the pen.
+        e.flags = currentKeyFlags
         if type == .leftMouseDown || type == .leftMouseUp || type == .leftMouseDragged {
             e.setIntegerValueField(.mouseEventClickState, value: 1)
         }
@@ -263,7 +265,7 @@ final class InputInjector {
         guard dx != 0 || dy != 0 else { return }
         guard let e = CGEvent(scrollWheelEvent2Source: source, units: .pixel, wheelCount: 2,
                               wheel1: Int32(clamping: dy), wheel2: Int32(clamping: dx), wheel3: 0) else { return }
-        e.flags = Self.flags(s.modifiers)
+        e.flags = Self.flags(s.modifiers).union(currentKeyFlags)
         e.location = anchor
         e.post(tap: .cghidEventTap)
     }
