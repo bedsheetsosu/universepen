@@ -4,6 +4,7 @@ options:
     iOS: "18.0"
     macOS: "15.0"
   createIntermediateGroups: true
+  developmentLanguage: en
 packages:
   TafelKit:
     path: Packages/TafelKit
@@ -47,6 +48,8 @@ targets:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleName: UniversePen Host
+        CFBundleLocalizations: [en, de, es, ja, zh-Hans, ko, hi]
+        CFBundleAllowMixedLocalizations: true
         LSApplicationCategoryType: public.app-category.graphics-design
         NSLocalNetworkUsageDescription: UniversePen accepts connections from your paired iPad on the local network.
         NSBonjourServices: [_tafel._tcp, _tafelpair._tcp]
@@ -71,6 +74,8 @@ targets:
       path: Client/Info.plist
       properties:
         CFBundleDisplayName: UniversePen
+        CFBundleLocalizations: [en, de, es, ja, zh-Hans, ko, hi]
+        CFBundleAllowMixedLocalizations: true
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UILaunchScreen: {}

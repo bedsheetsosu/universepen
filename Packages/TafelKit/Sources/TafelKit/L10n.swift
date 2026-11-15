@@ -5,6 +5,9 @@ import Combine
 public enum AppLanguage: String, CaseIterable, Identifiable, Sendable {
     case en, de, es, ja, zh, ko, hi
 
+    /// Language code the system uses for its own UI (lproj name).
+    public var systemCode: String { self == .zh ? "zh-Hans" : rawValue }
+
     public var id: String { rawValue }
     /// Name in its own language (shown in the picker regardless of the current language).
     public var nativeName: String {
@@ -39,7 +42,16 @@ public final class L10n: ObservableObject, @unchecked Sendable {
     private static let defaultsKey = "appLanguage"
 
     @Published public var language: AppLanguage {
-        didSet { UserDefaults.standard.set(language.rawValue, forKey: Self.defaultsKey) }
+        didSet {
+            UserDefaults.standard.set(language.rawValue, forKey: Self.defaultsKey)
+            Self.applySystemLanguage(language)
+        }
+    }
+
+    /// System-drawn UI (share sheet, file picker, Delete/Cancel/Done, context menus) follows the
+    /// app's language list, not our tables. Setting it per app takes effect at the next launch.
+    private static func applySystemLanguage(_ l: AppLanguage) {
+        UserDefaults.standard.set([l.systemCode], forKey: "AppleLanguages")
     }
 
     /// Whether the user has picked a language yet (first-run setup starts with that).
@@ -47,6 +59,7 @@ public final class L10n: ObservableObject, @unchecked Sendable {
 
     private init() {
         language = AppLanguage(rawValue: UserDefaults.standard.string(forKey: Self.defaultsKey) ?? "") ?? .en
+        if hasChosen { Self.applySystemLanguage(language) }
     }
 
     /// A key in all languages (e.g. to recognise a window title whatever language it was opened in).
