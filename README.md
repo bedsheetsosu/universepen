@@ -229,4 +229,6 @@ Bitte der Reihe nach, Ergebnis jeweils notieren:
 
 ## Lizenz
 
-Noch nicht festgelegt – vor einer Veröffentlichung eine Open-Source-Lizenz wählen (z. B. MIT oder GPLv3) und als `LICENSE` ablegen.
+Copyright © 2026 Biene
+
+Tafel ist freie Software unter der **GNU General Public License v3.0** (siehe [`LICENSE`](LICENSE)): Du darfst den Code nutzen, verändern und weitergeben. Wer eine veränderte Version weitergibt, muss deren Quellcode ebenfalls unter der GPL-3.0 offenlegen. Es gibt keine Gewährleistung.
