@@ -40,6 +40,18 @@ struct SettingsView: View {
                         model.onboardingDone = false
                     }
                 }
+                Section {
+                    Button {
+                        dismiss()
+                        model.demoMode = true
+                    } label: {
+                        Label(L("Demo-Modus starten"), systemImage: "sparkles")
+                    }
+                } header: {
+                    Text(L("Demo"))
+                } footer: {
+                    Text(L("Läuft nur auf dem iPad, ohne Mac: Zeichnen mit Druck und Neigung, Zeiger, Klicks und der Tablett-Modus mit Zielübung – zum Zeigen und Ausprobieren. Die Verbindung zum Mac bleibt dabei bestehen."))
+                }
             }
             .themedForm()
             .navigationTitle(L("Einstellungen"))

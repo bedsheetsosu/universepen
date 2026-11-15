@@ -79,6 +79,8 @@ final class ClientModel: ObservableObject {
     @Published var onboardingDone = UserDefaults.standard.bool(forKey: "onboardingDone") {
         didSet { UserDefaults.standard.set(onboardingDone, forKey: "onboardingDone") }
     }
+    /// Demo mode: everything runs on the iPad, no Mac (for showing UniversePen).
+    @Published var demoMode = false
     /// On-screen keyboard shown (hardware keyboards work without it).
     @Published var showKeyboard = false
 

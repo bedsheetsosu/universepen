@@ -34,7 +34,11 @@ struct RootView: View {
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-            if !model.onboardingDone {
+            if model.demoMode {
+                DemoView()
+                    .transition(.opacity.combined(with: .scale(scale: 0.98)))
+                    .zIndex(20)
+            } else if !model.onboardingDone {
                 OnboardingView()
                     .transition(.opacity.combined(with: .scale(scale: 0.98)))
             } else if model.phase.showsCanvas {
@@ -66,6 +70,7 @@ struct RootView: View {
         .animation(Brand.spring, value: model.radialCenter != nil)
         .sensoryFeedback(.pathComplete, trigger: model.radialCenter == nil) { old, new in !old && new }
         .animation(.easeInOut(duration: 0.45), value: model.onboardingDone)
+        .animation(Brand.spring, value: model.demoMode)
         .id(l10n.language)   // re-render every text when the language changes
         .sheet(isPresented: $showSettings) {
             SettingsView().environmentObject(model)
@@ -473,6 +478,12 @@ struct ConnectView: View {
                     status
                     pairedSection
                     pairSection
+                    Button {
+                        withAnimation(Brand.spring) { model.demoMode = true }
+                    } label: {
+                        Label(L("Ohne Mac ausprobieren (Demo)"), systemImage: "sparkles")
+                    }
+                    .buttonStyle(.bordered)
                     Text(L("Nur Geräte mit dem einmaligen Code vom Mac werden gekoppelt. Verbindungen laufen verschlüsselt und direkt – per Kabel oder im lokalen Netz, ohne Server, Konto oder Cloud."))
                         .font(.footnote).foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
