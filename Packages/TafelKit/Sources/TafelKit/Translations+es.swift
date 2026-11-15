@@ -312,7 +312,7 @@ extension Translations {
         "Verbunden: %@": "Conectado: %@",
         "Warte auf das iPad …": "Esperando al iPad …",
         "iPad-Akku: %d %%": "Batería del iPad: %d %%",
-        "Volle Mac-Auflösung senden (Experiment)": "Enviar resolución completa del Mac (experimento)",
+        "Volle Mac-Auflösung senden": "Enviar resolución completa del Mac",
         "„Volle Mac-Auflösung“: Der Mac schickt alle Pixel unverkleinert (z. B. beim zweiten Bildschirm mit mehr Platz), das iPad verkleinert beim Anzeigen. Kann schärfer sein, braucht aber mehr Bitrate.": "«Resolución completa del Mac»: el Mac envía todos los píxeles sin reducir (p. ej. una segunda pantalla con más espacio) y el iPad los reduce al mostrarlos. Puede ser más nítido, pero necesita más tasa de bits.",
     ]
 }

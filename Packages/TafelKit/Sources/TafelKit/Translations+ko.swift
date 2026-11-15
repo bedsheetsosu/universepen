@@ -312,7 +312,7 @@ extension Translations {
         "Verbunden: %@": "연결됨: %@",
         "Warte auf das iPad …": "iPad를 기다리는 중 …",
         "iPad-Akku: %d %%": "iPad 배터리: %d %%",
-        "Volle Mac-Auflösung senden (Experiment)": "Mac 전체 해상도로 전송(실험)",
+        "Volle Mac-Auflösung senden": "Mac 전체 해상도로 전송",
         "„Volle Mac-Auflösung“: Der Mac schickt alle Pixel unverkleinert (z. B. beim zweiten Bildschirm mit mehr Platz), das iPad verkleinert beim Anzeigen. Kann schärfer sein, braucht aber mehr Bitrate.": "'Mac 전체 해상도': Mac이 모든 픽셀을 축소하지 않고 보내며(예: 공간을 넓힌 두 번째 화면) iPad가 표시할 때 축소합니다. 더 선명할 수 있지만 더 높은 비트레이트가 필요합니다.",
     ]
 }

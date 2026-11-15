@@ -186,6 +186,7 @@ UniversePen does not change profiles, restrictions or MDM settings and does not 
 
 - **Radial menu:** set squeeze (or double-tap) to "Radial menu". A ring with 2–8 actions appears at the Pencil tip (where it hovers). Hover over an item and squeeze again, or tap it; tap the centre or outside to close. Highlight and pick give a haptic tick on the Pencil Pro. Items: iPad → Settings → Radial menu. While the ring is open, nothing is sent to the Mac.
 - **Per-app Pencil profiles:** pressure curve, smoothing, double-tap and squeeze can have their own values per Mac app (iPad → Settings → Pencil → "Settings for"). They switch automatically with the app in front on the Mac, like the per-app shortcut bars.
+- **Full Mac resolution (on by default):** with a "more space" second screen or a region, the Mac sends all captured pixels unscaled and the iPad scales them down when showing them – noticeably sharper than scaling on the Mac (confirmed 2026-11-15). Costs more bitrate; iPad → Settings → Image to switch off. The second screen offers five sharp HiDPI steps (1180×820 to 1888×1312 points); the default step is 1:1 with the iPad's pixels and the sharpest.
 - **Menu bar (Mac):** connected iPad, path (USB/Wi-Fi), fps and bitrate, iPad battery, source switch, pairing, quit.
 
 ## Fingers & multi-touch (like on a pen display)

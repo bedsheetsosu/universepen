@@ -355,7 +355,7 @@ enum Translations {
         "Verbunden: %@": "Connected: %@",
         "Warte auf das iPad …": "Waiting for the iPad …",
         "iPad-Akku: %d %%": "iPad battery: %d %%",
-        "Volle Mac-Auflösung senden (Experiment)": "Send full Mac resolution (experiment)",
+        "Volle Mac-Auflösung senden": "Send full Mac resolution",
         "„Volle Mac-Auflösung“: Der Mac schickt alle Pixel unverkleinert (z. B. beim zweiten Bildschirm mit mehr Platz), das iPad verkleinert beim Anzeigen. Kann schärfer sein, braucht aber mehr Bitrate.": "“Full Mac resolution”: the Mac sends all pixels unscaled (e.g. a second screen with more space) and the iPad scales them down when showing them. Can be sharper, but needs more bitrate.",
     ]
 }
