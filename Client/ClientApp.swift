@@ -19,6 +19,7 @@ struct TafelApp: App {
 
 struct RootView: View {
     @EnvironmentObject var model: ClientModel
+    @ObservedObject private var l10n = L10n.shared
     @State private var showSettings = false
     @State private var showStatus = false
 
@@ -46,6 +47,7 @@ struct RootView: View {
         }
         .animation(.easeInOut(duration: 0.35), value: model.phase.showsCanvas)
         .animation(.easeInOut(duration: 0.45), value: model.onboardingDone)
+        .id(l10n.language)   // re-render every text when the language changes
         .sheet(isPresented: $showSettings) {
             SettingsView().environmentObject(model)
         }
@@ -73,23 +75,23 @@ struct RootView: View {
                         Button {
                             showStatus.toggle()
                         } label: {
-                            Label(showStatus ? "Status ausblenden" : "Status anzeigen", systemImage: "gauge.with.dots.needle.33percent")
+                            Label(showStatus ? L("Status ausblenden") : L("Status anzeigen"), systemImage: "gauge.with.dots.needle.33percent")
                         }
                         Button {
                             model.showKeyboard.toggle()
                         } label: {
-                            Label(model.showKeyboard ? "Bildschirmtastatur ausblenden" : "Bildschirmtastatur", systemImage: "keyboard")
+                            Label(model.showKeyboard ? L("Bildschirmtastatur ausblenden") : L("Bildschirmtastatur"), systemImage: "keyboard")
                         }
                         Button {
                             showSettings = true
                         } label: {
-                            Label("Einstellungen …", systemImage: "gearshape")
+                            Label(L("Einstellungen …"), systemImage: "gearshape")
                         }
                         Divider()
                         Button(role: .destructive) {
                             model.disconnect()
                         } label: {
-                            Label("Trennen", systemImage: "xmark.circle")
+                            Label(L("Trennen"), systemImage: "xmark.circle")
                         }
                     } label: {
                         Image(systemName: "ellipsis")
@@ -116,7 +118,7 @@ private struct ReconnectBanner: View {
     var body: some View {
         HStack(spacing: 10) {
             ProgressView().tint(Brand.mint)
-            Text("Verbindung unterbrochen – verbinde neu …")
+            Text(L("Verbindung unterbrochen – verbinde neu …"))
                 .font(.callout.weight(.medium))
         }
         .padding(.horizontal, 16).padding(.vertical, 10)
@@ -136,11 +138,11 @@ struct StatusPill: View {
                     .foregroundStyle(usb ? Brand.mint : .orange)
                     .contentTransition(.symbolEffect(.replace))
                 metric(t.rttMs, "ms RTT")
-                if let age = t.frameAgeMs { metric(age, "ms Bild") }
+                if let age = t.frameAgeMs { metric(age, L("ms Bild")) }
                 metric(t.fps, "fps")
             } else {
                 ProgressView().controlSize(.mini)
-                Text("misst …")
+                Text(L("misst …"))
             }
         }
         .font(.caption.monospacedDigit())
@@ -213,7 +215,7 @@ struct ConnectView: View {
                     status
                     pairedSection
                     pairSection
-                    Text("Nur Geräte mit dem einmaligen Code vom Mac werden gekoppelt. Verbindungen laufen verschlüsselt und direkt – per Kabel oder im lokalen Netz, ohne Server, Konto oder Cloud.")
+                    Text(L("Nur Geräte mit dem einmaligen Code vom Mac werden gekoppelt. Verbindungen laufen verschlüsselt und direkt – per Kabel oder im lokalen Netz, ohne Server, Konto oder Cloud."))
                         .font(.footnote).foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                         .frame(maxWidth: 520)
@@ -246,7 +248,7 @@ struct ConnectView: View {
             .opacity(appeared ? 1 : 0)
             Text("Tafel")
                 .font(.system(size: 44, weight: .bold, design: .rounded))
-            Text("Dein iPad als Zeichendisplay für den Mac")
+            Text(L("Dein iPad als Zeichendisplay für den Mac"))
                 .font(.title3).foregroundStyle(.secondary)
         }
         .offset(y: appeared ? 0 : 16)
@@ -255,7 +257,7 @@ struct ConnectView: View {
     @ViewBuilder private var status: some View {
         switch model.phase {
         case .connecting(let name):
-            StatusCard(symbol: nil, tint: Brand.mint, text: "Verbinde mit \(name) …")
+            StatusCard(symbol: nil, tint: Brand.mint, text: L("Verbinde mit %@ …", name))
                 .transition(.scale(scale: 0.95).combined(with: .opacity))
         case .failed(let msg):
             VStack(spacing: 12) {
@@ -265,7 +267,7 @@ struct ConnectView: View {
                 Button {
                     model.retry()
                 } label: {
-                    Label("Erneut versuchen", systemImage: "arrow.clockwise")
+                    Label(L("Erneut versuchen"), systemImage: "arrow.clockwise")
                 }
                 .buttonStyle(.borderedProminent).tint(Brand.mint.opacity(0.85))
             }
@@ -273,7 +275,7 @@ struct ConnectView: View {
             .transition(.scale(scale: 0.95).combined(with: .opacity))
         default:
             if searching && !model.paired.isEmpty {
-                StatusCard(symbol: "magnifyingglass", tint: .secondary, text: "Suche deinen Mac … Tafel Host muss laufen.")
+                StatusCard(symbol: "magnifyingglass", tint: .secondary, text: L("Suche deinen Mac … Tafel Host muss laufen."))
                     .transition(.opacity)
             }
         }
@@ -282,7 +284,7 @@ struct ConnectView: View {
     private var pairedSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             if !model.paired.isEmpty {
-                Text("Deine Macs").font(.headline).foregroundStyle(Brand.mintBright)
+                Text(L("Deine Macs")).font(.headline).foregroundStyle(Brand.mintBright)
             }
             ForEach(model.paired) { p in
                 let host = model.discovered.first { $0.hostID == p.id }
@@ -290,7 +292,7 @@ struct ConnectView: View {
                     if let host { model.connect(host) }
                 }
                 .contextMenu {
-                    Button(role: .destructive) { model.forget(p) } label: { Label("Kopplung entfernen", systemImage: "trash") }
+                    Button(role: .destructive) { model.forget(p) } label: { Label(L("Kopplung entfernen"), systemImage: "trash") }
                 }
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
@@ -299,12 +301,12 @@ struct ConnectView: View {
 
     private var pairSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Neu koppeln").font(.headline).foregroundStyle(Brand.mintBright)
+            Text(L("Neu koppeln")).font(.headline).foregroundStyle(Brand.mintBright)
             if model.pairable.isEmpty {
                 HStack(spacing: 12) {
                     Image(systemName: "laptopcomputer.and.arrow.down")
                         .font(.title2).foregroundStyle(.secondary)
-                    Text("Am Mac in Tafel Host „iPad koppeln …“ wählen – der Mac erscheint dann hier.")
+                    Text(L("Am Mac in Tafel Host „iPad koppeln …“ wählen – der Mac erscheint dann hier."))
                         .foregroundStyle(.secondary)
                 }
                 .tafelCard()
@@ -319,7 +321,7 @@ struct ConnectView: View {
                             .symbolEffect(.pulse, options: .repeating)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(h.name).font(.headline)
-                            Text("bereit zum Koppeln").font(.caption).foregroundStyle(.secondary)
+                            Text(L("bereit zum Koppeln")).font(.caption).foregroundStyle(.secondary)
                         }
                         Spacer()
                         Image(systemName: "chevron.right").foregroundStyle(.tertiary)
@@ -372,14 +374,14 @@ private struct HostCard: View {
                     Text(name).font(.headline)
                     HStack(spacing: 6) {
                         Circle().fill(reachable ? Brand.mint : .gray).frame(width: 7, height: 7)
-                        Text(reachable ? (cable ? "erreichbar · per Kabel" : "erreichbar · WLAN") : "nicht gefunden")
+                        Text(reachable ? (cable ? L("erreichbar · per Kabel") : L("erreichbar · WLAN")) : L("nicht gefunden"))
                             .font(.caption).foregroundStyle(.secondary)
                             .contentTransition(.opacity)
                     }
                 }
                 Spacer()
                 if reachable {
-                    Text("Verbinden")
+                    Text(L("Verbinden"))
                         .font(.callout.weight(.semibold))
                         .foregroundStyle(Brand.slateDeep)
                         .padding(.horizontal, 16).padding(.vertical, 9)
@@ -413,8 +415,8 @@ private struct PairingSheet: View {
                 .foregroundStyle(Brand.mint)
                 .symbolEffect(.bounce, value: model.pairingBusy)
             VStack(spacing: 6) {
-                Text("Mit \(host.name) koppeln").font(.title2.weight(.semibold))
-                Text("Gib den 12-stelligen Code ein, den Tafel Host auf dem Mac zeigt.")
+                Text(L("Mit %@ koppeln", host.name)).font(.title2.weight(.semibold))
+                Text(L("Gib den 12-stelligen Code ein, den Tafel Host auf dem Mac zeigt."))
                     .foregroundStyle(.secondary).multilineTextAlignment(.center)
             }
             TextField("XXXX-XXXX-XXXX", text: $code)
@@ -435,12 +437,12 @@ private struct PairingSheet: View {
                     .transition(.opacity)
             }
             HStack(spacing: 12) {
-                Button("Abbrechen") { dismiss() }
+                Button(L("Abbrechen")) { dismiss() }
                     .buttonStyle(.bordered)
                 Button(action: submit) {
                     HStack(spacing: 8) {
                         if model.pairingBusy { ProgressView().tint(Brand.slateDeep) }
-                        Text("Koppeln").fontWeight(.semibold)
+                        Text(L("Koppeln")).fontWeight(.semibold)
                     }
                     .frame(minWidth: 120)
                 }

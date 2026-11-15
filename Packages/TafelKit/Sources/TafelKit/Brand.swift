@@ -97,3 +97,34 @@ public struct TafelMark: View {
         .aspectRatio(1, contentMode: .fit)
     }
 }
+
+/// Language tiles (flag + name in its own language). Switching is instant.
+public struct LanguageChoice: View {
+    @ObservedObject private var l10n = L10n.shared
+    public init() {}
+
+    public var body: some View {
+        HStack(spacing: 12) {
+            ForEach(AppLanguage.allCases) { lang in
+                let on = l10n.language == lang
+                Button {
+                    withAnimation(Brand.spring) { l10n.language = lang }
+                } label: {
+                    VStack(spacing: 8) {
+                        Text(lang.flag).font(.system(size: 40))
+                        Text(lang.nativeName).font(.headline)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 18)
+                    .foregroundStyle(on ? Brand.slateDeep : .primary)
+                    .background(on ? AnyShapeStyle(Brand.mint) : AnyShapeStyle(Color.white.opacity(0.06)),
+                                in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .strokeBorder(.white.opacity(on ? 0 : 0.08)))
+                    .scaleEffect(on ? 1.03 : 1)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+}

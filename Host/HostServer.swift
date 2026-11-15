@@ -59,9 +59,9 @@ final class HostServer {
                 }
                 l.stateUpdateHandler = { [weak self] state in
                     switch state {
-                    case .ready: self?.onStatus?("Bereit (Port \(l.port?.rawValue ?? 0))")
-                    case .failed(let e): self?.onStatus?("Listener-Fehler: \(e.localizedDescription)")
-                    case .waiting(let e): self?.onStatus?("Wartet: \(e.localizedDescription)")
+                    case .ready: self?.onStatus?(L("Bereit (Port %d)", Int(l.port?.rawValue ?? 0)))
+                    case .failed(let e): self?.onStatus?(L("Listener-Fehler: %@", e.localizedDescription))
+                    case .waiting(let e): self?.onStatus?(L("Wartet: %@", e.localizedDescription))
                     default: break
                     }
                 }
@@ -69,7 +69,7 @@ final class HostServer {
                 l.start(queue: queue)
                 listener = l
             } catch {
-                onStatus?("Listener konnte nicht starten: \(error.localizedDescription)")
+                onStatus?(L("Listener konnte nicht starten: %@", error.localizedDescription))
             }
         }
     }
@@ -107,7 +107,7 @@ final class HostServer {
 
     private func promote(_ fc: FramedConnection, hello: Hello) {
         guard hello.protocolVersion == tafelProtocolVersion else {
-            fc.sendJSON(.error, ErrorMessage(message: "Protokollversion \(hello.protocolVersion) wird nicht unterstützt (Mac: \(tafelProtocolVersion)). Bitte beide Apps aktualisieren."))
+            fc.sendJSON(.error, ErrorMessage(message: L("Protokollversion %d wird nicht unterstützt (Mac: %d). Bitte beide Apps aktualisieren.", Int(hello.protocolVersion), Int(tafelProtocolVersion))))
             queue.asyncAfter(deadline: .now() + 0.5) { fc.cancel() }
             return
         }
@@ -231,7 +231,7 @@ final class HostServer {
                 l.start(queue: queue)
                 pairingListener = l
             } catch {
-                onStatus?("Kopplung konnte nicht starten: \(error.localizedDescription)")
+                onStatus?(L("Kopplung konnte nicht starten: %@", error.localizedDescription))
             }
         }
     }

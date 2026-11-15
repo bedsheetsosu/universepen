@@ -8,7 +8,7 @@ struct OnboardingView: View {
     @State private var step = 0
     @State private var forward = true
 
-    private let steps = 6
+    private let steps = 7
 
     var body: some View {
         ZStack {
@@ -31,11 +31,12 @@ struct OnboardingView: View {
 
     @ViewBuilder private func page(_ i: Int) -> some View {
         switch i {
-        case 0: welcome
-        case 1: connection
-        case 2: pencil
-        case 3: fingers
-        case 4: picture
+        case 0: language
+        case 1: welcome
+        case 2: connection
+        case 3: pencil
+        case 4: fingers
+        case 5: picture
         default: hand
         }
     }
@@ -44,7 +45,7 @@ struct OnboardingView: View {
 
     private var footer: some View {
         HStack {
-            Button("Zurück") { go(-1) }
+            Button(L("Zurück")) { go(-1) }
                 .opacity(step == 0 ? 0 : 1)
                 .disabled(step == 0)
             Spacer()
@@ -59,7 +60,7 @@ struct OnboardingView: View {
             Button {
                 if step == steps - 1 { model.onboardingDone = true } else { go(1) }
             } label: {
-                Text(step == steps - 1 ? "Los geht’s" : "Weiter")
+                Text(step == steps - 1 ? L("Los geht’s") : L("Weiter"))
                     .fontWeight(.semibold)
                     .foregroundStyle(Brand.slateDeep)
                     .padding(.horizontal, 22).padding(.vertical, 11)
@@ -79,6 +80,21 @@ struct OnboardingView: View {
 
     // MARK: Pages
 
+    private var language: some View {
+        VStack(spacing: 24) {
+            Spacer()
+            Image(systemName: "globe")
+                .font(.system(size: 48, weight: .semibold))
+                .foregroundStyle(Brand.mint)
+            Text("Language · Sprache")
+                .font(.system(size: 36, weight: .bold, design: .rounded))
+            Text("Choose your language. · Wähle deine Sprache.")
+                .font(.title3).foregroundStyle(.secondary)
+            LanguageChoice().frame(maxWidth: 420)
+            Spacer()
+        }
+    }
+
     private var welcome: some View {
         VStack(spacing: 22) {
             Spacer()
@@ -87,94 +103,94 @@ struct OnboardingView: View {
                 TafelMark().frame(width: 120, height: 120)
                     .shadow(color: Brand.mint.opacity(0.4), radius: 30)
             }
-            Text("Willkommen bei Tafel")
+            Text(L("Willkommen bei Tafel"))
                 .font(.system(size: 40, weight: .bold, design: .rounded))
-            Text("Dein iPad wird zum Zeichendisplay für den Mac – mit Pencil-Druck und Neigung, Fingern, Tastatur und Trackpad. Ohne Konto, ohne Cloud, kostenlos.")
+            Text(L("Dein iPad wird zum Zeichendisplay für den Mac – mit Pencil-Druck und Neigung, Fingern, Tastatur und Trackpad. Ohne Konto, ohne Cloud, kostenlos."))
                 .font(.title3).foregroundStyle(.secondary).multilineTextAlignment(.center)
-            Text("Ein paar Fragen, dann passt alles. Du kannst später alles in den Einstellungen ändern.")
+            Text(L("Ein paar Fragen, dann passt alles. Du kannst später alles in den Einstellungen ändern."))
                 .font(.callout).foregroundStyle(.tertiary).multilineTextAlignment(.center)
             Spacer()
         }
     }
 
     private var connection: some View {
-        PageScaffold(symbol: "cable.connector", title: "So verbindet sich Tafel",
-                     subtitle: "Auf dem Mac läuft die App „Tafel Host“. Beim ersten Mal koppelst du beide mit einem Code.") {
-            InfoRow(symbol: "cable.connector", title: "USB-Kabel (empfohlen)",
-                    text: "Geringste Latenz. Tafel nimmt automatisch das Kabel, sobald es steckt.")
-            InfoRow(symbol: "wifi", title: "WLAN",
-                    text: "Funktioniert auch ohne Kabel, wenn Mac und iPad im selben WLAN sind.")
-            InfoRow(symbol: "lock.shield", title: "Verschlüsselt und privat",
-                    text: "Nur gekoppelte Geräte, direkt zwischen Mac und iPad – keine Server.")
-            InfoRow(symbol: "network", title: "Lokales Netzwerk",
-                    text: "iPadOS fragt gleich, ob Tafel Geräte im lokalen Netzwerk finden darf. Bitte erlauben – sonst findet das iPad den Mac nicht.")
+        PageScaffold(symbol: "cable.connector", title: L("So verbindet sich Tafel"),
+                     subtitle: L("Auf dem Mac läuft die App „Tafel Host“. Beim ersten Mal koppelst du beide mit einem Code.")) {
+            InfoRow(symbol: "cable.connector", title: L("USB-Kabel (empfohlen)"),
+                    text: L("Geringste Latenz. Tafel nimmt automatisch das Kabel, sobald es steckt."))
+            InfoRow(symbol: "wifi", title: L("WLAN"),
+                    text: L("Funktioniert auch ohne Kabel, wenn Mac und iPad im selben WLAN sind."))
+            InfoRow(symbol: "lock.shield", title: L("Verschlüsselt und privat"),
+                    text: L("Nur gekoppelte Geräte, direkt zwischen Mac und iPad – keine Server."))
+            InfoRow(symbol: "network", title: L("Lokales Netzwerk"),
+                    text: L("iPadOS fragt gleich, ob Tafel Geräte im lokalen Netzwerk finden darf. Bitte erlauben – sonst findet das iPad den Mac nicht."))
         }
     }
 
     private var pencil: some View {
-        PageScaffold(symbol: "applepencil.tip", title: "Dein Pencil",
-                     subtitle: "Wie soll sich der Druck anfühlen, und was machen die Pencil-Gesten?") {
-            ChoiceRow(title: "Druckgefühl", options: [
-                ("Weich", "feather", 0.6), ("Normal", "pencil", 1.0), ("Fest", "pencil.tip", 1.6),
+        PageScaffold(symbol: "applepencil.tip", title: L("Dein Pencil"),
+                     subtitle: L("Wie soll sich der Druck anfühlen, und was machen die Pencil-Gesten?")) {
+            ChoiceRow(title: L("Druckgefühl"), options: [
+                (L("Weich"), "feather", 0.6), (L("Normal"), "pencil", 1.0), (L("Fest"), "pencil.tip", 1.6),
             ], selected: closest(model.settings.pressure.gamma, in: [0.6, 1.0, 1.6])) { model.settings.pressure.gamma = $0 }
-            ActionChoice(title: "Doppeltippen", action: $model.settings.doubleTap)
-            ActionChoice(title: "Squeeze (Pencil Pro)", action: $model.settings.squeeze)
-            Toggle("Schweben anzeigen (Hover)", isOn: $model.settings.sendHover).tint(Brand.mint)
+            ActionChoice(title: L("Doppeltippen"), action: $model.settings.doubleTap)
+            ActionChoice(title: L("Squeeze (Pencil Pro)"), action: $model.settings.squeeze)
+            Toggle(L("Schweben anzeigen (Hover)"), isOn: $model.settings.sendHover).tint(Brand.mint)
                 .tafelCard(padding: 14)
         }
     }
 
     private var fingers: some View {
-        PageScaffold(symbol: "hand.point.up.left", title: "Und deine Finger?",
-                     subtitle: "Wie bei einem Stift-Display. Liegt der Pencil in der Nähe, ignoriert Tafel die Hand.") {
-            ChoiceRow(title: "Ein Finger", options: [
-                ("Maus", "cursorarrow.click", FingerMode.mouse),
-                ("Stift", "scribble", FingerMode.pen),
-                ("Aus", "hand.raised.slash", FingerMode.off),
+        PageScaffold(symbol: "hand.point.up.left", title: L("Und deine Finger?"),
+                     subtitle: L("Wie bei einem Stift-Display. Liegt der Pencil in der Nähe, ignoriert Tafel die Hand.")) {
+            ChoiceRow(title: L("Ein Finger"), options: [
+                (L("Maus"), "cursorarrow.click", FingerMode.mouse),
+                (L("Stift"), "scribble", FingerMode.pen),
+                (L("Aus"), "hand.raised.slash", FingerMode.off),
             ], selected: model.settings.fingerMode) { model.settings.fingerMode = $0 }
             Text(fingerHelp).font(.callout).foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .contentTransition(.opacity)
-            InfoRow(symbol: "hand.draw", title: "Zwei Finger",
-                    text: "Verschieben = Scrollen, Pinch = Zoomen, Tippen = Widerrufen.")
-            InfoRow(symbol: "hand.wave", title: "Drei Finger",
-                    text: "Nach links wischen = Widerrufen, nach rechts = Wiederholen.")
+            InfoRow(symbol: "hand.draw", title: L("Zwei Finger"),
+                    text: L("Verschieben = Scrollen, Pinch = Zoomen, Tippen = Widerrufen."))
+            InfoRow(symbol: "hand.wave", title: L("Drei Finger"),
+                    text: L("Nach links wischen = Widerrufen, nach rechts = Wiederholen."))
         }
     }
 
     private var fingerHelp: String {
         switch model.settings.fingerMode {
-        case .mouse: return "Tippen = Klick, Ziehen = Klicken und Ziehen, Halten = Rechtsklick."
-        case .pen: return "Ein Finger zeichnet wie der Pencil, mit festem Druck. Halten = Rechtsklick."
-        case .off: return "Ein Finger macht nichts – nur Gesten mit mehreren Fingern."
+        case .mouse: return L("Tippen = Klick, Ziehen = Klicken und Ziehen, Halten = Rechtsklick.")
+        case .pen: return L("Ein Finger zeichnet wie der Pencil, mit festem Druck. Halten = Rechtsklick.")
+        case .off: return L("Ein Finger macht nichts – nur Gesten mit mehreren Fingern.")
         }
     }
 
     private var picture: some View {
-        PageScaffold(symbol: "sparkles.tv", title: "Bild und Ton",
-                     subtitle: "Mit Kabel ist „Beste Qualität“ meist kein Problem. Im WLAN hilft „Flüssig“ gegen Ruckler.") {
-            ChoiceRow(title: "Qualität", options: QualityPreset.allCases.map { ($0.title, $0.symbol, $0) },
+        PageScaffold(symbol: "sparkles.tv", title: L("Bild und Ton"),
+                     subtitle: L("Mit Kabel ist „Beste Qualität“ meist kein Problem. Im WLAN hilft „Flüssig“ gegen Ruckler.")) {
+            ChoiceRow(title: L("Qualität"), options: QualityPreset.allCases.map { ($0.title, $0.symbol, $0) },
                       selected: QualityPreset(matching: model.quality)) { model.quality = $0.apply(to: model.quality) }
-            Text(QualityPreset(matching: model.quality)?.detail ?? "Eigene Einstellung")
+            Text(QualityPreset(matching: model.quality)?.detail ?? L("Eigene Einstellung"))
                 .font(.callout).foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            Toggle("Ton vom Mac auf dem iPad", isOn: $model.quality.audio).tint(Brand.mint)
+            Toggle(L("Ton vom Mac auf dem iPad"), isOn: $model.quality.audio).tint(Brand.mint)
                 .tafelCard(padding: 14)
-            Toggle("Latenz immer anzeigen", isOn: $model.showStatusOverlay).tint(Brand.mint)
+            Toggle(L("Latenz immer anzeigen"), isOn: $model.showStatusOverlay).tint(Brand.mint)
                 .tafelCard(padding: 14)
         }
     }
 
     private var hand: some View {
-        PageScaffold(symbol: "hand.raised", title: "Mit welcher Hand zeichnest du?",
-                     subtitle: "Die Shortcut-Leiste kommt auf die andere Seite, damit die Hand sie nicht verdeckt.") {
-            ChoiceRow(title: "Zeichenhand", options: [
-                ("Rechts", "hand.point.right", false), ("Links", "hand.point.left", true),
+        PageScaffold(symbol: "hand.raised", title: L("Mit welcher Hand zeichnest du?"),
+                     subtitle: L("Die Shortcut-Leiste kommt auf die andere Seite, damit die Hand sie nicht verdeckt.")) {
+            ChoiceRow(title: L("Zeichenhand"), options: [
+                (L("Rechts"), "hand.point.right", false), (L("Links"), "hand.point.left", true),
             ], selected: model.settings.shortcutBarOnRight) { model.settings.shortcutBarOnRight = $0 }
-            Toggle("Shortcut-Leiste anzeigen", isOn: $model.settings.showShortcutBar).tint(Brand.mint)
+            Toggle(L("Shortcut-Leiste anzeigen"), isOn: $model.settings.showShortcutBar).tint(Brand.mint)
                 .tafelCard(padding: 14)
-            InfoRow(symbol: "keyboard", title: "Tastatur und Trackpad",
-                    text: "Eine angeschlossene Tastatur tippt direkt auf dem Mac, das Trackpad steuert den Mac-Zeiger.")
+            InfoRow(symbol: "keyboard", title: L("Tastatur und Trackpad"),
+                    text: L("Eine angeschlossene Tastatur tippt direkt auf dem Mac, das Trackpad steuert den Mac-Zeiger."))
         }
     }
 
@@ -190,9 +206,9 @@ enum QualityPreset: CaseIterable, Hashable {
 
     var title: String {
         switch self {
-        case .best: return "Beste"
-        case .balanced: return "Ausgewogen"
-        case .smooth: return "Flüssig"
+        case .best: return L("Beste")
+        case .balanced: return L("Ausgewogen")
+        case .smooth: return L("Flüssig")
         }
     }
     var symbol: String {
@@ -204,9 +220,9 @@ enum QualityPreset: CaseIterable, Hashable {
     }
     var detail: String {
         switch self {
-        case .best: return "HEVC, 50 Mbit/s, 60 fps, volle iPad-Auflösung – ideal mit Kabel."
-        case .balanced: return "H.264, 30 Mbit/s, 60 fps, volle Auflösung."
-        case .smooth: return "H.264, 15 Mbit/s, 60 fps, 75 % Auflösung – für schwaches WLAN."
+        case .best: return L("HEVC, 50 Mbit/s, 60 fps, volle iPad-Auflösung – ideal mit Kabel.")
+        case .balanced: return L("H.264, 30 Mbit/s, 60 fps, volle Auflösung.")
+        case .smooth: return L("H.264, 15 Mbit/s, 60 fps, 75 % Auflösung – für schwaches WLAN.")
         }
     }
     private var values: (VideoCodec, Double, Int, Double) {
@@ -320,7 +336,7 @@ private struct ActionChoice: View {
     @Binding var action: PencilAction
 
     private let options: [(String, PencilAction)] = [
-        ("Radierer", .eraser), ("Widerrufen", .undo), ("Pinsel", .brush), ("Hand", .hand), ("Nichts", .none),
+        (L("Radierer"), .eraser), (L("Widerrufen"), .undo), (L("Pinsel"), .brush), (L("Hand"), .hand), (L("Nichts"), .none),
     ]
 
     var body: some View {

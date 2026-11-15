@@ -9,10 +9,10 @@ enum CaptureMode: String, CaseIterable, Identifiable {
     var id: String { rawValue }
     var title: String {
         switch self {
-        case .region: return "iPad-Ausschnitt"
-        case .display: return "Ganzer Bildschirm"
-        case .virtual: return "Zweiter Bildschirm"
-        case .window: return "Fenster"
+        case .region: return L("iPad-Ausschnitt")
+        case .display: return L("Ganzer Bildschirm")
+        case .virtual: return L("Zweiter Bildschirm")
+        case .window: return L("Fenster")
         }
     }
     var symbol: String {
@@ -25,10 +25,10 @@ enum CaptureMode: String, CaseIterable, Identifiable {
     }
     var help: String {
         switch self {
-        case .region: return "Ausschnitt im iPad-Seitenverhältnis, füllt das iPad ohne schwarze Ränder."
-        case .virtual: return "Das iPad wird ein zusätzlicher Mac-Bildschirm (wie Sidecar), randlos in iPad-Auflösung. Anordnen unter Systemeinstellungen → Displays. Experimentell: nutzt eine nicht dokumentierte macOS-Schnittstelle (CGVirtualDisplay) und kann mit macOS-Updates aufhören zu funktionieren."
-        case .display: return "Ganzer Bildschirm; bei abweichendem Seitenverhältnis gibt es Ränder auf dem iPad."
-        case .window: return "Ein einzelnes Fenster (z. B. Affinity). Position wird alle 0,5 s nachgeführt."
+        case .region: return L("Ausschnitt im iPad-Seitenverhältnis, füllt das iPad ohne schwarze Ränder.")
+        case .virtual: return L("Das iPad wird ein zusätzlicher Mac-Bildschirm (wie Sidecar), randlos in iPad-Auflösung. Anordnen unter Systemeinstellungen → Displays. Experimentell: nutzt eine nicht dokumentierte macOS-Schnittstelle (CGVirtualDisplay) und kann mit macOS-Updates aufhören zu funktionieren.")
+        case .display: return L("Ganzer Bildschirm; bei abweichendem Seitenverhältnis gibt es Ränder auf dem iPad.")
+        case .window: return L("Ein einzelnes Fenster (z. B. Affinity). Position wird alle 0,5 s nachgeführt.")
         }
     }
 }
@@ -46,7 +46,11 @@ struct WindowChoice: Identifiable, Hashable {
 @MainActor
 final class HostController: ObservableObject {
     // Status
-    @Published var listenerStatus = "Startet …"
+    @Published var listenerStatus = L("Startet …")
+    /// Titles of the pen-test window in both languages (the window keeps the title it was opened with).
+    static let penTestTitles: Set<String> = ["Stifttest", "Pen Test"]
+    /// Listener is up (status texts start with "Bereit"/"Ready", depending on the language at the time).
+    var listenerReady: Bool { listenerStatus.hasPrefix("Bereit") || listenerStatus.hasPrefix("Ready") }
     @Published var sessionDevice: String?
     @Published var sessionLink = ""
     @Published var clientDiagnostics = ""
@@ -266,13 +270,13 @@ final class HostController: ObservableObject {
             }
             let own = Bundle.main.bundleIdentifier
             ownApps = content.applications.filter { $0.bundleIdentifier == own }
-            ownVisibleWindows = content.windows.filter { $0.owningApplication?.bundleIdentifier == own && $0.title == "Stifttest" }
+            ownVisibleWindows = content.windows.filter { $0.owningApplication?.bundleIdentifier == own && HostController.penTestTitles.contains($0.title ?? "") }
             let candidates = content.windows.filter {
                 $0.windowLayer == 0 && $0.frame.width > 100 && $0.frame.height > 100 && $0.owningApplication?.bundleIdentifier != own
             }
             scWindows = Dictionary(uniqueKeysWithValues: candidates.map { ($0.windowID, $0) })
             windows = candidates.map {
-                WindowChoice(id: $0.windowID, title: "\($0.owningApplication?.applicationName ?? "?") – \($0.title ?? "Fenster")")
+                WindowChoice(id: $0.windowID, title: "\($0.owningApplication?.applicationName ?? "?") – \($0.title ?? L("Fenster"))")
             }
             if scDisplays[selectedDisplay] == nil, let first = content.displays.first { selectedDisplay = first.displayID }
             if selectedWindow == 0 || scWindows[selectedWindow] == nil {
@@ -281,7 +285,7 @@ final class HostController: ObservableObject {
             }
             screenRecordingGranted = CGPreflightScreenCaptureAccess()
         } catch {
-            lastError = "Bildschirminhalte nicht verfügbar – Bildschirmaufnahme erlauben? (\(error.localizedDescription))"
+            lastError = L("Bildschirminhalte nicht verfügbar – Bildschirmaufnahme erlauben? (%@)", error.localizedDescription)
         }
     }
 
@@ -325,7 +329,7 @@ final class HostController: ObservableObject {
         streamer.onStats = { [weak self] s in Task { @MainActor in self?.stats = s } }
         streamer.onStopped = { [weak self] e in
             Task { @MainActor in
-                self?.lastError = "Aufnahme gestoppt: \(e?.localizedDescription ?? "unbekannt")"
+                self?.lastError = L("Aufnahme gestoppt: %@", e?.localizedDescription ?? L("unbekannt"))
                 self?.streamer = nil
             }
         }
@@ -341,7 +345,7 @@ final class HostController: ObservableObject {
                     chosen = scDisplays[selectedDisplay] ?? scDisplays.values.first
                 }
                 guard let display = chosen else {
-                    lastError = "Kein Bildschirm gefunden."
+                    lastError = L("Kein Bildschirm gefunden.")
                     return
                 }
                 let local = CGRect(origin: .zero, size: display.frame.size)
@@ -363,7 +367,7 @@ final class HostController: ObservableObject {
                 try await streamer.start(filter: filter, sourceRect: rect, width: size.width, height: size.height, quality: cfg.quality)
             case .window:
                 guard let window = scWindows[selectedWindow] else {
-                    lastError = "Kein Fenster gewählt."
+                    lastError = L("Kein Fenster gewählt.")
                     return
                 }
                 let size = Geometry.streamSize(sourceAspect: Double(window.frame.width / window.frame.height),
@@ -380,7 +384,7 @@ final class HostController: ObservableObject {
             server.sendHostInfo()
             streamer.requestKeyframe()
         } catch {
-            lastError = "Stream konnte nicht starten: \(error.localizedDescription)"
+            lastError = L("Stream konnte nicht starten: %@", error.localizedDescription)
             await streamer.stop()
         }
     }
@@ -396,7 +400,7 @@ final class HostController: ObservableObject {
         }
         if virtualDisplay == nil {
             guard let v = VirtualDisplay(pixelWidth: width, pixelHeight: height) else {
-                virtualDisplayError = "Zweiter Bildschirm ist auf diesem macOS nicht verfügbar (private Schnittstelle fehlt oder wurde geändert)."
+                virtualDisplayError = L("Zweiter Bildschirm ist auf diesem macOS nicht verfügbar (private Schnittstelle fehlt oder wurde geändert).")
                 lastError = virtualDisplayError
                 return nil
             }
@@ -409,7 +413,7 @@ final class HostController: ObservableObject {
             if let d = scDisplays[id] { return d }
             try? await Task.sleep(nanoseconds: 150_000_000)
         }
-        lastError = "Zweiter Bildschirm wurde angelegt, ist aber für die Aufnahme nicht sichtbar."
+        lastError = L("Zweiter Bildschirm wurde angelegt, ist aber für die Aufnahme nicht sichtbar.")
         return nil
     }
 

@@ -229,6 +229,14 @@ Bitte der Reihe nach, Ergebnis jeweils notieren:
 - Dirty-Region-Erkennung, um bei Standbildern Bandbreite zu sparen (ScreenCaptureKit liefert bei Stillstand ohnehin kaum Frames).
 - Per-Gerät-Schlüssel für einzelnes Widerrufen.
 
+## Sprachen & Übersetzungen
+
+Die Apps haben eine eigene Sprachwahl (erster Schritt der Einrichtung, später in den Einstellungen), unabhängig von der Systemsprache. Standard ist Englisch.
+
+- Texte stehen in `Packages/TafelKit/Sources/TafelKit/Translations*.swift`, Schlüssel ist jeweils der deutsche Originaltext.
+- `python3 Tools/check-l10n.py` zeigt fehlende Übersetzungen.
+- **Fehler gefunden?** Die meisten Übersetzungen sind maschinell entstanden. Bitte ein Issue mit der Vorlage „Translation fix“ anlegen (Sprache, Stelle in der App, aktueller Text, Vorschlag) – oder direkt einen Pull Request auf die passende Tabelle.
+
 ## Lizenz
 
 Copyright © 2026 Biene

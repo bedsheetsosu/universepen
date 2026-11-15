@@ -68,7 +68,7 @@ final class Session: @unchecked Sendable {
             connectControl(cable: cableInterfaces)
             queue.asyncAfter(deadline: .now() + 12) { [weak self] in
                 guard let self, !self.connected, !self.closed else { return }
-                self.close(reason: "Zeitüberschreitung beim Verbinden.")
+                self.close(reason: L("Zeitüberschreitung beim Verbinden."))
             }
         }
     }
@@ -117,7 +117,7 @@ final class Session: @unchecked Sendable {
                 self.controlReady = true
                 if let cfg = self.lastConfig { c.sendJSON(.clientConfig, cfg) }
             case .waiting(let e):
-                if canFallBack { fallBack() } else { self.close(reason: "Mac nicht erreichbar: \(e.localizedDescription)") }
+                if canFallBack { fallBack() } else { self.close(reason: L("Mac nicht erreichbar: %@", e.localizedDescription)) }
             default:
                 break
             }
@@ -125,7 +125,7 @@ final class Session: @unchecked Sendable {
         c.onFrame = { [weak self] f in self?.handleControl(f) }
         c.onClose = { [weak self] e in
             if canFallBack && !ready { fallBack(); return }
-            self?.close(reason: e.map { Self.describe($0) } ?? "Verbindung vom Mac beendet.")
+            self?.close(reason: e.map { Self.describe($0) } ?? L("Verbindung vom Mac beendet."))
         }
         c.start()
     }
@@ -145,7 +145,7 @@ final class Session: @unchecked Sendable {
         }
         v.onFrame = { [weak self] f in self?.handleVideo(f) }
         v.onClose = { [weak self] e in
-            self?.close(reason: e.map { "Video: " + Self.describe($0) } ?? "Videoverbindung beendet.")
+            self?.close(reason: e.map { L("Video: %@", Self.describe($0)) } ?? L("Videoverbindung beendet."))
         }
         v.start()
         renderer.requestKeyframe = { [weak self, weak v] in
@@ -192,7 +192,7 @@ final class Session: @unchecked Sendable {
             let offset = p.hostTime - (p.clientTime + sample / 2)
             clockOffset = clockOffset.map { $0 * 0.8 + offset * 0.2 } ?? offset
         case .error:
-            let msg = (try? JSONWire.decode(ErrorMessage.self, f.payload))?.message ?? "Fehler vom Mac."
+            let msg = (try? JSONWire.decode(ErrorMessage.self, f.payload))?.message ?? L("Fehler vom Mac.")
             close(reason: msg)
         default:
             break
@@ -223,7 +223,7 @@ final class Session: @unchecked Sendable {
         t.setEventHandler { [weak self] in
             guard let self, let c = self.control else { return }
             if Date().timeIntervalSince(self.lastPong) > Self.deadAfter {
-                self.close(reason: "Keine Antwort vom Mac – Verbindung unterbrochen.")
+                self.close(reason: L("Keine Antwort vom Mac – Verbindung unterbrochen."))
                 return
             }
             c.send(.ping, Ping(clientTime: Date().timeIntervalSince1970).encoded())
@@ -275,7 +275,7 @@ final class Session: @unchecked Sendable {
 
     static func describe(_ e: Error) -> String {
         if let nw = e as? NWError, case .tls(let status) = nw {
-            return "Verschlüsselung abgelehnt (\(status)). Ist das iPad noch mit diesem Mac gekoppelt?"
+            return L("Verschlüsselung abgelehnt (%d). Ist das iPad noch mit diesem Mac gekoppelt?", Int(status))
         }
         return e.localizedDescription
     }
@@ -313,7 +313,7 @@ final class PairingAttempt: @unchecked Sendable {
                 finish(.success(g))
             }
         }
-        c.onClose = { e in finish(.failure(PairingError.rejected(e.map(Session.describe) ?? "Verbindung beendet"))) }
+        c.onClose = { e in finish(.failure(PairingError.rejected(e.map(Session.describe) ?? L("Verbindung beendet")))) }
         c.start()
         queue.asyncAfter(deadline: .now() + 10) { finish(.failure(PairingError.timeout)) }
     }
@@ -323,9 +323,9 @@ enum PairingError: LocalizedError {
     case rejected(String), timeout, badCode
     var errorDescription: String? {
         switch self {
-        case .rejected: return "Kopplung fehlgeschlagen – Code falsch oder abgelaufen."
-        case .timeout: return "Kopplung: Zeitüberschreitung."
-        case .badCode: return "Der Code hat 12 Zeichen (z. B. ABCD-EFGH-JKMN)."
+        case .rejected: return L("Kopplung fehlgeschlagen – Code falsch oder abgelaufen.")
+        case .timeout: return L("Kopplung: Zeitüberschreitung.")
+        case .badCode: return L("Der Code hat 12 Zeichen (z. B. ABCD-EFGH-JKMN).")
         }
     }
 }

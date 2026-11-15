@@ -7,7 +7,7 @@ enum EncoderError: Error, LocalizedError {
     case create(OSStatus)
     var errorDescription: String? {
         switch self {
-        case .create(let s): return "VideoToolbox-Encoder konnte nicht erstellt werden (\(s))."
+        case .create(let s): return L("VideoToolbox-Encoder konnte nicht erstellt werden (%d).", Int(s))
         }
     }
 }

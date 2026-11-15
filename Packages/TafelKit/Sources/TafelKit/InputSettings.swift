@@ -19,7 +19,7 @@ public enum PencilAction: Codable, Hashable, Sendable {
 
     public var display: String {
         switch self {
-        case .none: return "Keine"
+        case .none: return L("Keine")
         case .shortcut(let s): return s.display
         }
     }
@@ -44,11 +44,11 @@ public enum ZoomMethod: String, Codable, CaseIterable, Sendable {
 
     public var title: String {
         switch self {
-        case .commandScroll: return "⌘ + Scrollen"
-        case .optionScroll: return "⌥ + Scrollen"
-        case .controlScroll: return "⌃ + Scrollen"
-        case .keyboardSteps: return "⌘+ / ⌘− Tasten"
-        case .off: return "Aus"
+        case .commandScroll: return L("⌘ + Scrollen")
+        case .optionScroll: return L("⌥ + Scrollen")
+        case .controlScroll: return L("⌃ + Scrollen")
+        case .keyboardSteps: return L("⌘+ / ⌘− Tasten")
+        case .off: return L("Aus")
         }
     }
 }
@@ -64,9 +64,9 @@ public enum FingerMode: String, Codable, CaseIterable, Sendable {
 
     public var title: String {
         switch self {
-        case .off: return "Aus"
-        case .mouse: return "Maus"
-        case .pen: return "Stift (fester Druck)"
+        case .off: return L("Aus")
+        case .mouse: return L("Maus")
+        case .pen: return L("Stift (fester Druck)")
         }
     }
 }
@@ -126,9 +126,9 @@ public struct InputSettings: Codable, Equatable, Sendable {
     public var shortcutBar: [ShortcutButton] = [
         ShortcutButton(title: "Undo", shortcut: Shortcut("z", .command)),
         ShortcutButton(title: "Redo", shortcut: Shortcut("z", [.command, .shift])),
-        ShortcutButton(title: "Pinsel", shortcut: Shortcut("b")),
-        ShortcutButton(title: "Radierer", shortcut: Shortcut("e")),
-        ShortcutButton(title: "Hand", shortcut: Shortcut("h")),
+        ShortcutButton(title: L("Pinsel"), shortcut: Shortcut("b")),
+        ShortcutButton(title: L("Radierer"), shortcut: Shortcut("e")),
+        ShortcutButton(title: L("Hand"), shortcut: Shortcut("h")),
     ]
 
     public init() {}

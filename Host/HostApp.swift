@@ -15,7 +15,7 @@ struct TafelHostApp: App {
         .windowResizability(.contentMinSize)
         .windowToolbarStyle(.unifiedCompact)
 
-        Window("Stifttest", id: "pentest") {
+        Window(L("Stifttest"), id: "pentest") {
             PenTestView()
         }
     }
@@ -26,6 +26,7 @@ struct HostView: View {
     @Environment(\.openWindow) private var openWindow
     @State private var confirmUnpair = false
     @AppStorage("hostOnboardingDone") private var onboardingDone = false
+    @ObservedObject private var l10n = L10n.shared
 
     private var connected: Bool { host.sessionDevice != nil }
     private var allGranted: Bool { host.screenRecordingGranted && host.accessibilityGranted }
@@ -40,10 +41,11 @@ struct HostView: View {
                 pairing
                 source
                 stream
+                LanguageChoice().frame(maxWidth: 320).scaleEffect(0.8)
                 Button {
                     onboardingDone = false
                 } label: {
-                    Label("Einrichtung erneut starten", systemImage: "sparkles")
+                    Label(L("Einrichtung erneut starten"), systemImage: "sparkles")
                 }
                 .buttonStyle(.borderless)
                 .font(.caption)
@@ -57,6 +59,7 @@ struct HostView: View {
         .animation(Brand.spring, value: allGranted)
         .animation(Brand.spring, value: host.pairingCode)
         .animation(Brand.spring, value: host.mode)
+        .id(l10n.language)   // re-render every text when the language changes
         .task { await host.refreshSources() }
         .sheet(isPresented: Binding(get: { !onboardingDone }, set: { if !$0 { onboardingDone = true } })) {
             HostOnboarding(done: $onboardingDone).environmentObject(host)
@@ -71,14 +74,14 @@ struct HostView: View {
                 ConnectionOrb(connected: connected, usb: host.sessionLink.hasPrefix("USB"))
                     .frame(width: 64, height: 64)
                 VStack(alignment: .leading, spacing: 5) {
-                    Text(host.sessionDevice ?? "Warte auf iPad …")
+                    Text(host.sessionDevice ?? L("Warte auf iPad …"))
                         .font(.title2.weight(.semibold))
                         .contentTransition(.opacity)
                     if connected {
                         LinkBadge(link: host.sessionLink)
                             .transition(.scale(scale: 0.8, anchor: .leading).combined(with: .opacity))
                     } else {
-                        Text("Tafel auf dem iPad öffnen – es verbindet sich automatisch.")
+                        Text(L("Tafel auf dem iPad öffnen – es verbindet sich automatisch."))
                             .font(.callout).foregroundStyle(.secondary)
                     }
                 }
@@ -86,14 +89,14 @@ struct HostView: View {
             }
             if connected {
                 HStack(spacing: 10) {
-                    StatTile(value: host.stats.fps, format: "%.0f", unit: "Bilder/s", symbol: "film")
+                    StatTile(value: host.stats.fps, format: "%.0f", unit: L("Bilder/s"), symbol: "film")
                     StatTile(value: host.stats.mbps, format: "%.1f", unit: "Mbit/s", symbol: "arrow.up.right")
-                    StatTile(value: Double(host.stats.dropped), format: "%.0f", unit: "verworfen", symbol: "tray.and.arrow.down")
+                    StatTile(value: Double(host.stats.dropped), format: "%.0f", unit: L("verworfen"), symbol: "tray.and.arrow.down")
                 }
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
             HStack(spacing: 6) {
-                Circle().fill(host.listenerStatus.hasPrefix("Bereit") ? Brand.mint : .orange).frame(width: 6, height: 6)
+                Circle().fill(host.listenerReady ? Brand.mint : .orange).frame(width: 6, height: 6)
                 Text(host.listenerStatus).font(.caption).foregroundStyle(.secondary)
             }
             if let e = host.lastError {
@@ -109,10 +112,10 @@ struct HostView: View {
 
     private var permissions: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionTitle("Berechtigungen", symbol: "lock.shield")
-            permissionRow("Bildschirmaufnahme", detail: "Für die Übertragung des Bildes.",
+            SectionTitle(L("Berechtigungen"), symbol: "lock.shield")
+            permissionRow(L("Bildschirmaufnahme"), detail: L("Für die Übertragung des Bildes."),
                           granted: host.screenRecordingGranted, action: host.requestScreenRecording)
-            permissionRow("Bedienungshilfen", detail: "Für Stift, Maus, Scrollen und Tastatur.",
+            permissionRow(L("Bedienungshilfen"), detail: L("Für Stift, Maus, Scrollen und Tastatur."),
                           granted: host.accessibilityGranted, action: host.requestAccessibility)
         }
         .tafelCard()
@@ -130,7 +133,7 @@ struct HostView: View {
             }
             Spacer()
             if !granted {
-                Button("Erlauben …", action: action).buttonStyle(.borderedProminent).tint(Brand.mint.opacity(0.85))
+                Button(L("Erlauben …"), action: action).buttonStyle(.borderedProminent).tint(Brand.mint.opacity(0.85))
             }
         }
     }
@@ -139,13 +142,13 @@ struct HostView: View {
 
     private var pairing: some View {
         VStack(alignment: .leading, spacing: 14) {
-            SectionTitle("Kopplung", symbol: "link")
+            SectionTitle(L("Kopplung"), symbol: "link")
             if let code = host.pairingCode {
                 HStack(spacing: 18) {
                     CountdownRing(fraction: Double(host.pairingSecondsLeft) / 120, seconds: host.pairingSecondsLeft)
                         .frame(width: 54, height: 54)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Auf dem iPad eingeben").font(.caption).foregroundStyle(.secondary)
+                        Text(L("Auf dem iPad eingeben")).font(.caption).foregroundStyle(.secondary)
                         Text(PairingCode.formatted(code))
                             .font(.system(size: 32, weight: .semibold, design: .monospaced))
                             .kerning(2)
@@ -153,7 +156,7 @@ struct HostView: View {
                             .foregroundStyle(LinearGradient(colors: [.white, Brand.mintBright], startPoint: .leading, endPoint: .trailing))
                     }
                     Spacer()
-                    Button("Abbrechen", role: .cancel) { host.endPairing() }
+                    Button(L("Abbrechen"), role: .cancel) { host.endPairing() }
                 }
                 .transition(.scale(scale: 0.95).combined(with: .opacity))
             } else {
@@ -161,7 +164,7 @@ struct HostView: View {
                     Button {
                         host.beginPairing()
                     } label: {
-                        Label("iPad koppeln …", systemImage: "ipad.and.arrow.forward")
+                        Label(L("iPad koppeln …"), systemImage: "ipad.and.arrow.forward")
                             .padding(.horizontal, 6).padding(.vertical, 2)
                     }
                     .buttonStyle(.borderedProminent)
@@ -169,7 +172,7 @@ struct HostView: View {
                     .controlSize(.large)
                     Spacer()
                     if let p = host.lastPaired {
-                        Label("Gekoppelt: \(p)", systemImage: "checkmark.seal.fill")
+                        Label(L("Gekoppelt: %@", p), systemImage: "checkmark.seal.fill")
                             .font(.caption).foregroundStyle(Brand.mint)
                             .transition(.opacity)
                     }
@@ -178,26 +181,26 @@ struct HostView: View {
             Divider().opacity(0.4)
             Toggle(isOn: $host.peerToPeer) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Peer-to-Peer-WLAN (ohne Router)")
-                    Text("Nur ohne gemeinsames WLAN und ohne Kabel einschalten – kostet Latenz.")
+                    Text(L("Peer-to-Peer-WLAN (ohne Router)"))
+                    Text(L("Nur ohne gemeinsames WLAN und ohne Kabel einschalten – kostet Latenz."))
                         .font(.caption).foregroundStyle(.secondary)
                 }
             }
             .toggleStyle(.switch)
             HStack {
-                Text("Schlüssel-Fingerabdruck").font(.caption).foregroundStyle(.secondary)
+                Text(L("Schlüssel-Fingerabdruck")).font(.caption).foregroundStyle(.secondary)
                 Text(host.keyFingerprint).font(.caption.monospaced()).foregroundStyle(.secondary)
                 Spacer()
-                Button("Alle Kopplungen aufheben …", role: .destructive) { confirmUnpair = true }
+                Button(L("Alle Kopplungen aufheben …"), role: .destructive) { confirmUnpair = true }
                     .font(.caption)
                     .buttonStyle(.borderless)
             }
         }
         .tafelCard()
-        .confirmationDialog("Alle Kopplungen aufheben?", isPresented: $confirmUnpair) {
-            Button("Aufheben", role: .destructive) { host.unpairAll() }
+        .confirmationDialog(L("Alle Kopplungen aufheben?"), isPresented: $confirmUnpair) {
+            Button(L("Aufheben"), role: .destructive) { host.unpairAll() }
         } message: {
-            Text("Jedes iPad muss danach neu gekoppelt werden.")
+            Text(L("Jedes iPad muss danach neu gekoppelt werden."))
         }
     }
 
@@ -205,36 +208,36 @@ struct HostView: View {
 
     private var source: some View {
         VStack(alignment: .leading, spacing: 14) {
-            SectionTitle("Quelle", symbol: "rectangle.dashed.badge.record")
+            SectionTitle(L("Quelle"), symbol: "rectangle.dashed.badge.record")
             HStack(spacing: 8) {
                 ForEach(CaptureMode.allCases) { m in
                     let unavailable = m == .virtual && !HostController.secondScreenAvailable
                     ModeButton(mode: m, selected: host.mode == m) { host.mode = m }
                         .disabled(unavailable)
                         .opacity(unavailable ? 0.4 : 1)
-                        .help(unavailable ? "Auf diesem macOS nicht verfügbar: die private Schnittstelle hat sich geändert." : m.title)
+                        .help(unavailable ? L("Auf diesem macOS nicht verfügbar: die private Schnittstelle hat sich geändert.") : m.title)
                 }
             }
             Text(host.mode.help).font(.caption).foregroundStyle(.secondary)
                 .contentTransition(.opacity)
             if !HostController.secondScreenAvailable {
-                Label("„Zweiter Bildschirm“ ist auf diesem macOS nicht verfügbar – die private Schnittstelle hat sich geändert. Details stehen im Log (Konsole, Prozess „Tafel Host“).",
+                Label(L("„Zweiter Bildschirm“ ist auf diesem macOS nicht verfügbar – die private Schnittstelle hat sich geändert. Details stehen im Log (Konsole, Prozess „Tafel Host“)."),
                       systemImage: "exclamationmark.triangle")
                     .font(.caption).foregroundStyle(.orange)
             }
 
             if host.mode == .window {
-                Picker("Fenster", selection: $host.selectedWindow) {
+                Picker(L("Fenster"), selection: $host.selectedWindow) {
                     ForEach(host.windows) { Text($0.title).lineLimit(1).tag($0.id) }
                 }
                 .transition(.opacity)
             } else if host.mode != .virtual {
-                Picker("Bildschirm", selection: $host.selectedDisplay) {
+                Picker(L("Bildschirm"), selection: $host.selectedDisplay) {
                     ForEach(host.displays) { Text($0.title).tag($0.id) }
                 }
             }
             if host.mode == .virtual {
-                Label("Experimentell · private macOS-Schnittstelle", systemImage: "flask")
+                Label(L("Experimentell · private macOS-Schnittstelle"), systemImage: "flask")
                     .font(.caption.weight(.medium))
                     .padding(.horizontal, 9).padding(.vertical, 4)
                     .background(Color.orange.opacity(0.18), in: Capsule())
@@ -243,16 +246,16 @@ struct HostView: View {
             }
             if host.mode == .region {
                 VStack(spacing: 8) {
-                    sliderRow("Größe", value: $host.regionZoom, range: 0.4...1, symbol: "arrow.up.left.and.arrow.down.right")
-                    sliderRow("Horizontal", value: $host.regionAnchorX, range: 0...1, symbol: "arrow.left.and.right")
-                    sliderRow("Vertikal", value: $host.regionAnchorY, range: 0...1, symbol: "arrow.up.and.down")
+                    sliderRow(L("Größe"), value: $host.regionZoom, range: 0.4...1, symbol: "arrow.up.left.and.arrow.down.right")
+                    sliderRow(L("Horizontal"), value: $host.regionAnchorX, range: 0...1, symbol: "arrow.left.and.right")
+                    sliderRow(L("Vertikal"), value: $host.regionAnchorY, range: 0...1, symbol: "arrow.up.and.down")
                 }
                 .transition(.move(edge: .top).combined(with: .opacity))
             }
             Button {
                 Task { await host.refreshSources() }
             } label: {
-                Label("Quellen aktualisieren", systemImage: "arrow.clockwise")
+                Label(L("Quellen aktualisieren"), systemImage: "arrow.clockwise")
             }
             .buttonStyle(.borderless).font(.caption)
         }
@@ -272,7 +275,7 @@ struct HostView: View {
     private var stream: some View {
         VStack(alignment: .leading, spacing: 12) {
             SectionTitle("Stream", symbol: "waveform.path.ecg")
-            LabeledContent("Encoder") {
+            LabeledContent(L("Encoder")) {
                 Text(host.streamDescription.isEmpty ? "–" : host.streamDescription)
                     .font(.caption.monospaced()).multilineTextAlignment(.trailing)
             }
@@ -281,14 +284,14 @@ struct HostView: View {
                     openWindow(id: "pentest")
                     Task { try? await Task.sleep(nanoseconds: 500_000_000); await host.refreshSources(); host.restartStream() }
                 } label: {
-                    Label("Stifttest öffnen …", systemImage: "applepencil.and.scribble")
+                    Label(L("Stifttest öffnen …"), systemImage: "applepencil.and.scribble")
                 }
                 Spacer()
             }
-            Text("Zeigt, welche Druck-, Neigungs- und Rotationswerte eine Mac-App wirklich empfängt. Das Stifttest-Fenster wird mit übertragen, dieses Fenster nicht.")
+            Text(L("Zeigt, welche Druck-, Neigungs- und Rotationswerte eine Mac-App wirklich empfängt. Das Stifttest-Fenster wird mit übertragen, dieses Fenster nicht."))
                 .font(.caption).foregroundStyle(.secondary)
             if !host.clientDiagnostics.isEmpty, connected {
-                DisclosureGroup("Netzwerk-Diagnose") {
+                DisclosureGroup(L("Netzwerk-Diagnose")) {
                     Text(host.clientDiagnostics).font(.caption2.monospaced()).textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -338,7 +341,7 @@ private struct LinkBadge: View {
     let link: String
     var body: some View {
         let usb = link.hasPrefix("USB")
-        Label(link.isEmpty ? "verbunden" : link, systemImage: usb ? "cable.connector" : "wifi")
+        Label(link.isEmpty ? L("verbunden") : localizedLink(link), systemImage: usb ? "cable.connector" : "wifi")
             .font(.caption.weight(.medium))
             .padding(.horizontal, 9).padding(.vertical, 4)
             .background((usb ? Brand.mint : Color.orange).opacity(0.18), in: Capsule())

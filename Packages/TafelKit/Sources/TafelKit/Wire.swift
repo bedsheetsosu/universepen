@@ -341,7 +341,7 @@ public struct Shortcut: Codable, Hashable, Sendable {
         case "esc": k = "esc"
         case "delete": k = "⌫"
         case "tab": k = "⇥"
-        case "space": k = "Leertaste"
+        case "space": k = L("Leertaste")
         case "return": k = "↩"
         case "left": k = "←"
         case "right": k = "→"

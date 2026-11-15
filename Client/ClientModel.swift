@@ -183,7 +183,7 @@ final class ClientModel: ObservableObject {
         }
         b.stateUpdateHandler = { [weak self] state in
             if case .failed(let e) = state {
-                Task { @MainActor in self?.phase = .failed("Suche fehlgeschlagen: \(e.localizedDescription)") }
+                Task { @MainActor in self?.phase = .failed(L("Suche fehlgeschlagen: %@", e.localizedDescription)) }
             }
         }
         b.start(queue: .main)
@@ -233,7 +233,7 @@ final class ClientModel: ObservableObject {
                 switch result {
                 case .success(let grant):
                     guard let key = Data(base64Encoded: grant.keyBase64), key.count == 32 else {
-                        self.pairingError = "Ungültiger Schlüssel vom Mac."
+                        self.pairingError = L("Ungültiger Schlüssel vom Mac.")
                         return
                     }
                     Keychain.set(key, account: "host-\(grant.hostID)")
@@ -261,7 +261,7 @@ final class ClientModel: ObservableObject {
 
     func connect(_ host: DiscoveredHost, reconnecting: Bool = false) {
         guard let key = Keychain.get(account: "host-\(host.hostID)") else {
-            phase = .failed("Dieser Mac ist nicht gekoppelt.")
+            phase = .failed(L("Dieser Mac ist nicht gekoppelt."))
             return
         }
         let old = session
@@ -329,7 +329,7 @@ final class ClientModel: ObservableObject {
             reconnectDeadline = nil
             renderer.reset()
             videoSize = .zero
-            phase = .failed(reason ?? "Verbindung verloren.")
+            phase = .failed(reason ?? L("Verbindung verloren."))
             return
         }
         phase = .reconnecting(host.name)
