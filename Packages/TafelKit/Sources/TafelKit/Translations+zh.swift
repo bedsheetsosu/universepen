@@ -322,5 +322,9 @@ extension Translations {
         "Undo-Wischen (zwei Finger halten, dann ziehen)": "滑动撤销（两指按住后拖动）",
         "Weg pro Schritt: %d pt": "每步距离：%d pt",
         "Ziehen: links Undo, rechts Redo": "拖动：向左撤销，向右重做",
+        "Farben": "颜色",
+        "Fließender Hintergrund": "流动背景",
+        "Geschwindigkeit": "速度",
+        "Akzentfarbe aus den Vorschlägen oder frei im Farbrad. „Fließender Hintergrund“ lässt die Farben langsam verlaufen und wandern (nur hinter Menüs und Einrichtung, nie über dem Mac-Bild).": "从推荐中选择强调色，或在色轮中自由选择。“流动背景”会让颜色缓慢交融、变化（仅在菜单和设置背后，绝不覆盖 Mac 画面）。",
     ]
 }

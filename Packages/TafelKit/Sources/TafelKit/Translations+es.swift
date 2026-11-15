@@ -322,5 +322,9 @@ extension Translations {
         "Undo-Wischen (zwei Finger halten, dann ziehen)": "Deslizar para deshacer (mantén dos dedos y arrastra)",
         "Weg pro Schritt: %d pt": "Distancia por paso: %d pt",
         "Ziehen: links Undo, rechts Redo": "Arrastra: izquierda deshacer, derecha rehacer",
+        "Farben": "Colores",
+        "Fließender Hintergrund": "Fondo fluido",
+        "Geschwindigkeit": "Velocidad",
+        "Akzentfarbe aus den Vorschlägen oder frei im Farbrad. „Fließender Hintergrund“ lässt die Farben langsam verlaufen und wandern (nur hinter Menüs und Einrichtung, nie über dem Mac-Bild).": "Color de acento de las sugerencias o libre en la rueda de color. «Fondo fluido» hace que los colores se mezclen y se desplacen lentamente (solo detrás de menús y configuración, nunca sobre la imagen del Mac).",
     ]
 }

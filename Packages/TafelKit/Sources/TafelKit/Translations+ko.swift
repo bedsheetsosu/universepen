@@ -322,5 +322,9 @@ extension Translations {
         "Undo-Wischen (zwei Finger halten, dann ziehen)": "실행 취소 스크럽(두 손가락으로 누른 뒤 드래그)",
         "Weg pro Schritt: %d pt": "단계당 거리: %d pt",
         "Ziehen: links Undo, rechts Redo": "드래그: 왼쪽 실행 취소, 오른쪽 다시 실행",
+        "Farben": "색상",
+        "Fließender Hintergrund": "흐르는 배경",
+        "Geschwindigkeit": "속도",
+        "Akzentfarbe aus den Vorschlägen oder frei im Farbrad. „Fließender Hintergrund“ lässt die Farben langsam verlaufen und wandern (nur hinter Menüs und Einrichtung, nie über dem Mac-Bild).": "추천 색상 중에서 고르거나 색상 휠에서 자유롭게 강조 색상을 고르세요. '흐르는 배경'은 색이 천천히 섞이며 흐르게 합니다(메뉴와 설정 뒤에서만, Mac 화면 위에는 절대 표시되지 않음).",
     ]
 }

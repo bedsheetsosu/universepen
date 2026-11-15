@@ -5,6 +5,8 @@ import TafelKit
 /// "Radialmenü". Hover over an item and squeeze again, or tap it. Tap the centre or outside to
 /// close. The highlight change and the pick give a haptic tick on the Pencil Pro.
 struct RadialMenuView: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     @EnvironmentObject var model: ClientModel
     let center: CGPoint
 

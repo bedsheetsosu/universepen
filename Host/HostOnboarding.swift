@@ -3,6 +3,8 @@ import TafelKit
 
 /// First-run setup on the Mac: permissions, default source, pairing.
 struct HostOnboarding: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     @EnvironmentObject var host: HostController
     @ObservedObject private var l10n = L10n.shared
     @Binding var done: Bool
@@ -26,7 +28,7 @@ struct HostOnboarding: View {
             footer
         }
         .frame(width: 560, height: 560)
-        .background(Brand.background)
+        .background(ThemeBackground())
         .preferredColorScheme(.dark)
         .animation(.spring(response: 0.5, dampingFraction: 0.86), value: step)
         .animation(Brand.spring, value: host.screenRecordingGranted && host.accessibilityGranted)

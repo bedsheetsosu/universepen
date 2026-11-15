@@ -365,5 +365,9 @@ enum Translations {
         "Undo-Wischen (zwei Finger halten, dann ziehen)": "Undo scrub (hold two fingers, then drag)",
         "Weg pro Schritt: %d pt": "Distance per step: %d pt",
         "Ziehen: links Undo, rechts Redo": "Drag: left undo, right redo",
+        "Farben": "Colours",
+        "Fließender Hintergrund": "Flowing background",
+        "Geschwindigkeit": "Speed",
+        "Akzentfarbe aus den Vorschlägen oder frei im Farbrad. „Fließender Hintergrund“ lässt die Farben langsam verlaufen und wandern (nur hinter Menüs und Einrichtung, nie über dem Mac-Bild).": "Accent colour from the suggestions or freely from the colour wheel. “Flowing background” lets the colours slowly blend and drift (only behind menus and setup, never over the Mac picture).",
     ]
 }

@@ -322,5 +322,9 @@ extension Translations {
         "Undo-Wischen (zwei Finger halten, dann ziehen)": "अनडू स्क्रब (दो उँगलियाँ रखें, फिर खींचें)",
         "Weg pro Schritt: %d pt": "हर कदम की दूरी: %d pt",
         "Ziehen: links Undo, rechts Redo": "खींचें: बाएँ अनडू, दाएँ रीडू",
+        "Farben": "रंग",
+        "Fließender Hintergrund": "बहता बैकग्राउंड",
+        "Geschwindigkeit": "गति",
+        "Akzentfarbe aus den Vorschlägen oder frei im Farbrad. „Fließender Hintergrund“ lässt die Farben langsam verlaufen und wandern (nur hinter Menüs und Einrichtung, nie über dem Mac-Bild).": "सुझावों में से या कलर व्हील से अपनी पसंद का एक्सेंट रंग चुनें। “बहता बैकग्राउंड” रंगों को धीरे-धीरे मिलाता और बदलता है (सिर्फ़ मेन्यू और सेटअप के पीछे, Mac की तस्वीर के ऊपर कभी नहीं)।",
     ]
 }

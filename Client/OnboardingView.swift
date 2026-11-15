@@ -4,6 +4,8 @@ import TafelKit
 /// First-run setup: explains the connection and sets the most important preferences.
 /// Everything chosen here can be changed later in Settings.
 struct OnboardingView: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     @EnvironmentObject var model: ClientModel
     @State private var step = 0
     @State private var forward = true
@@ -12,7 +14,7 @@ struct OnboardingView: View {
 
     var body: some View {
         ZStack {
-            Brand.background.ignoresSafeArea()
+            ThemeBackground().ignoresSafeArea()
             VStack(spacing: 0) {
                 ZStack {
                     page(step)
@@ -247,6 +249,8 @@ enum QualityPreset: CaseIterable, Hashable {
 // MARK: - Building blocks
 
 private struct PageScaffold<Content: View>: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     let symbol: String
     let title: String
     let subtitle: String
@@ -275,6 +279,8 @@ private struct PageScaffold<Content: View>: View {
 }
 
 private struct InfoRow: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     let symbol: String
     let title: String
     let text: String
@@ -294,6 +300,8 @@ private struct InfoRow: View {
 
 /// Big tappable choice tiles.
 private struct ChoiceRow<Value: Hashable>: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     let title: String
     let options: [(String, String, Value)]
     let selected: Value?
@@ -332,6 +340,8 @@ private struct ChoiceRow<Value: Hashable>: View {
 
 /// Compact choice of the common Pencil actions.
 private struct ActionChoice: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     let title: String
     @Binding var action: PencilAction
 

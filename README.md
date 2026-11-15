@@ -23,7 +23,7 @@ Target hardware: iPad Air 11" M4 + Äbbl Pencil Pro, MacBook Air M5, Affinity.
 | Pencil input, hover, squeeze, double-tap, gestures on the iPad | **runs on real hardware** (2026-11-15) | pressure, tilt, barrel roll, squeeze, double-tap and pinch/rotate checked live via the developer API; hover confirmed in Affinity |
 | Affinity compatibility | **works on real hardware** (2026-11-15) | in regular use: pressure → stroke width, tilt and barrel roll, hover brush preview, gestures and shortcuts (zoom, pan, undo, squeeze/double-tap) |
 | Pressure curve editor & per-app shortcut bar | **runs on real hardware** (2026-11-15) | freely drawable curve with live test, smoothing, hold keys, the bar follows the Mac app |
-| Source switching from the iPad, undo scrub, game mode | implemented, builds (2026-11-15) | **not yet tried on real hardware** |
+| Source switching from the iPad, undo scrub, game mode, custom colours / flowing background | implemented, builds (2026-11-15) | **not yet tried on real hardware** |
 | Squeeze radial menu, per-app Pencil profiles, Mac menu bar (status, iPad battery, mode) | **runs on real hardware** (2026-11-15) | radial menu with hover + squeeze, Affinity profile switching with the front app, battery shown in the menu bar |
 | Second screen (like Sidecar) | **runs on real hardware**, experimental | the only private API (`CGVirtualDisplay`), used only in this mode |
 | USB cable | **runs on real hardware** (2026-11-15, iPad Air M4 ↔ MacBook Air M5) | all three connections over the USB Ethernet interface (Mac `en8`); falls back to Wi-Fi. Undocumented, see limits |
@@ -191,6 +191,7 @@ UniversePen does not change profiles, restrictions or MDM settings and does not 
 - **Switch the source from the iPad:** … menu → Source: full display, iPad region, second screen, or a window from the Mac's window list – no trip to the Mac.
 - **Undo scrub:** rest two fingers briefly, then drag left (undo) or right (redo), one step per 40 pt (adjustable). A pill shows the count. iPads have no haptic engine for fingers, so the feedback is visual only.
 - **Game mode** (e.g. osu!): … menu → "Game mode for <app>". While that app is in front on the Mac: 60 fps, full resolution, ≥ 60 Mbit/s, no adaptive bitrate, no smoothing. The iPad Air's display is 60 Hz, so more than 60 fps isn't possible.
+- **Colours:** pick an accent (presets or the system colour wheel) on iPad → Settings → Colours or in the Mac window; it runs through buttons, rings, the radial menu and the bar. "Flowing background" turns the still gradient into a slowly moving mesh whose hues drift (speed adjustable). Only behind menus and setup, never over the streamed picture.
 - **Menu bar (Mac):** connected iPad, path (USB/Wi-Fi), fps and bitrate, iPad battery, source switch, pairing, quit.
 
 ## Fingers & multi-touch (like on a pen display)

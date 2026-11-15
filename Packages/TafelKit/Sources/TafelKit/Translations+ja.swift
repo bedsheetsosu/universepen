@@ -322,5 +322,9 @@ extension Translations {
         "Undo-Wischen (zwei Finger halten, dann ziehen)": "取り消しスクラブ（2 本指で押さえてからドラッグ）",
         "Weg pro Schritt: %d pt": "1 ステップの距離：%d pt",
         "Ziehen: links Undo, rechts Redo": "ドラッグ：左で取り消し、右でやり直し",
+        "Farben": "カラー",
+        "Fließender Hintergrund": "流れる背景",
+        "Geschwindigkeit": "速度",
+        "Akzentfarbe aus den Vorschlägen oder frei im Farbrad. „Fließender Hintergrund“ lässt die Farben langsam verlaufen und wandern (nur hinter Menüs und Einrichtung, nie über dem Mac-Bild).": "アクセントカラーは候補から、またはカラーホイールで自由に選べます。「流れる背景」は色をゆっくり混ざり合わせて移ろわせます（メニューと設定の背後のみ。Mac の映像の上には表示されません）。",
     ]
 }

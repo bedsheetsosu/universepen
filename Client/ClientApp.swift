@@ -18,6 +18,8 @@ struct TafelApp: App {
 }
 
 struct RootView: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     @EnvironmentObject var model: ClientModel
     @ObservedObject private var l10n = L10n.shared
     @State private var showSettings = false
@@ -202,6 +204,8 @@ private struct SourceMenu: View {
 
 /// Undo scrub feedback: "↶ 3" while dragging left, "↷ 2" right.
 private struct ScrubPill: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     let steps: Int
     var body: some View {
         HStack(spacing: 8) {
@@ -219,6 +223,8 @@ private struct ScrubPill: View {
 }
 
 private struct ReconnectBanner: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     var body: some View {
         HStack(spacing: 10) {
             ProgressView().tint(Brand.mint)
@@ -232,6 +238,8 @@ private struct ReconnectBanner: View {
 }
 
 struct StatusPill: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     @EnvironmentObject var model: ClientModel
 
     var body: some View {
@@ -267,6 +275,8 @@ struct StatusPill: View {
 }
 
 struct ShortcutBar: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     @EnvironmentObject var model: ClientModel
 
     var body: some View {
@@ -331,6 +341,8 @@ struct PressScale: ButtonStyle {
 // MARK: - Start screen
 
 struct ConnectView: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     @EnvironmentObject var model: ClientModel
     @State private var pairTarget: DiscoveredHost?
     @State private var appeared = false
@@ -342,7 +354,7 @@ struct ConnectView: View {
 
     var body: some View {
         ZStack {
-            Brand.background.ignoresSafeArea()
+            ThemeBackground().ignoresSafeArea()
             ScrollView {
                 VStack(spacing: 26) {
                     header
@@ -488,6 +500,8 @@ private struct StatusCard: View {
 }
 
 private struct HostCard: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     let name: String
     let host: DiscoveredHost?
     let connect: () -> Void
@@ -533,6 +547,8 @@ private struct HostCard: View {
 // MARK: - Pairing sheet
 
 private struct PairingSheet: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     @EnvironmentObject var model: ClientModel
     @Environment(\.dismiss) private var dismiss
     let host: DiscoveredHost
@@ -590,7 +606,7 @@ private struct PairingSheet: View {
         .padding(32)
         .frame(maxWidth: 520)
         .presentationDetents([.medium])
-        .presentationBackground(Brand.background)
+        .presentationBackground { ThemeBackground() }
         .animation(Brand.spring, value: model.pairingError)
         .animation(Brand.spring, value: normalized != nil)
         .onAppear {

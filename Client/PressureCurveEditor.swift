@@ -5,6 +5,8 @@ import TafelKit
 /// Freely editable pressure curve: drag the points with a finger, press with the Pencil on the
 /// test pad to see where your pressure lands on the curve.
 struct PressureCurveEditor: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     @Binding var curve: PressureCurve
     @State private var live: Double?   // raw Pencil force 0…1 on the test pad
 

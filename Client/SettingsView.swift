@@ -16,6 +16,13 @@ struct SettingsView: View {
                 } header: {
                     Text(L("Sprache"))
                 }
+                Section {
+                    ThemeChoice()
+                } header: {
+                    Text(L("Farben"))
+                } footer: {
+                    Text(L("Akzentfarbe aus den Vorschlägen oder frei im Farbrad. „Fließender Hintergrund“ lässt die Farben langsam verlaufen und wandern (nur hinter Menüs und Einrichtung, nie über dem Mac-Bild)."))
+                }
                 connectionSection
                 imageSection
                 pencilSection

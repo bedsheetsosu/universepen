@@ -2,12 +2,13 @@ import SwiftUI
 
 /// Shared look of both apps (UniversePen: deep-space indigo, cyan-mint accent, from the icon).
 public enum Brand {
-    public static let slateTop = Color(red: 0x3A / 255, green: 0x2F / 255, blue: 0x7A / 255)
-    public static let slate = Color(red: 0x17 / 255, green: 0x1A / 255, blue: 0x3F / 255)
-    public static let slateDeep = Color(red: 0x08 / 255, green: 0x0A / 255, blue: 0x1C / 255)
-    public static let violet = Color(red: 0xC0 / 255, green: 0x8B / 255, blue: 0xFF / 255)
-    public static let mint = Color(red: 0x7F / 255, green: 0xE3 / 255, blue: 0xD3 / 255)
-    public static let mintBright = Color(red: 0xBF / 255, green: 0xF5 / 255, blue: 0xEC / 255)
+    public static var slateTop: Color { Theme.shared.palette.top }
+    public static var slate: Color { Theme.shared.palette.mid }
+    public static var slateDeep: Color { Theme.shared.palette.deep }
+    public static var violet: Color { Theme.shared.palette.second }
+    /// Accent colour (default mint; follows the user's choice).
+    public static var mint: Color { Theme.shared.palette.accent }
+    public static var mintBright: Color { Theme.shared.palette.accentBright }
 
     public static var background: LinearGradient {
         LinearGradient(colors: [slateTop, slate, slateDeep], startPoint: .topLeading, endPoint: .bottomTrailing)
@@ -40,6 +41,8 @@ public extension View {
 /// Driven by a timeline (not an implicit repeatForever animation), so it never picks up the
 /// position of a sheet or page that is animating in.
 public struct PulseRings: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     var color: Color
     var active: Bool
 
@@ -69,6 +72,8 @@ public struct PulseRings: View {
 
 /// Small app mark (slate tile with a stroke), drawn in SwiftUI so it scales crisply.
 public struct TafelMark: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     public init() {}
     public var body: some View {
         GeometryReader { g in
@@ -101,6 +106,8 @@ public struct TafelMark: View {
 
 /// Language tiles (flag + name in its own language). Switching is instant.
 public struct LanguageChoice: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     @ObservedObject private var l10n = L10n.shared
     public init() {}
 

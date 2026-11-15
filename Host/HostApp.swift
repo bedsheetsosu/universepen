@@ -88,6 +88,8 @@ struct HostMenu: View {
 
 
 struct HostView: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     @EnvironmentObject var host: HostController
     @Environment(\.openWindow) private var openWindow
     @State private var confirmUnpair = false
@@ -108,6 +110,11 @@ struct HostView: View {
                 source
                 stream
                 developer
+                VStack(alignment: .leading, spacing: 10) {
+                    SectionTitle(L("Farben"), symbol: "paintpalette")
+                    ThemeChoice()
+                }
+                .tafelCard()
                 LanguageChoice().frame(maxWidth: 520)
                 Button {
                     onboardingDone = false
@@ -121,7 +128,7 @@ struct HostView: View {
             .padding(18)
         }
         .scrollContentBackground(.hidden)
-        .background(Brand.background.ignoresSafeArea())
+        .background(ThemeBackground().ignoresSafeArea())
         .animation(Brand.spring, value: connected)
         .animation(Brand.spring, value: allGranted)
         .animation(Brand.spring, value: host.pairingCode)
@@ -400,6 +407,8 @@ struct HostView: View {
 // MARK: - Components
 
 private struct SectionTitle: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     let title: String
     let symbol: String
     init(_ title: String, symbol: String) { self.title = title; self.symbol = symbol }
@@ -412,6 +421,8 @@ private struct SectionTitle: View {
 
 /// Animated state light: pulsing rings while waiting, a glowing filled orb when connected.
 private struct ConnectionOrb: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     let connected: Bool
     let usb: Bool
 
@@ -433,6 +444,8 @@ private struct ConnectionOrb: View {
 }
 
 private struct LinkBadge: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     let link: String
     var body: some View {
         let usb = link.hasPrefix("USB")
@@ -445,6 +458,8 @@ private struct LinkBadge: View {
 }
 
 private struct StatTile: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     let value: Double
     let format: String
     let unit: String
@@ -466,6 +481,8 @@ private struct StatTile: View {
 }
 
 struct CountdownRing: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     let fraction: Double
     let seconds: Int
     var body: some View {
@@ -485,6 +502,8 @@ struct CountdownRing: View {
 }
 
 struct ModeButton: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     let mode: CaptureMode
     let selected: Bool
     let action: () -> Void
