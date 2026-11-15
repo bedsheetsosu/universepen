@@ -407,5 +407,8 @@ extension Translations {
         "Profile sind komplette Einstellungs-Sätze (z. B. „Zeichnen“ und „osu!“). Lege eins an, dann landen Änderungen automatisch im aktiven Profil.": "Los perfiles son conjuntos completos de ajustes (p. ej. «Dibujo» y «osu!»). Crea uno y los cambios se guardarán automáticamente en el perfil activo.",
         "Umbenennen": "Renombrar",
         "Änderungen landen automatisch im aktiven Profil. Gedrückt halten: umbenennen, duplizieren, löschen. Wechseln geht auch im …-Menü.": "Los cambios se guardan automáticamente en el perfil activo. Mantén pulsado: renombrar, duplicar, eliminar. También puedes cambiar en el menú ….",
+        "Oben": "Arriba",
+        "Position: links ↔ rechts": "Posición: izquierda ↔ derecha",
+        "Unten": "Abajo",
     ]
 }

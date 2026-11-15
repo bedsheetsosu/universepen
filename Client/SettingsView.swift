@@ -270,6 +270,8 @@ struct SettingsView: View {
                 Picker(L("Seite"), selection: $model.settings.tabletKeys.side) {
                     Text(L("Links")).tag(TabletKeys.Side.left)
                     Text(L("Rechts")).tag(TabletKeys.Side.right)
+                    Text(L("Oben")).tag(TabletKeys.Side.top)
+                    Text(L("Unten")).tag(TabletKeys.Side.bottom)
                 }
                 .pickerStyle(.segmented)
                 VStack(alignment: .leading) {
@@ -277,7 +279,7 @@ struct SettingsView: View {
                     Slider(value: $model.settings.tabletKeys.size, in: 70...200, step: 5)
                 }
                 VStack(alignment: .leading) {
-                    Text(L("Position: oben ↔ unten"))
+                    Text(model.settings.tabletKeys.side.horizontal ? L("Position: links ↔ rechts") : L("Position: oben ↔ unten"))
                     Slider(value: $model.settings.tabletKeys.vertical, in: 0...1)
                 }
                 ForEach($model.settings.tabletKeys.keys) { $k in

@@ -449,12 +449,16 @@ public struct TabletPreset: Codable, Equatable, Identifiable, Sendable {
 
 /// Touch keys in tablet mode ("ExpressKeys"): held as long as a finger rests on them.
 public struct TabletKeys: Codable, Equatable, Sendable {
-    public enum Side: String, Codable, CaseIterable, Sendable { case left, right }
+    public enum Side: String, Codable, CaseIterable, Sendable {
+        case left, right, top, bottom
+        /// Keys side by side (top / bottom edge) instead of in a column.
+        public var horizontal: Bool { self == .top || self == .bottom }
+    }
     public var enabled = false
     public var side: Side = .left
     /// Edge length of a key in points.
     public var size: Double = 120
-    /// Where the column sits: 0 = top, 0.5 = centred, 1 = bottom.
+    /// Where the keys sit along their edge: 0 = top/left, 0.5 = centred, 1 = bottom/right.
     public var vertical: Double = 0.5
     public var keys: [TabletKey] = [TabletKey(title: "Z", key: "z"), TabletKey(title: "X", key: "x")]
     public init() {}
@@ -470,12 +474,18 @@ public struct TabletKeys: Codable, Equatable, Sendable {
         keys = try c.decodeIfPresent([TabletKey].self, forKey: .keys) ?? d.keys
     }
 
-    /// Key frames in a view of `size` (a column centred on the chosen side).
+    /// Key frames in a view of `size`: a column on the left/right edge or a row on the top/bottom edge.
     public func frames(in view: CGSize) -> [CGRect] {
         let s = CGFloat(size), gap: CGFloat = 16, margin: CGFloat = 22
         let total = CGFloat(keys.count) * s + CGFloat(max(keys.count - 1, 0)) * gap
+        let pos = CGFloat(min(max(vertical, 0), 1))
+        if side.horizontal {
+            let y = side == .top ? margin : view.height - margin - s
+            var x = margin + max(view.width - total - 2 * margin, 0) * pos
+            return keys.map { _ in defer { x += s + gap }; return CGRect(x: x, y: y, width: s, height: s) }
+        }
         let x = side == .left ? margin : view.width - margin - s
-        var y = margin + max(view.height - total - 2 * margin, 0) * CGFloat(min(max(vertical, 0), 1))
+        var y = margin + max(view.height - total - 2 * margin, 0) * pos
         return keys.map { _ in defer { y += s + gap }; return CGRect(x: x, y: y, width: s, height: s) }
     }
 }

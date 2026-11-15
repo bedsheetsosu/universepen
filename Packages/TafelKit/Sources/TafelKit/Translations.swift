@@ -450,5 +450,8 @@ enum Translations {
         "Profile sind komplette Einstellungs-Sätze (z. B. „Zeichnen“ und „osu!“). Lege eins an, dann landen Änderungen automatisch im aktiven Profil.": "Profiles are complete sets of settings (e.g. “Drawing” and “osu!”). Create one, and changes go into the active profile automatically.",
         "Umbenennen": "Rename",
         "Änderungen landen automatisch im aktiven Profil. Gedrückt halten: umbenennen, duplizieren, löschen. Wechseln geht auch im …-Menü.": "Changes go into the active profile automatically. Press and hold: rename, duplicate, delete. You can also switch in the … menu.",
+        "Oben": "Top",
+        "Position: links ↔ rechts": "Position: left ↔ right",
+        "Unten": "Bottom",
     ]
 }

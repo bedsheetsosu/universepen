@@ -168,6 +168,15 @@ final class TabletExtrasTests: XCTestCase {
         XCTAssertEqual(Double(f.last!.maxY), 820 - 22, accuracy: 0.5)
     }
 
+    func testKeyRowAtTheTop() {
+        var k = TabletKeys(); k.side = .top; k.vertical = 0
+        let f = k.frames(in: CGSize(width: 1180, height: 820))
+        XCTAssertEqual(Double(f[0].minY), 22, accuracy: 0.5)
+        XCTAssertEqual(Double(f[0].minX), 22, accuracy: 0.5)
+        XCTAssertEqual(Double(f[1].minY), Double(f[0].minY), accuracy: 0.01)   // side by side
+        XCTAssertGreaterThan(f[1].minX, f[0].maxX)
+    }
+
     func testProfileRoundTrip() throws {
         var s = InputSettings(); s.tabletMode = true; s.tipThreshold = 0.2
         let p = SettingsProfile(name: "osu!", settings: s, quality: StreamQuality(fps: 60))

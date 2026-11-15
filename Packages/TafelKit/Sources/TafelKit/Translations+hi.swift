@@ -407,5 +407,8 @@ extension Translations {
         "Profile sind komplette Einstellungs-Sätze (z. B. „Zeichnen“ und „osu!“). Lege eins an, dann landen Änderungen automatisch im aktiven Profil.": "प्रोफ़ाइल सेटिंग्स के पूरे सेट हैं (जैसे “ड्रॉइंग” और “osu!”)। एक बनाएँ, फिर बदलाव अपने आप सक्रिय प्रोफ़ाइल में सेव होते हैं।",
         "Umbenennen": "नाम बदलें",
         "Änderungen landen automatisch im aktiven Profil. Gedrückt halten: umbenennen, duplizieren, löschen. Wechseln geht auch im …-Menü.": "बदलाव अपने आप सक्रिय प्रोफ़ाइल में सेव होते हैं। दबाकर रखें: नाम बदलें, डुप्लिकेट करें, हटाएँ। … मेन्यू से भी बदल सकते हैं।",
+        "Oben": "ऊपर",
+        "Position: links ↔ rechts": "स्थिति: बाएँ ↔ दाएँ",
+        "Unten": "नीचे",
     ]
 }

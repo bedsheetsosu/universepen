@@ -407,5 +407,8 @@ extension Translations {
         "Profile sind komplette Einstellungs-Sätze (z. B. „Zeichnen“ und „osu!“). Lege eins an, dann landen Änderungen automatisch im aktiven Profil.": "프로필은 설정 전체 묶음입니다(예: '그리기'와 'osu!'). 하나 만들면 변경 사항이 활성 프로필에 자동으로 저장됩니다.",
         "Umbenennen": "이름 변경",
         "Änderungen landen automatisch im aktiven Profil. Gedrückt halten: umbenennen, duplizieren, löschen. Wechseln geht auch im …-Menü.": "변경 사항은 활성 프로필에 자동으로 저장됩니다. 길게 누르기: 이름 변경, 복제, 삭제. … 메뉴에서도 전환할 수 있습니다.",
+        "Oben": "위",
+        "Position: links ↔ rechts": "위치: 왼쪽 ↔ 오른쪽",
+        "Unten": "아래",
     ]
 }
