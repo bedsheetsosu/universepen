@@ -357,7 +357,6 @@ enum Translations {
         "iPad-Akku: %d %%": "iPad battery: %d %%",
         "Volle Mac-Auflösung senden": "Send full Mac resolution",
         "„Volle Mac-Auflösung“: Der Mac schickt alle Pixel unverkleinert (z. B. beim zweiten Bildschirm mit mehr Platz), das iPad verkleinert beim Anzeigen. Kann schärfer sein, braucht aber mehr Bitrate.": "“Full Mac resolution”: the Mac sends all pixels unscaled (e.g. a second screen with more space) and the iPad scales them down when showing them. Can be sharper, but needs more bitrate.",
-        "Fensterliste aktualisieren": "Refresh window list",
         "Spielmodus": "Game mode",
         "Spielmodus (z. B. für osu!): Solange die App am Mac vorne ist, gelten 60 fps, volle Auflösung, mindestens 60 Mbit/s, keine automatische Bitrate und keine Glättung. Mehr als 60 Hz kann das iPad-Display nicht zeigen.": "Game mode (e.g. for osu!): while the app is in front on the Mac: 60 fps, full resolution, at least 60 Mbit/s, no automatic bitrate and no smoothing. The iPad display can't show more than 60 Hz.",
         "Spielmodus für %@": "Game mode for %@",
@@ -369,5 +368,6 @@ enum Translations {
         "Fließender Hintergrund": "Flowing background",
         "Geschwindigkeit": "Speed",
         "Akzentfarbe aus den Vorschlägen oder frei im Farbrad. „Fließender Hintergrund“ lässt die Farben langsam verlaufen und wandern (nur hinter Menüs und Einrichtung, nie über dem Mac-Bild).": "Accent colour from the suggestions or freely from the colour wheel. “Flowing background” lets the colours slowly blend and drift (only behind menus and setup, never over the Mac picture).",
+        "Keine Fenster gefunden": "No windows found",
     ]
 }

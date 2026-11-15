@@ -314,7 +314,6 @@ extension Translations {
         "iPad-Akku: %d %%": "Batería del iPad: %d %%",
         "Volle Mac-Auflösung senden": "Enviar resolución completa del Mac",
         "„Volle Mac-Auflösung“: Der Mac schickt alle Pixel unverkleinert (z. B. beim zweiten Bildschirm mit mehr Platz), das iPad verkleinert beim Anzeigen. Kann schärfer sein, braucht aber mehr Bitrate.": "«Resolución completa del Mac»: el Mac envía todos los píxeles sin reducir (p. ej. una segunda pantalla con más espacio) y el iPad los reduce al mostrarlos. Puede ser más nítido, pero necesita más tasa de bits.",
-        "Fensterliste aktualisieren": "Actualizar lista de ventanas",
         "Spielmodus": "Modo juego",
         "Spielmodus (z. B. für osu!): Solange die App am Mac vorne ist, gelten 60 fps, volle Auflösung, mindestens 60 Mbit/s, keine automatische Bitrate und keine Glättung. Mehr als 60 Hz kann das iPad-Display nicht zeigen.": "Modo juego (p. ej. para osu!): mientras la app esté en primer plano en el Mac: 60 fps, resolución completa, al menos 60 Mbit/s, sin tasa de bits automática y sin suavizado. La pantalla del iPad no muestra más de 60 Hz.",
         "Spielmodus für %@": "Modo juego para %@",
@@ -326,5 +325,6 @@ extension Translations {
         "Fließender Hintergrund": "Fondo fluido",
         "Geschwindigkeit": "Velocidad",
         "Akzentfarbe aus den Vorschlägen oder frei im Farbrad. „Fließender Hintergrund“ lässt die Farben langsam verlaufen und wandern (nur hinter Menüs und Einrichtung, nie über dem Mac-Bild).": "Color de acento de las sugerencias o libre en la rueda de color. «Fondo fluido» hace que los colores se mezclen y se desplacen lentamente (solo detrás de menús y configuración, nunca sobre la imagen del Mac).",
+        "Keine Fenster gefunden": "No se encontraron ventanas",
     ]
 }

@@ -314,7 +314,6 @@ extension Translations {
         "iPad-Akku: %d %%": "iPad बैटरी: %d %%",
         "Volle Mac-Auflösung senden": "Mac का पूरा रिज़ॉल्यूशन भेजें",
         "„Volle Mac-Auflösung“: Der Mac schickt alle Pixel unverkleinert (z. B. beim zweiten Bildschirm mit mehr Platz), das iPad verkleinert beim Anzeigen. Kann schärfer sein, braucht aber mehr Bitrate.": "“Mac का पूरा रिज़ॉल्यूशन”: Mac सभी पिक्सेल बिना छोटा किए भेजता है (जैसे ज़्यादा जगह वाली दूसरी स्क्रीन) और iPad दिखाते समय उन्हें छोटा करता है। ज़्यादा शार्प हो सकता है, लेकिन ज़्यादा बिटरेट चाहिए।",
-        "Fensterliste aktualisieren": "विंडो सूची रीफ़्रेश करें",
         "Spielmodus": "गेम मोड",
         "Spielmodus (z. B. für osu!): Solange die App am Mac vorne ist, gelten 60 fps, volle Auflösung, mindestens 60 Mbit/s, keine automatische Bitrate und keine Glättung. Mehr als 60 Hz kann das iPad-Display nicht zeigen.": "गेम मोड (जैसे osu! के लिए): जब तक ऐप Mac पर सामने है: 60 fps, पूरा रिज़ॉल्यूशन, कम से कम 60 Mbit/s, कोई ऑटोमैटिक बिटरेट नहीं और कोई स्मूदिंग नहीं। iPad डिस्प्ले 60 Hz से ज़्यादा नहीं दिखा सकता।",
         "Spielmodus für %@": "%@ के लिए गेम मोड",
@@ -326,5 +325,6 @@ extension Translations {
         "Fließender Hintergrund": "बहता बैकग्राउंड",
         "Geschwindigkeit": "गति",
         "Akzentfarbe aus den Vorschlägen oder frei im Farbrad. „Fließender Hintergrund“ lässt die Farben langsam verlaufen und wandern (nur hinter Menüs und Einrichtung, nie über dem Mac-Bild).": "सुझावों में से या कलर व्हील से अपनी पसंद का एक्सेंट रंग चुनें। “बहता बैकग्राउंड” रंगों को धीरे-धीरे मिलाता और बदलता है (सिर्फ़ मेन्यू और सेटअप के पीछे, Mac की तस्वीर के ऊपर कभी नहीं)।",
+        "Keine Fenster gefunden": "कोई विंडो नहीं मिली",
     ]
 }

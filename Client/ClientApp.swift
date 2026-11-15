@@ -24,6 +24,7 @@ struct RootView: View {
     @ObservedObject private var l10n = L10n.shared
     @State private var showSettings = false
     @State private var showStatus = false
+    @State private var menuOpen = false
 
     private var reconnecting: Bool {
         if case .reconnecting = model.phase { return true }
@@ -79,16 +80,18 @@ struct RootView: View {
                         StatusPill()
                             .transition(.move(edge: .trailing).combined(with: .opacity))
                     }
-                    OverlayMenuButton(
-                        sourceList: model.sourceList, frontAppName: model.frontApp?.name,
-                        gameModeActive: model.gameModeActive, showStatus: showStatus, showKeyboard: model.showKeyboard,
-                        select: { [weak model] in model?.selectSource($0) },
-                        toggleGameMode: { [weak model] in model?.toggleGameMode() },
-                        toggleStatus: { showStatus.toggle() },
-                        toggleKeyboard: { [weak model] in model?.showKeyboard.toggle() },
-                        openSettings: { showSettings = true },
-                        disconnect: { [weak model] in model?.disconnect() })
-                        .equatable()
+                    Button {
+                        withAnimation(Brand.spring) { menuOpen.toggle() }
+                    } label: {
+                        Image(systemName: menuOpen ? "xmark" : "ellipsis")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(.white.opacity(0.85))
+                            .contentTransition(.symbolEffect(.replace))
+                            .frame(width: 36, height: 36)
+                            .tafelOverlayGlass(Circle())
+                            .contentShape(Circle())
+                    }
+                    .buttonStyle(.plain)
                 }
                 if let n = model.scrubSteps {
                     ScrubPill(steps: n)
@@ -101,6 +104,24 @@ struct RootView: View {
                 Spacer()
             }
             .padding(10)
+            if menuOpen {
+                // Tap anywhere else closes the menu (and keeps the touch off the Mac).
+                Color.black.opacity(0.001)
+                    .ignoresSafeArea()
+                    .onTapGesture { withAnimation(Brand.spring) { menuOpen = false } }
+                VStack {
+                    HStack {
+                        Spacer()
+                        OverlayMenuPanel(
+                            close: { withAnimation(Brand.spring) { menuOpen = false } },
+                            toggleStatus: { showStatus.toggle() }, showStatus: showStatus,
+                            openSettings: { showSettings = true })
+                    }
+                    Spacer()
+                }
+                .padding(.top, 54).padding(.trailing, 10)
+                .transition(.scale(scale: 0.85, anchor: .topTrailing).combined(with: .opacity))
+            }
         }
         .animation(Brand.spring, value: reconnecting)
         .animation(Brand.spring, value: model.scrubSteps != nil)
@@ -108,72 +129,23 @@ struct RootView: View {
     }
 }
 
-/// The … button. Only redraws when what it shows changes: rebuilding a Menu re-runs its glass
-/// animation, and the app state changes several times a second (latency, status).
-private struct OverlayMenuButton: View, Equatable {
-    let sourceList: SourceList?
-    let frontAppName: String?
-    let gameModeActive: Bool
-    let showStatus: Bool
-    let showKeyboard: Bool
-    let select: (SourceSelection) -> Void
-    let toggleGameMode: () -> Void
+/// The … menu as an own panel (not a system Menu): a system menu is rebuilt by UIKit while it is
+/// open whenever the app updates, which made it blink and drop the item you were holding.
+private struct OverlayMenuPanel: View {
+    @EnvironmentObject var model: ClientModel
+    let close: () -> Void
     let toggleStatus: () -> Void
-    let toggleKeyboard: () -> Void
+    let showStatus: Bool
     let openSettings: () -> Void
-    let disconnect: () -> Void
+    @State private var windowsOpen = false
 
-    static func == (a: Self, b: Self) -> Bool {
-        a.sourceList == b.sourceList && a.frontAppName == b.frontAppName && a.gameModeActive == b.gameModeActive
-            && a.showStatus == b.showStatus && a.showKeyboard == b.showKeyboard
-    }
-
-    var body: some View {
-        Menu {
-            if let sourceList { SourceMenu(list: sourceList, select: select) }
-            if let name = frontAppName {
-                Button(action: toggleGameMode) {
-                    Label(gameModeActive ? L("Spielmodus für %@ aus", name) : L("Spielmodus für %@", name), systemImage: "gamecontroller")
-                }
-            }
-            Divider()
-            Button(action: toggleStatus) {
-                Label(showStatus ? L("Status ausblenden") : L("Status anzeigen"), systemImage: "gauge.with.dots.needle.33percent")
-            }
-            Button(action: toggleKeyboard) {
-                Label(showKeyboard ? L("Bildschirmtastatur ausblenden") : L("Bildschirmtastatur"), systemImage: "keyboard")
-            }
-            Button(action: openSettings) {
-                Label(L("Einstellungen …"), systemImage: "gearshape")
-            }
-            Divider()
-            Button(role: .destructive, action: disconnect) {
-                Label(L("Trennen"), systemImage: "xmark.circle")
-            }
-        } label: {
-            Image(systemName: "ellipsis")
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.85))
-                .frame(width: 36, height: 36)
-                .tafelOverlayGlass(Circle())
-                .contentShape(Circle())
-        }
-    }
-}
-
-/// Source picker in the … menu: what the Mac streams, switched from the iPad.
-private struct SourceMenu: View {
-    let list: SourceList
-    let select: (SourceSelection) -> Void
-
-    /// Mode names from the Mac, shown in the iPad's language.
-    private func title(_ o: SourceOption) -> String {
-        switch o.id {
+    private func modeTitle(_ id: String) -> String {
+        switch id {
         case "display": return L("Ganzer Bildschirm")
         case "second-screen": return L("Zweiter Bildschirm")
         case "region": return L("iPad-Ausschnitt")
         case "window": return L("Fenster")
-        default: return o.title
+        default: return id
         }
     }
 
@@ -187,42 +159,104 @@ private struct SourceMenu: View {
     }
 
     var body: some View {
-        let l = list
-        Menu {
-            ForEach(l.modes.filter { $0.id != "window" }) { m in
-                Button {
-                    select(SourceSelection(mode: m.id))
-                } label: {
-                    Label(title(m), systemImage: l.mode == m.id ? "checkmark" : icon(m.id))
-                }
-                .disabled(!m.available)
-            }
-            Menu {
-                ForEach(l.windows) { w in
-                    Button {
-                        select(SourceSelection(mode: "window", window: w.id))
-                    } label: {
-                        if l.mode == "window" && l.selectedWindow == w.id { Label(w.title, systemImage: "checkmark") } else { Text(w.title) }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 2) {
+                if let l = model.sourceList {
+                    header(L("Quelle"))
+                    ForEach(l.modes.filter { $0.id != "window" }) { m in
+                        row(modeTitle(m.id), icon: icon(m.id), checked: l.mode == m.id, enabled: m.available) {
+                            model.selectSource(SourceSelection(mode: m.id)); close()
+                        }
                     }
-                }
-                Divider()
-                Button(L("Fensterliste aktualisieren")) { select(SourceSelection(refresh: true)) }
-            } label: {
-                Label(L("Fenster"), systemImage: l.mode == "window" ? "checkmark" : "macwindow")
-            }
-            if l.displays.count > 1 {
-                Divider()
-                ForEach(l.displays) { d in
-                    Button {
-                        select(SourceSelection(display: d.id))
-                    } label: {
-                        if l.selectedDisplay == d.id { Label(d.title, systemImage: "checkmark") } else { Text(d.title) }
+                    row(L("Fenster"), icon: "macwindow", checked: l.mode == "window",
+                        trailing: windowsOpen ? "chevron.up" : "chevron.down") {
+                        withAnimation(Brand.spring) { windowsOpen.toggle() }
+                        if windowsOpen { model.selectSource(SourceSelection(refresh: true)) }
                     }
+                    if windowsOpen {
+                        ForEach(l.windows) { w in
+                            row(w.title, icon: nil, checked: l.mode == "window" && l.selectedWindow == w.id, indent: true) {
+                                model.selectSource(SourceSelection(mode: "window", window: w.id)); close()
+                            }
+                        }
+                        if l.windows.isEmpty {
+                            Text(L("Keine Fenster gefunden")).font(.caption).foregroundStyle(.secondary).padding(.leading, 44).padding(.vertical, 6)
+                        }
+                    }
+                    if l.displays.count > 1 {
+                        header(L("Bildschirm"))
+                        ForEach(l.displays) { d in
+                            row(d.title, icon: "display", checked: l.selectedDisplay == d.id) {
+                                model.selectSource(SourceSelection(display: d.id)); close()
+                            }
+                        }
+                    }
+                    divider
                 }
+                if let app = model.frontApp {
+                    row(model.gameModeActive ? L("Spielmodus für %@ aus", app.name) : L("Spielmodus für %@", app.name),
+                        icon: "gamecontroller", checked: model.gameModeActive) { model.toggleGameMode(); close() }
+                }
+                row(showStatus ? L("Status ausblenden") : L("Status anzeigen"), icon: "gauge.with.dots.needle.33percent") {
+                    toggleStatus(); close()
+                }
+                row(model.showKeyboard ? L("Bildschirmtastatur ausblenden") : L("Bildschirmtastatur"), icon: "keyboard") {
+                    model.showKeyboard.toggle(); close()
+                }
+                row(L("Einstellungen …"), icon: "gearshape") { close(); openSettings() }
+                divider
+                row(L("Trennen"), icon: "xmark.circle", destructive: true) { close(); model.disconnect() }
             }
-        } label: {
-            Label(L("Quelle"), systemImage: "rectangle.on.rectangle.angled")
+            .padding(8)
         }
+        .scrollBounceBehavior(.basedOnSize)
+        .frame(width: 300)
+        .fixedSize(horizontal: false, vertical: true)
+        .frame(maxHeight: 560)
+        .tafelOverlayGlass(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .shadow(color: .black.opacity(0.35), radius: 18, y: 8)
+    }
+
+    private var divider: some View {
+        Rectangle().fill(.white.opacity(0.1)).frame(height: 1).padding(.vertical, 6).padding(.horizontal, 8)
+    }
+
+    private func header(_ t: String) -> some View {
+        Text(t.uppercased()).font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
+            .padding(.horizontal, 12).padding(.top, 6).padding(.bottom, 2)
+    }
+
+    private func row(_ title: String, icon: String?, checked: Bool = false, enabled: Bool = true, indent: Bool = false,
+                     destructive: Bool = false, trailing: String? = nil, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Group {
+                    if let icon { Image(systemName: icon) } else { Color.clear }
+                }
+                .frame(width: 22)
+                .foregroundStyle(destructive ? Color.red : checked ? Brand.mint : .secondary)
+                Text(title).lineLimit(2).multilineTextAlignment(.leading)
+                    .foregroundStyle(destructive ? Color.red : .primary)
+                Spacer(minLength: 4)
+                if checked { Image(systemName: "checkmark").font(.footnote.weight(.bold)).foregroundStyle(Brand.mint) }
+                if let trailing { Image(systemName: trailing).font(.footnote).foregroundStyle(.secondary) }
+            }
+            .font(.callout)
+            .padding(.vertical, 9).padding(.horizontal, 12)
+            .padding(.leading, indent ? 22 : 0)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(MenuRowStyle())
+        .disabled(!enabled)
+        .opacity(enabled ? 1 : 0.4)
+    }
+}
+
+private struct MenuRowStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .background(.white.opacity(configuration.isPressed ? 0.12 : 0), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }
 

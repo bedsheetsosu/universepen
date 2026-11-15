@@ -314,7 +314,6 @@ extension Translations {
         "iPad-Akku: %d %%": "iPad のバッテリー：%d %%",
         "Volle Mac-Auflösung senden": "Mac のフル解像度で送信",
         "„Volle Mac-Auflösung“: Der Mac schickt alle Pixel unverkleinert (z. B. beim zweiten Bildschirm mit mehr Platz), das iPad verkleinert beim Anzeigen. Kann schärfer sein, braucht aber mehr Bitrate.": "「Mac のフル解像度」：Mac がすべてのピクセルを縮小せずに送り（例：スペースを広げた第 2 画面）、iPad が表示時に縮小します。よりシャープになる場合がありますが、より高いビットレートが必要です。",
-        "Fensterliste aktualisieren": "ウィンドウ一覧を更新",
         "Spielmodus": "ゲームモード",
         "Spielmodus (z. B. für osu!): Solange die App am Mac vorne ist, gelten 60 fps, volle Auflösung, mindestens 60 Mbit/s, keine automatische Bitrate und keine Glättung. Mehr als 60 Hz kann das iPad-Display nicht zeigen.": "ゲームモード（例：osu!）：そのアプリが Mac で前面にある間は 60 fps、フル解像度、60 Mbit/s 以上、自動ビットレートなし、スムージングなし。iPad のディスプレイは 60 Hz を超えて表示できません。",
         "Spielmodus für %@": "%@ のゲームモード",
@@ -326,5 +325,6 @@ extension Translations {
         "Fließender Hintergrund": "流れる背景",
         "Geschwindigkeit": "速度",
         "Akzentfarbe aus den Vorschlägen oder frei im Farbrad. „Fließender Hintergrund“ lässt die Farben langsam verlaufen und wandern (nur hinter Menüs und Einrichtung, nie über dem Mac-Bild).": "アクセントカラーは候補から、またはカラーホイールで自由に選べます。「流れる背景」は色をゆっくり混ざり合わせて移ろわせます（メニューと設定の背後のみ。Mac の映像の上には表示されません）。",
+        "Keine Fenster gefunden": "ウィンドウが見つかりません",
     ]
 }
