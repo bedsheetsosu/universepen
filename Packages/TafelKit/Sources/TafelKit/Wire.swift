@@ -112,11 +112,15 @@ public struct HostInfo: Codable, Equatable, Sendable {
     public var protocolVersion: Int
     /// Human-readable description of what is being captured.
     public var sourceDescription: String
-    public init(hostID: String, hostName: String, protocolVersion: Int = tafelProtocolVersion, sourceDescription: String) {
+    /// Another iPad already shows the picture: this one works as a tablet (input only, no video).
+    public var secondary: Bool?
+    public init(hostID: String, hostName: String, protocolVersion: Int = tafelProtocolVersion, sourceDescription: String,
+                secondary: Bool? = nil) {
         self.hostID = hostID
         self.hostName = hostName
         self.protocolVersion = protocolVersion
         self.sourceDescription = sourceDescription
+        self.secondary = secondary
     }
 }
 

@@ -521,5 +521,16 @@ enum Translations {
         "Nur Monitor (keine Eingabe)": "Monitor only (no input)",
         "Nur Monitor – Eingaben gehen nicht an den Mac": "Monitor only – input is not sent to the Mac",
         "Eingabe wieder an": "Input on again",
+        "%d Profil(e) importiert": "%d profile(s) imported",
+        "+ als Tablett: %@": "+ as tablet: %@",
+        "Abdunkeln nach": "Dim after",
+        "Alle Profile": "All profiles",
+        "Alle Profile exportieren …": "Export all profiles …",
+        "Ein anderes iPad zeigt das Bild – dieses iPad arbeitet als Tablett.": "Another iPad shows the picture – this iPad works as a tablet.",
+        "Exportieren …": "Export …",
+        "Keine UniversePen-Profile in dieser Datei": "No UniversePen profiles in this file",
+        "Nicht abdunkeln, solange sich das Bild ändert": "Don't dim while the picture keeps changing",
+        "Nie": "Never",
+        "Profil importieren …": "Import profile …",
     ]
 }

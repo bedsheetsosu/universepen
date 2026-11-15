@@ -211,6 +211,11 @@ public struct InputSettings: Codable, Equatable, Sendable {
     public var tabletArea = TabletArea.full
     /// Keep the area in the Mac display's aspect ratio (no stretching, like Wacom's "force proportions").
     public var tabletLockAspect = false
+    /// Dim the iPad after this many minutes without input (0 = never). Brightness comes back at once.
+    public var dimAfterMinutes: Double = 0
+    /// Don't dim while the picture keeps changing (e.g. a video in monitor mode).
+    public var dimOnlyWhenStill = true
+
     /// Monitor only: the iPad just shows the picture, nothing is sent to the Mac.
     public var viewOnly = false
 
@@ -277,7 +282,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         case fingerMode, fingerPressure, longPressRightClick, palmRadius
         case threeFingerSwipeLeft, threeFingerSwipeRight, threeFingerSwipeUp, threeFingerSwipeDown, fourFingerTap
         case swapISOKeys, trackpadAsMouse, hideIPadPointer, showShortcutBar, shortcutBarOnRight, shortcutBar
-        case appShortcutBars, appNames, radialMenu, appPenProfiles, gameApps, undoScrub, undoScrubStep, instantInk, hoverDot, tabletMode, tabletArea, tabletLockAspect, tabletPresets, tipThreshold, tabletKeys, doubleTapToClick, viewOnly
+        case appShortcutBars, appNames, radialMenu, appPenProfiles, gameApps, undoScrub, undoScrubStep, instantInk, hoverDot, tabletMode, tabletArea, tabletLockAspect, tabletPresets, tipThreshold, tabletKeys, doubleTapToClick, viewOnly, dimAfterMinutes, dimOnlyWhenStill
     }
 
     /// Tolerates settings saved by older versions: missing keys keep their defaults.
@@ -312,6 +317,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         try get(.tabletPresets, &tabletPresets)
         try get(.tipThreshold, &tipThreshold); try get(.tabletKeys, &tabletKeys)
         try get(.doubleTapToClick, &doubleTapToClick); try get(.viewOnly, &viewOnly)
+        try get(.dimAfterMinutes, &dimAfterMinutes); try get(.dimOnlyWhenStill, &dimOnlyWhenStill)
     }
 }
 

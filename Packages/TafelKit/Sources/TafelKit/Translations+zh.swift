@@ -478,5 +478,16 @@ extension Translations {
         "Nur Monitor (keine Eingabe)": "仅显示器（无输入）",
         "Nur Monitor – Eingaben gehen nicht an den Mac": "仅显示器——输入不会发送到 Mac",
         "Eingabe wieder an": "输入已重新开启",
+        "%d Profil(e) importiert": "已导入 %d 个配置",
+        "+ als Tablett: %@": "+ 作为数位板：%@",
+        "Abdunkeln nach": "变暗时间",
+        "Alle Profile": "所有配置",
+        "Alle Profile exportieren …": "导出所有配置 …",
+        "Ein anderes iPad zeigt das Bild – dieses iPad arbeitet als Tablett.": "另一台 iPad 正在显示画面——这台 iPad 作为数位板使用。",
+        "Exportieren …": "导出 …",
+        "Keine UniversePen-Profile in dieser Datei": "此文件中没有 UniversePen 配置",
+        "Nicht abdunkeln, solange sich das Bild ändert": "画面变化时不变暗",
+        "Nie": "从不",
+        "Profil importieren …": "导入配置 …",
     ]
 }

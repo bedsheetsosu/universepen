@@ -478,5 +478,16 @@ extension Translations {
         "Nur Monitor (keine Eingabe)": "सिर्फ़ मॉनिटर (कोई इनपुट नहीं)",
         "Nur Monitor – Eingaben gehen nicht an den Mac": "सिर्फ़ मॉनिटर – इनपुट Mac पर नहीं जाता",
         "Eingabe wieder an": "इनपुट फिर से चालू",
+        "%d Profil(e) importiert": "%d प्रोफ़ाइल इम्पोर्ट हुईं",
+        "+ als Tablett: %@": "+ टैबलेट के रूप में: %@",
+        "Abdunkeln nach": "इसके बाद मंद करें",
+        "Alle Profile": "सभी प्रोफ़ाइल",
+        "Alle Profile exportieren …": "सभी प्रोफ़ाइल एक्सपोर्ट करें …",
+        "Ein anderes iPad zeigt das Bild – dieses iPad arbeitet als Tablett.": "दूसरा iPad तस्वीर दिखा रहा है – यह iPad टैबलेट की तरह काम करता है।",
+        "Exportieren …": "एक्सपोर्ट करें …",
+        "Keine UniversePen-Profile in dieser Datei": "इस फ़ाइल में कोई UniversePen प्रोफ़ाइल नहीं",
+        "Nicht abdunkeln, solange sich das Bild ändert": "तस्वीर बदलते रहने तक मंद न करें",
+        "Nie": "कभी नहीं",
+        "Profil importieren …": "प्रोफ़ाइल इम्पोर्ट करें …",
     ]
 }

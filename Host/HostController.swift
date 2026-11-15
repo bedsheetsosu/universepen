@@ -68,6 +68,11 @@ final class HostController: ObservableObject {
     private let timelapseSink = TimelapseSink()
     let plugins = PluginManager()
 
+    /// Extra iPads connected as tablets (input only).
+    @Published var extraTablets: [String] = []
+    /// Display the extra tablets map onto (read from the network queue).
+    private let tabletDisplay = LockedDisplayID()
+
     @Published var ipadBattery: Double?
     @Published var ipadCharging: Bool?
     // MARK: Developer API state
@@ -118,7 +123,12 @@ final class HostController: ObservableObject {
     }
     @Published var displays: [DisplayChoice] = []
     @Published var windows: [WindowChoice] = []
-    @Published var selectedDisplay: CGDirectDisplayID = CGMainDisplayID() { didSet { if selectedDisplay != oldValue { restartStream() } } }
+    @Published var selectedDisplay: CGDirectDisplayID = CGMainDisplayID() {
+        didSet {
+            tabletDisplay.value = selectedDisplay
+            if selectedDisplay != oldValue { restartStream() }
+        }
+    }
     @Published var selectedWindow: CGWindowID = 0 { didSet { if selectedWindow != oldValue, mode == .window { restartStream() } } }
     @Published var regionZoom: Double = 1 { didSet { updateRegionLive() } }
     @Published var regionAnchorX: Double = 0.5 { didSet { updateRegionLive() } }
@@ -472,6 +482,13 @@ final class HostController: ObservableObject {
             }
             }
         }
+        let tabletDisplay = self.tabletDisplay
+        server.onExtraPen = { raw in
+            let area = CGDisplayBounds(tabletDisplay.value)
+            let samples = plugins.hasFilters ? plugins.filterPen(raw) : [raw]
+            for p in samples { injector.handle(p, area: area) }
+        }
+        server.onExtrasChanged = { [weak self] names in Task { @MainActor in self?.extraTablets = names } }
         server.onScroll = { e in
             injector.scroll(e)
             if api.wants("input") {
@@ -978,6 +995,16 @@ final class LockedString: @unchecked Sendable {
     private let lock = NSLock()
     private var _value = ""
     var value: String {
+        get { lock.withLock { _value } }
+        set { lock.withLock { _value = newValue } }
+    }
+}
+
+/// Display ID readable from the network queue.
+final class LockedDisplayID: @unchecked Sendable {
+    private let lock = NSLock()
+    private var _value: CGDirectDisplayID = CGMainDisplayID()
+    var value: CGDirectDisplayID {
         get { lock.withLock { _value } }
         set { lock.withLock { _value = newValue } }
     }

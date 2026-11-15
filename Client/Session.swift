@@ -193,7 +193,8 @@ final class Session: @unchecked Sendable {
             guard let info = try? JSONWire.decode(HostInfo.self, f.payload) else { return }
             if !connected {
                 connected = true
-                startVideo()
+                // An extra (tablet) iPad gets no picture.
+                if info.secondary != true { startVideo() }
                 startPings()
                 onConnected?()
             }

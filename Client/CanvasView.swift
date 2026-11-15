@@ -73,7 +73,10 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         addSubview(ink)
         addSubview(keys)
         keys.isHidden = true
-        keys.onKey = { [weak self] k, down in self?.session?.send(charKey: CharKeyEvent(key: k, down: down)) }
+        keys.onKey = { [weak self] k, down in
+            if down { self?.onInput?() }
+            self?.session?.send(charKey: CharKeyEvent(key: k, down: down))
+        }
         setupGestures()
         let pencil = UIPencilInteraction(delegate: self)
         addInteraction(pencil)
@@ -109,6 +112,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     /// Every key goes to the Mac as a physical key position (incl. modifiers). iPadOS keeps a few
     /// system shortcuts for itself (e.g. ⌘-Tab, ⌘-Space, Globe), those never arrive here.
     override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        onInput?()
         var unhandled = Set<UIPress>()
         for p in presses {
             guard let usage = hidUsage(p) else { unhandled.insert(p); continue }
@@ -237,7 +241,11 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
 
     // MARK: Pencil touches
 
+    /// Any input (touch, hover, key) – wakes a dimmed screen.
+    var onInput: (() -> Void)?
+
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        onInput?()
         // Back to the canvas after a menu or sheet took the keyboard focus (hardware keyboard).
         if keyboardShown != true, !isFirstResponder { becomeFirstResponder() }
         fingersBegan(touches)
@@ -460,6 +468,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
 
     @objc private func handleHover(_ g: UIHoverGestureRecognizer) {
         let gone = g.state == .ended || g.state == .cancelled || g.state == .failed
+        if g.state == .began { onInput?() }
         lastHoverPoint = gone ? nil : g.location(in: self)
         // While the radial menu is open nothing goes to the Mac, but the hover state must still
         // end – otherwise single-finger input stays blocked ("Pencil is hovering").
@@ -747,16 +756,17 @@ struct CanvasRepresentable: UIViewRepresentable {
         v.onRadialOpen = { [weak model] p in model?.openRadial(at: p) }
         v.onRadialPick = { [weak model] in model?.pickRadial(model?.radialHighlight) }
         v.onScrub = { [weak model] n in model?.scrubSteps = n }
+        v.onInput = { [weak model] in model?.noteInput() }
         return v
     }
 
     func updateUIView(_ v: CanvasView, context: Context) {
         v.setViewOnly(model.settings.viewOnly, session: model.session)
         v.settings = model.effectiveSettings
-        v.tabletMode = model.settings.tabletMode
+        v.tabletMode = model.tabletModeActive
         v.keys.config = model.settings.tabletKeys
         v.keys.accent = UIColor(Brand.mint)
-        v.keys.isHidden = !model.settings.tabletMode || !model.settings.tabletKeys.enabled || model.settings.viewOnly
+        v.keys.isHidden = !model.tabletModeActive || !model.settings.tabletKeys.enabled || model.settings.viewOnly
         v.ink.color = UIColor(Brand.mint)
         // Visible for about as long as the Mac's own stroke takes to appear in the picture:
         // pen event to the Mac (½ RTT) + drawing + capture/encode/network (frame age) + decode/display.

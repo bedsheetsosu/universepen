@@ -48,11 +48,13 @@ final class InputInjector {
 
     // MARK: Pen
 
-    func handle(_ s: PenSample) {
+    /// `area`: global display rect the sample maps onto (extra tablet iPads: a whole display);
+    /// nil = the streamed region.
+    func handle(_ s: PenSample, area: CGRect? = nil) {
         // "Out of range" carries no meaningful position (the iPad may send 0,0): keep the
         // pointer where the pen was last seen instead of jumping to the corner.
         let p = s.phase == .exit ? lastPoint
-            : Geometry.denormalized(CGPoint(x: CGFloat(s.x), y: CGFloat(s.y)), in: region)
+            : Geometry.denormalized(CGPoint(x: CGFloat(s.x), y: CGFloat(s.y)), in: area ?? region)
         lastPoint = p
         switch s.phase {
         case .enter:

@@ -478,5 +478,16 @@ extension Translations {
         "Nur Monitor (keine Eingabe)": "モニターのみ（入力なし）",
         "Nur Monitor – Eingaben gehen nicht an den Mac": "モニターのみ – 入力は Mac に送られません",
         "Eingabe wieder an": "入力を再びオン",
+        "%d Profil(e) importiert": "%d 件のプロファイルを読み込みました",
+        "+ als Tablett: %@": "+ タブレットとして：%@",
+        "Abdunkeln nach": "暗くするまでの時間",
+        "Alle Profile": "すべてのプロファイル",
+        "Alle Profile exportieren …": "すべてのプロファイルを書き出す …",
+        "Ein anderes iPad zeigt das Bild – dieses iPad arbeitet als Tablett.": "別の iPad が映像を表示中です – この iPad はタブレットとして動作します。",
+        "Exportieren …": "書き出す …",
+        "Keine UniversePen-Profile in dieser Datei": "このファイルに UniversePen のプロファイルはありません",
+        "Nicht abdunkeln, solange sich das Bild ändert": "映像が変化している間は暗くしない",
+        "Nie": "しない",
+        "Profil importieren …": "プロファイルを読み込む …",
     ]
 }

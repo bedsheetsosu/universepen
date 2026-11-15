@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 import TafelKit
 
 struct SettingsView: View {
@@ -34,6 +35,16 @@ struct SettingsView: View {
                 keyboardSection
                 Section {
                     Toggle(L("Nur Monitor (keine Eingabe)"), isOn: $model.settings.viewOnly)
+                    Picker(L("Abdunkeln nach"), selection: $model.settings.dimAfterMinutes) {
+                        Text(L("Nie")).tag(0.0)
+                        Text("1 min").tag(1.0)
+                        Text("2 min").tag(2.0)
+                        Text("5 min").tag(5.0)
+                        Text("10 min").tag(10.0)
+                    }
+                    if model.settings.dimAfterMinutes > 0 {
+                        Toggle(L("Nicht abdunkeln, solange sich das Bild ändert"), isOn: $model.settings.dimOnlyWhenStill)
+                    }
                     Toggle(L("Latenz dauerhaft anzeigen"), isOn: $model.showStatusOverlay)
                     Toggle(L("Shortcut-Leiste rechts (Linkshänder)"), isOn: $model.settings.shortcutBarOnRight)
                     Button(L("Einrichtung erneut starten")) {
@@ -229,6 +240,7 @@ struct SettingsView: View {
     @State private var askProfileName = false
     @State private var renaming: SettingsProfile?
     @State private var renameText = ""
+    @State private var importing = false
 
     private var profilesSection: some View {
         Section {
@@ -247,6 +259,9 @@ struct SettingsView: View {
                 .contextMenu {
                     Button(L("Umbenennen")) { renameText = p.name; renaming = p }
                     Button(L("Duplizieren")) { model.duplicateProfile(p) }
+                    ShareLink(item: ProfileExport(profile: p), preview: SharePreview(p.name)) {
+                        Label(L("Exportieren …"), systemImage: "square.and.arrow.up")
+                    }
                     Button(L("Löschen"), role: .destructive) { model.deleteProfile(p) }
                 }
             }
@@ -257,12 +272,29 @@ struct SettingsView: View {
             } label: {
                 Label(L("Neues Profil aus aktuellen Einstellungen"), systemImage: "plus.circle")
             }
+            Button {
+                importing = true
+            } label: {
+                Label(L("Profil importieren …"), systemImage: "square.and.arrow.down")
+            }
+            if model.profiles.count > 1 {
+                ShareLink(item: ProfileExport(profiles: model.profiles), preview: SharePreview(L("Alle Profile"))) {
+                    Label(L("Alle Profile exportieren …"), systemImage: "square.and.arrow.up.on.square")
+                }
+            }
         } header: {
             Text(L("Profile"))
         } footer: {
             Text(model.profiles.isEmpty
                  ? L("Profile sind komplette Einstellungs-Sätze (z. B. „Zeichnen“ und „osu!“). Lege eins an, dann landen Änderungen automatisch im aktiven Profil.")
                  : L("Änderungen landen automatisch im aktiven Profil. Gedrückt halten: umbenennen, duplizieren, löschen. Wechseln geht auch im …-Menü."))
+        }
+        .fileImporter(isPresented: $importing, allowedContentTypes: [.json]) { result in
+            guard case .success(let url) = result else { return }
+            let scoped = url.startAccessingSecurityScopedResource()
+            defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+            let n = (try? Data(contentsOf: url)).map { model.importProfiles(from: $0) } ?? 0
+            model.show(Toast(text: n > 0 ? L("%d Profil(e) importiert", n) : L("Keine UniversePen-Profile in dieser Datei"), seconds: 2))
         }
         .alert(L("Neues Profil"), isPresented: $askProfileName) {
             TextField(L("Name"), text: $newProfileName)
@@ -642,5 +674,25 @@ extension View {
         self
             .scrollContentBackground(.hidden)
             .background(ThemeBackground().ignoresSafeArea())
+    }
+}
+
+/// One profile or all profiles as a JSON file to share (AirDrop, Files, Messages, …).
+struct ProfileExport: Transferable {
+    var profiles: [SettingsProfile]
+    init(profile: SettingsProfile) { profiles = [profile] }
+    init(profiles: [SettingsProfile]) { self.profiles = profiles }
+
+    static var transferRepresentation: some TransferRepresentation {
+        FileRepresentation(exportedContentType: .json) { item in
+            let name = item.profiles.count == 1 ? item.profiles[0].name : "UniversePen profiles"
+            let safe = name.map { $0.isLetter || $0.isNumber || $0 == " " || $0 == "-" ? $0 : "_" }
+            let url = FileManager.default.temporaryDirectory.appendingPathComponent(String(safe) + ".universepen.json")
+            let enc = JSONEncoder()
+            enc.outputFormatting = [.prettyPrinted, .sortedKeys]
+            let data = item.profiles.count == 1 ? try enc.encode(item.profiles[0]) : try enc.encode(item.profiles)
+            try data.write(to: url, options: .atomic)
+            return SentTransferredFile(url)
+        }
     }
 }

@@ -6,8 +6,9 @@ import TafelKit
 ///  - `_tafel._tcp`: regular sessions, TLS-PSK with the long-term host key.
 ///  - `_tafelpair._tcp`: only while the user has opened the pairing window, TLS-PSK derived from
 ///    the one-time code. Hands out the host key once, then closes.
-/// One iPad session at a time: a control connection (input, timing) and a video connection, so
-/// video bursts never delay Pencil packets behind them (no head-of-line blocking).
+/// One iPad session with the picture: a control connection (input, timing) and a video connection,
+/// so video bursts never delay Pencil packets behind them (no head-of-line blocking). Further iPads
+/// connect as "extra" tablets: control connection only (input, no video).
 final class HostServer {
     let queue = DispatchQueue(label: "tafel.host.net", qos: .userInteractive)
 
@@ -26,6 +27,10 @@ final class HostServer {
     var onRunPluginAction: ((String) -> Void)?
     var onCharKey: ((CharKeyEvent) -> Void)?
     var onPen: ((PenSample) -> Void)?
+    /// Pencil samples of extra (tablet) iPads – mapped onto a whole display, not the stream.
+    var onExtraPen: ((PenSample) -> Void)?
+    /// Names of the extra (tablet) iPads connected.
+    var onExtrasChanged: (([String]) -> Void)?
     var onScroll: ((ScrollEvent) -> Void)?
     var onShortcut: ((Shortcut) -> Void)?
     var onKey: ((KeyEvent) -> Void)?
@@ -48,6 +53,12 @@ final class HostServer {
     private var pending: [ObjectIdentifier: FramedConnection] = [:]
     private var control: FramedConnection?
     private var sessionDeviceID: String?
+    private var extras: [ObjectIdentifier: (fc: FramedConnection, deviceID: String, name: String)] = [:]
+
+    private func extrasChanged() {
+        let names = extras.values.map(\.name).sorted()
+        onExtrasChanged?(names)
+    }
 
     private let videoLock = NSLock()
     private var video: FramedConnection?
@@ -94,6 +105,7 @@ final class HostServer {
             control?.cancel()
             currentVideo()?.cancel()
             currentAudio()?.cancel()
+            for e in extras.values { e.fc.cancel() }
         }
     }
 
@@ -127,6 +139,11 @@ final class HostServer {
         }
         switch hello.role {
         case .control:
+            // Another iPad already has the picture: this one becomes an extra tablet.
+            if control != nil, let current = sessionDeviceID, current != hello.deviceID {
+                promoteExtra(fc, hello: hello)
+                return
+            }
             if let old = control, old !== fc { old.onClose = nil; old.cancel(); currentVideo()?.cancel(); currentAudio()?.cancel() }
             control = fc
             sessionDeviceID = hello.deviceID
@@ -168,10 +185,35 @@ final class HostServer {
         }
     }
 
-    private func handleControl(_ f: Frame, from fc: FramedConnection) {
+    private func promoteExtra(_ fc: FramedConnection, hello: Hello) {
+        // Same iPad reconnecting as extra: replace its old connection.
+        for (k, e) in extras where e.deviceID == hello.deviceID { e.fc.onClose = nil; e.fc.cancel(); extras[k] = nil }
+        let id = ObjectIdentifier(fc)
+        extras[id] = (fc, hello.deviceID, hello.deviceName)
+        fc.onFrame = { [weak self] f in self?.handleControl(f, from: fc, extra: true) }
+        fc.onClose = { [weak self] _ in
+            guard let self else { return }
+            self.extras[id] = nil
+            self.extrasChanged()
+        }
+        fc.sendJSON(.hostInfo, HostInfo(hostID: hostID, hostName: hostName, sourceDescription: sourceDescription(), secondary: true))
+        if let frontApp { fc.sendJSON(.appInfo, frontApp) }
+        if let pluginActions { fc.sendJSON(.pluginActions, pluginActions) }
+        extrasChanged()
+    }
+
+    /// Sends a JSON message to the main iPad and every extra tablet iPad (queue).
+    private func broadcast<T: Encodable>(_ type: MessageType, _ value: T) {
+        control?.sendJSON(type, value)
+        for e in extras.values { e.fc.sendJSON(type, value) }
+    }
+
+    private func handleControl(_ f: Frame, from fc: FramedConnection, extra: Bool = false) {
         switch f.type {
         case .pen:
-            if let s = try? PenSample(decoding: f.payload) { onPen?(s) }
+            if let s = try? PenSample(decoding: f.payload) { if extra { onExtraPen?(s) } else { onPen?(s) } }
+        case .clientConfig where extra, .clientSettings where extra, .selectSource where extra, .requestKeyframe where extra:
+            break   // extras don't steer the picture or the settings snapshot
         case .scroll:
             if let s = try? ScrollEvent(decoding: f.payload) { onScroll?(s) }
         case .shortcut:
@@ -228,12 +270,12 @@ final class HostServer {
         queue.async { [self] in
             guard list != pluginActions else { return }
             pluginActions = list
-            control?.sendJSON(.pluginActions, list)
+            broadcast(.pluginActions, list)
         }
     }
 
     func sendToast(_ t: Toast) {
-        queue.async { [self] in control?.sendJSON(.toast, t) }
+        queue.async { [self] in broadcast(.toast, t) }
     }
 
     /// Last source list, also sent to a newly connected iPad.
@@ -250,7 +292,7 @@ final class HostServer {
     func sendAppInfo(_ info: AppInfo) {
         queue.async { [self] in
             frontApp = info
-            control?.sendJSON(.appInfo, info)
+            broadcast(.appInfo, info)
         }
     }
 

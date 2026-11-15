@@ -10,6 +10,8 @@ final class VideoRenderer: @unchecked Sendable {
 
     /// Stream pixel size changed (main thread).
     var onSize: ((CGSize) -> Void)?
+    /// A frame with new content arrived (not just a periodic keyframe), any thread.
+    var onContentChange: (() -> Void)?
     /// Ask the host for a new keyframe (any thread).
     var requestKeyframe: (() -> Void)?
 
@@ -69,6 +71,8 @@ final class VideoRenderer: @unchecked Sendable {
     }
 
     func handle(frame: VideoFrame) {
+        // The Mac only sends delta frames when the picture changes (keyframes also come periodically).
+        if !frame.isKeyframe { onContentChange?() }
         let desc: CMVideoFormatDescription? = lock.withLock {
             if waitingForKeyframe {
                 if frame.isKeyframe { waitingForKeyframe = false } else { return nil }

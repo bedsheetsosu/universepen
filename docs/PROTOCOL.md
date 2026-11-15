@@ -55,7 +55,7 @@ JSON messages use plain `JSONEncoder` key names (camelCase).
 | Type | Name | Dir. | Payload |
 |---|---|---|---|
 | 0x01 | hello | C→H | JSON `{protocolVersion: 2, role: "control"\|"video"\|"audio"\|"pair", deviceID, deviceName}` |
-| 0x02 | hostInfo | H→C | JSON `{hostID, hostName, protocolVersion, sourceDescription}` |
+| 0x02 | hostInfo | H→C | JSON `{hostID, hostName, protocolVersion, sourceDescription, secondary?}` – `secondary: true`: another iPad has the picture, this one is an input-only tablet (it opens no video/audio connection) |
 | 0x03 | clientConfig | C→H | JSON `{viewPixelWidth, viewPixelHeight, quality: {codec: "h264"\|"hevc", bitrateMbps, fps, resolutionScale, audio, adaptive, fullSource}, diagnostics?, batteryLevel?, batteryCharging?, tabletMode?}` – `tabletMode: true`: no video; pen coordinates are normalised to the iPad's active area and map onto the whole selected display |
 | 0x04 | pairGrant | H→C | JSON `{hostID, hostName, keyBase64}` (32-byte key) |
 | 0x05 | error | H→C | JSON `{message}` |

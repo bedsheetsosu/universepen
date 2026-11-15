@@ -42,7 +42,7 @@ struct RootView: View {
                 OnboardingView()
                     .transition(.opacity.combined(with: .scale(scale: 0.98)))
             } else if model.phase.showsCanvas {
-                if model.settings.tabletMode {
+                if model.tabletModeActive {
                     TabletSurfaceView()
                         .transition(.opacity)
                 }
@@ -51,7 +51,7 @@ struct RootView: View {
                     .transition(.opacity)
                 overlay
                     .transition(.opacity)
-                if model.tabletEditing && model.settings.tabletMode {
+                if model.tabletEditing && model.tabletModeActive {
                     TabletAreaEditor()
                         .transition(.opacity)
                         .zIndex(9)
@@ -80,7 +80,7 @@ struct RootView: View {
 
     private var overlay: some View {
         ZStack {
-            if model.settings.showShortcutBar && !model.settings.tabletMode && !model.settings.viewOnly {
+            if model.settings.showShortcutBar && !model.tabletModeActive && !model.settings.viewOnly {
                 HStack {
                     if model.settings.shortcutBarOnRight { Spacer() }
                     ShortcutBar()
@@ -244,7 +244,7 @@ private struct OverlayMenuPanel: View {
                     withAnimation(Brand.spring) { model.settings.tabletMode.toggle() }
                     close()
                 }
-                if model.settings.tabletMode {
+                if model.tabletModeActive {
                     ForEach(model.allTabletPresets) { p in
                         row(p.title + (p.appName.map { " · " + $0 } ?? ""), icon: p.appBundleID != nil ? "link" : "rectangle.dashed",
                             checked: p.matches(model.tabletArea), indent: true) {

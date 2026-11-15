@@ -58,6 +58,7 @@ struct HostMenu: View {
         if let device = host.sessionDevice {
             Text(L("Verbunden: %@", device))
             Text(localizedLink(host.sessionLink))
+            ForEach(host.extraTablets, id: \.self) { t in Text(L("+ als Tablett: %@", t)) }
             if host.stats.fps > 0 {
                 Text(String(format: "%.0f fps · %.1f Mbit/s", host.stats.fps, host.stats.mbps))
             }
@@ -172,6 +173,10 @@ struct HostView: View {
                     } else {
                         Text(L("UniversePen auf dem iPad öffnen – es verbindet sich automatisch."))
                             .font(.callout).foregroundStyle(.secondary)
+                    }
+                    if !host.extraTablets.isEmpty {
+                        Label(L("+ als Tablett: %@", host.extraTablets.joined(separator: ", ")), systemImage: "rectangle.dashed")
+                            .font(.callout).foregroundStyle(Brand.mint)
                     }
                 }
                 Spacer(minLength: 0)

@@ -79,6 +79,55 @@ final class ClientModel: ObservableObject {
     @Published var onboardingDone = UserDefaults.standard.bool(forKey: "onboardingDone") {
         didSet { UserDefaults.standard.set(onboardingDone, forKey: "onboardingDone") }
     }
+    /// Another iPad shows the picture: this one works as a tablet (input only).
+    @Published var secondary = false {
+        didSet {
+            guard secondary != oldValue else { return }
+            sendConfig()
+            if secondary { show(Toast(text: L("Ein anderes iPad zeigt das Bild – dieses iPad arbeitet als Tablett."), seconds: 3)) }
+        }
+    }
+    /// Tablet mode in effect (switched on, or forced because this iPad is an extra tablet).
+    var tabletModeActive: Bool { settings.tabletMode || secondary }
+
+    // MARK: Keep awake / dim when idle
+
+    private var lastInput = Date()
+    private var lastPictureChange = Date()
+    private var savedBrightness: CGFloat?
+    private var idleTimer: Timer?
+
+    private var screen: UIScreen? {
+        (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.screen
+    }
+
+    /// Any touch, hover or key on the iPad.
+    func noteInput() {
+        lastInput = Date()
+        if savedBrightness != nil { undim() }
+    }
+
+    private func checkIdle() {
+        // Never sleep while connected (it would drop the session); dim instead if wanted.
+        let live = phase.showsCanvas
+        UIApplication.shared.isIdleTimerDisabled = live
+        guard live, settings.dimAfterMinutes > 0 else { if savedBrightness != nil { undim() }; return }
+        let limit = settings.dimAfterMinutes * 60
+        var idle = Date().timeIntervalSince(lastInput) > limit
+        if settings.dimOnlyWhenStill { idle = idle && Date().timeIntervalSince(lastPictureChange) > limit }
+        if idle, savedBrightness == nil, let s = screen {
+            savedBrightness = s.brightness
+            s.brightness = min(s.brightness, 0.04)
+        } else if !idle, savedBrightness != nil {
+            undim()
+        }
+    }
+
+    private func undim() {
+        if let b = savedBrightness { screen?.brightness = b }
+        savedBrightness = nil
+    }
+
     /// Demo mode: everything runs on the iPad, no Mac (for showing UniversePen).
     @Published var demoMode = false
     /// On-screen keyboard shown (hardware keyboards work without it).
@@ -126,6 +175,23 @@ final class ClientModel: ObservableObject {
         quality = p.quality
         switchingProfile = false
         show(Toast(text: L("Profil: %@", p.name), seconds: 1.2))
+    }
+
+    /// Imports profiles from a file (one profile or a list); names that exist get "(2)".
+    @discardableResult
+    func importProfiles(from data: Data) -> Int {
+        let list: [SettingsProfile]
+        if let one = try? JSONDecoder().decode(SettingsProfile.self, from: data) { list = [one] }
+        else if let many = try? JSONDecoder().decode([SettingsProfile].self, from: data) { list = many }
+        else { return 0 }
+        for var p in list {
+            p.id = UUID()
+            var name = p.name, n = 2
+            while profiles.contains(where: { $0.name == name }) { name = "\(p.name) (\(n))"; n += 1 }
+            p.name = name
+            profiles.append(p)
+        }
+        return list.count
     }
 
     func duplicateProfile(_ p: SettingsProfile) {
@@ -219,6 +285,15 @@ final class ClientModel: ObservableObject {
         profiles = Self.load([SettingsProfile].self, "profiles") ?? []
         activeProfileID = d.string(forKey: "activeProfile").flatMap(UUID.init(uuidString:))
         renderer.onSize = { [weak self] size in self?.videoSize = size }
+        renderer.onContentChange = { [weak self] in
+            DispatchQueue.main.async { self?.lastPictureChange = Date() }
+        }
+        idleTimer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.checkIdle() }
+        }
+        NotificationCenter.default.addObserver(forName: UIApplication.willResignActiveNotification, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in self?.undim() }
+        }
         startWiredMonitor()
         startBatteryMonitor()
         startBrowsing()
@@ -443,7 +518,7 @@ final class ClientModel: ObservableObject {
                 self?.sendSettingsSnapshot()
             }
         }
-        s.onHostInfo = { [weak self] info in Task { @MainActor in self?.hostInfo = info } }
+        s.onHostInfo = { [weak self] info in Task { @MainActor in self?.hostInfo = info; self?.secondary = info.secondary == true } }
         s.onAppInfo = { [weak self] app in Task { @MainActor in self?.frontApp = app } }
         s.onSourceList = { [weak self] l in Task { @MainActor in self?.sourceList = l } }
         s.onPluginActions = { [weak self] l in Task { @MainActor in self?.pluginActions = l } }
@@ -465,6 +540,7 @@ final class ClientModel: ObservableObject {
                 self.timing = nil
                 self.sourceList = nil
                 self.pluginActions = []
+                self.secondary = false
                 self.handleClosed(host: host, reason: reason)
             }
         }
@@ -531,7 +607,7 @@ final class ClientModel: ObservableObject {
         let b = battery
         session.send(config: ClientConfig(viewPixelWidth: viewPixelSize.0, viewPixelHeight: viewPixelSize.1, quality: effectiveQuality,
                                           diagnostics: diagnostics, batteryLevel: b.level, batteryCharging: b.charging,
-                                          tabletMode: settings.tabletMode))
+                                          tabletMode: tabletModeActive))
     }
 
     // MARK: Developer API (settings live on the iPad; the Mac reads and patches them)

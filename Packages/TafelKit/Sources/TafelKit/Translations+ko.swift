@@ -478,5 +478,16 @@ extension Translations {
         "Nur Monitor (keine Eingabe)": "모니터 전용(입력 없음)",
         "Nur Monitor – Eingaben gehen nicht an den Mac": "모니터 전용 – 입력이 Mac으로 전송되지 않음",
         "Eingabe wieder an": "입력 다시 켬",
+        "%d Profil(e) importiert": "프로필 %d개 가져옴",
+        "+ als Tablett: %@": "+ 태블릿으로: %@",
+        "Abdunkeln nach": "어둡게 하기",
+        "Alle Profile": "모든 프로필",
+        "Alle Profile exportieren …": "모든 프로필 내보내기 …",
+        "Ein anderes iPad zeigt das Bild – dieses iPad arbeitet als Tablett.": "다른 iPad가 화면을 표시 중 – 이 iPad는 태블릿으로 작동합니다.",
+        "Exportieren …": "내보내기 …",
+        "Keine UniversePen-Profile in dieser Datei": "이 파일에 UniversePen 프로필이 없습니다",
+        "Nicht abdunkeln, solange sich das Bild ändert": "화면이 바뀌는 동안은 어둡게 하지 않기",
+        "Nie": "안 함",
+        "Profil importieren …": "프로필 가져오기 …",
     ]
 }

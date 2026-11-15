@@ -89,4 +89,39 @@ final class SessionIntegrationTests: XCTestCase {
         session.start()
         wait(for: [failed], timeout: 12)
     }
+
+    /// A second iPad (other device ID) becomes an input-only tablet: it is told so, gets no video,
+    /// and its Pencil arrives on the extra-tablet path while the first iPad stays connected.
+    func testSecondIPadBecomesTablet() throws {
+        let key = HostKey.generate()
+        let server = HostServer()
+        server.advertise = false
+        server.start(key: key)
+        let port = try XCTUnwrap(waitForPort { server.mainPort })
+        let endpoint = NWEndpoint.hostPort(host: "127.0.0.1", port: NWEndpoint.Port(rawValue: port)!)
+
+        let first = Session(endpoint: endpoint, key: key, deviceID: "PAD-A", deviceName: "A", renderer: VideoRenderer())
+        let firstUp = expectation(description: "first connected")
+        first.onConnected = { firstUp.fulfill() }
+        first.start()
+        wait(for: [firstUp], timeout: 10)
+
+        let extraPen = expectation(description: "extra pen")
+        let names = expectation(description: "extras listed")
+        server.onExtraPen = { s in if s.phase == .down { extraPen.fulfill() } }
+        server.onPen = { _ in XCTFail("the extra iPad's Pencil must not use the main path") }
+        server.onExtrasChanged = { n in if n == ["B"] { names.fulfill() } }
+
+        let second = Session(endpoint: endpoint, key: key, deviceID: "PAD-B", deviceName: "B", renderer: VideoRenderer())
+        let secondInfo = expectation(description: "second told it is secondary")
+        second.onHostInfo = { info in if info.secondary == true { secondInfo.fulfill() } }
+        second.onConnected = { second.send(PenSample(phase: .down, x: 0.5, y: 0.5, pressure: 0.4)) }
+        var firstClosed = false
+        first.onClosed = { _ in firstClosed = true }
+        second.start()
+        wait(for: [secondInfo, extraPen, names], timeout: 10)
+        XCTAssertFalse(firstClosed, "the first iPad must stay connected")
+        second.close()
+        first.close()
+    }
 }

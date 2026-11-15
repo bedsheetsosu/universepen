@@ -478,5 +478,16 @@ extension Translations {
         "Nur Monitor (keine Eingabe)": "Solo monitor (sin entrada)",
         "Nur Monitor – Eingaben gehen nicht an den Mac": "Solo monitor: la entrada no se envía al Mac",
         "Eingabe wieder an": "Entrada activada de nuevo",
+        "%d Profil(e) importiert": "%d perfil(es) importado(s)",
+        "+ als Tablett: %@": "+ como tableta: %@",
+        "Abdunkeln nach": "Atenuar tras",
+        "Alle Profile": "Todos los perfiles",
+        "Alle Profile exportieren …": "Exportar todos los perfiles …",
+        "Ein anderes iPad zeigt das Bild – dieses iPad arbeitet als Tablett.": "Otro iPad muestra la imagen: este iPad funciona como tableta.",
+        "Exportieren …": "Exportar …",
+        "Keine UniversePen-Profile in dieser Datei": "No hay perfiles de UniversePen en este archivo",
+        "Nicht abdunkeln, solange sich das Bild ändert": "No atenuar mientras la imagen cambie",
+        "Nie": "Nunca",
+        "Profil importieren …": "Importar perfil …",
     ]
 }
