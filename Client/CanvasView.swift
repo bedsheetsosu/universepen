@@ -35,6 +35,8 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     private var lastScroll: CGPoint = .zero
     private var hovering = false
     private var lastPencilActivity = Date.distantPast
+    /// Last time the Pencil actually touched the glass (hover does not count).
+    private var lastPencilContact = Date.distantPast
 
     private var lastPan: CGPoint = .zero
     private var lastPinchScale: CGFloat = 1
@@ -64,6 +66,11 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     // MARK: Hardware keyboard
 
     override var canBecomeFirstResponder: Bool { true }
+
+    /// iPadOS reserves three-finger swipes/taps for text editing (undo, redo, edit menu) on the
+    /// first responder – which is this canvas (it takes the keyboard). Opt out so Tafel's own
+    /// three-finger gestures receive them.
+    override var editingInteractionConfiguration: UIEditingInteractionConfiguration { .none }
 
     override func didMoveToWindow() {
         super.didMoveToWindow()
@@ -162,6 +169,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
             emitFinger(oneFinger.cancel())
             pencilTouch = t
             lastPencilActivity = Date()
+            lastPencilContact = Date()
             send(t, .down)
         }
     }
@@ -177,6 +185,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         }
         guard let p = pencilTouch, touches.contains(p) else { return }
         lastPencilActivity = Date()
+        lastPencilContact = Date()
         let samples = event?.coalescedTouches(for: p) ?? [p]
         for c in samples { send(c, .move) }
     }
@@ -312,6 +321,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         send(p, phase)
         pencilTouch = nil
         lastPencilActivity = Date()
+        lastPencilContact = Date()
         // Without hover support there is no "out of range" signal: leave proximity shortly after lift.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [weak self] in
             guard let self, self.pencilTouch == nil, !self.hovering else { return }
@@ -417,8 +427,11 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         rotate.allowedTouchTypes = direct + [indirect]
     }
 
+    /// Multi-finger gestures are blocked only while the Pencil draws (or just did) – not while it
+    /// merely hovers: holding the Pencil above the screen while zooming with the other hand is
+    /// normal. Single-finger input stays stricter (see `fingerAllowed`).
     private var pencilBusy: Bool {
-        pencilTouch != nil || Date().timeIntervalSince(lastPencilActivity) < 0.3
+        pencilTouch != nil || Date().timeIntervalSince(lastPencilContact) < 0.3
     }
 
     override func gestureRecognizerShouldBegin(_ g: UIGestureRecognizer) -> Bool {
@@ -540,6 +553,7 @@ final class KeyboardProxy: UIView, UIKeyInput {
     var onDismiss: (() -> Void)?
 
     override var canBecomeFirstResponder: Bool { true }
+    override var editingInteractionConfiguration: UIEditingInteractionConfiguration { .none }
 
     override func resignFirstResponder() -> Bool {
         let r = super.resignFirstResponder()

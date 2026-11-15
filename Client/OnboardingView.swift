@@ -90,7 +90,7 @@ struct OnboardingView: View {
                 .font(.system(size: 36, weight: .bold, design: .rounded))
             Text("Choose your language. · Wähle deine Sprache.")
                 .font(.title3).foregroundStyle(.secondary)
-            LanguageChoice().frame(maxWidth: 420)
+            LanguageChoice().frame(maxWidth: 560)
             Spacer()
         }
     }

@@ -3,7 +3,7 @@ import Combine
 
 /// In-app language, independent of the system language and switchable without restart.
 public enum AppLanguage: String, CaseIterable, Identifiable, Sendable {
-    case en, de
+    case en, de, es, ja, zh, ko, hi
 
     public var id: String { rawValue }
     /// Name in its own language (shown in the picker regardless of the current language).
@@ -11,12 +11,22 @@ public enum AppLanguage: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .en: return "English"
         case .de: return "Deutsch"
+        case .es: return "Español"
+        case .ja: return "日本語"
+        case .zh: return "中文（简体）"
+        case .ko: return "한국어"
+        case .hi: return "हिन्दी"
         }
     }
     public var flag: String {
         switch self {
         case .en: return "🇬🇧"
         case .de: return "🇩🇪"
+        case .es: return "🇪🇸"
+        case .ja: return "🇯🇵"
+        case .zh: return "🇨🇳"
+        case .ko: return "🇰🇷"
+        case .hi: return "🇮🇳"
         }
     }
 }
@@ -39,11 +49,15 @@ public final class L10n: ObservableObject, @unchecked Sendable {
         language = AppLanguage(rawValue: UserDefaults.standard.string(forKey: Self.defaultsKey) ?? "") ?? .en
     }
 
+    /// A key in all languages (e.g. to recognise a window title whatever language it was opened in).
+    public static func allTranslations(of key: String) -> Set<String> {
+        Set(AppLanguage.allCases.map { $0 == .de ? key : (Translations.table(for: $0)[key] ?? key) })
+    }
+
     public func string(_ key: String) -> String {
-        switch language {
-        case .de: return key
-        case .en: return Translations.en[key] ?? key
-        }
+        if language == .de { return key }
+        // Missing entries fall back to English, then to the German key.
+        return Translations.table(for: language)[key] ?? Translations.en[key] ?? key
     }
 }
 
@@ -57,11 +71,12 @@ public func L(_ key: String, _ args: CVarArg...) -> String {
 /// The raw string stays German because code checks it (`hasPrefix("USB")`); only the shown text is
 /// translated.
 public func localizedLink(_ s: String) -> String {
-    guard L10n.shared.language == .en else { return s }
+    guard L10n.shared.language != .de else { return s }
     var r = s
-    for (de, en) in [("USB-Kabel", "USB cable"), ("Peer-to-Peer-WLAN", "Peer-to-peer Wi-Fi"), ("WLAN", "Wi-Fi"),
-                     ("Mobilfunk", "Cellular"), ("Sonstige", "Other")] {
-        r = r.replacingOccurrences(of: de, with: en)
+    // Longest first: "Peer-to-Peer-WLAN" contains "WLAN".
+    for (de, shown) in [("USB-Kabel", L("USB-Kabel")), ("Peer-to-Peer-WLAN", L("Peer-to-Peer-WLAN")), ("WLAN", L("WLAN")),
+                        ("Mobilfunk", L("Mobilfunk")), ("Sonstige", L("Sonstige"))] {
+        r = r.replacingOccurrences(of: de, with: shown)
     }
     return r
 }

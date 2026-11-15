@@ -48,9 +48,10 @@ final class HostController: ObservableObject {
     // Status
     @Published var listenerStatus = L("Startet …")
     /// Titles of the pen-test window in both languages (the window keeps the title it was opened with).
-    static let penTestTitles: Set<String> = ["Stifttest", "Pen Test"]
+    /// The pen test window's title in every app language (it keeps the title it was opened with).
+    static let penTestTitles: Set<String> = L10n.allTranslations(of: "Stifttest")
     /// Listener is up (status texts start with "Bereit"/"Ready", depending on the language at the time).
-    var listenerReady: Bool { listenerStatus.hasPrefix("Bereit") || listenerStatus.hasPrefix("Ready") }
+    @Published var listenerReady = false
     @Published var sessionDevice: String?
     @Published var sessionLink = ""
     @Published var clientDiagnostics = ""
@@ -213,6 +214,7 @@ final class HostController: ObservableObject {
             }
         }
         server.onStatus = { [weak self] s in Task { @MainActor in self?.listenerStatus = s } }
+        server.onReady = { [weak self] r in Task { @MainActor in self?.listenerReady = r } }
     }
 
     // MARK: Permissions

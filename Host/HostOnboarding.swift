@@ -80,7 +80,7 @@ struct HostOnboarding: View {
             Image(systemName: "globe").font(.system(size: 40, weight: .semibold)).foregroundStyle(Brand.mint)
             Text("Language · Sprache").font(.system(size: 28, weight: .bold, design: .rounded))
             Text("Choose your language. · Wähle deine Sprache.").foregroundStyle(.secondary)
-            LanguageChoice().frame(maxWidth: 360)
+            LanguageChoice().frame(maxWidth: 480)
             Spacer()
         }
     }

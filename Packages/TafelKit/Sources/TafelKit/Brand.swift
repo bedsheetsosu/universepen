@@ -104,18 +104,18 @@ public struct LanguageChoice: View {
     public init() {}
 
     public var body: some View {
-        HStack(spacing: 12) {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 110), spacing: 10)], spacing: 10) {
             ForEach(AppLanguage.allCases) { lang in
                 let on = l10n.language == lang
                 Button {
                     withAnimation(Brand.spring) { l10n.language = lang }
                 } label: {
                     VStack(spacing: 8) {
-                        Text(lang.flag).font(.system(size: 40))
-                        Text(lang.nativeName).font(.headline)
+                        Text(lang.flag).font(.system(size: 32))
+                        Text(lang.nativeName).font(.headline).lineLimit(1).minimumScaleFactor(0.7)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 18)
+                    .padding(.vertical, 14)
                     .foregroundStyle(on ? Brand.slateDeep : .primary)
                     .background(on ? AnyShapeStyle(Brand.mint) : AnyShapeStyle(Color.white.opacity(0.06)),
                                 in: RoundedRectangle(cornerRadius: 16, style: .continuous))

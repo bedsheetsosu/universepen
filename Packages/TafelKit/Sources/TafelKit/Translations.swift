@@ -3,9 +3,26 @@
 // Each key appears only once (duplicate keys in a dictionary literal trap at runtime);
 // keys used in several files are under "Shared".
 enum Translations {
+    static func table(for language: AppLanguage) -> [String: String] {
+        switch language {
+        case .de: return [:]
+        case .en: return en
+        case .es: return es
+        case .ja: return ja
+        case .zh: return zh
+        case .ko: return ko
+        case .hi: return hi
+        }
+    }
+
     static let en: [String: String] = [
         // MARK: Language picker (shared)
         "Sprache": "Language",
+        "USB-Kabel": "USB cable",
+        "Peer-to-Peer-WLAN": "Peer-to-peer Wi-Fi",
+        "WLAN": "Wi-Fi",
+        "Mobilfunk": "Cellular",
+        "Sonstige": "Other",
 
         // MARK: Shared (keys used in more than one file)
         "Einrichtung erneut starten": "Run setup again",
@@ -157,7 +174,6 @@ enum Translations {
         "Auf dem Mac läuft die App „Tafel Host“. Beim ersten Mal koppelst du beide mit einem Code.": "The Mac runs the “Tafel Host” app. The first time, you pair the two with a code.",
         "USB-Kabel (empfohlen)": "USB cable (recommended)",
         "Geringste Latenz. Tafel nimmt automatisch das Kabel, sobald es steckt.": "Lowest latency. Tafel uses the cable automatically as soon as it’s plugged in.",
-        "WLAN": "Wi-Fi",
         "Funktioniert auch ohne Kabel, wenn Mac und iPad im selben WLAN sind.": "Also works without a cable when the Mac and iPad are on the same Wi-Fi.",
         "Verschlüsselt und privat": "Encrypted and private",
         "Nur gekoppelte Geräte, direkt zwischen Mac und iPad – keine Server.": "Paired devices only, directly between Mac and iPad – no servers.",

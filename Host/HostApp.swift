@@ -41,7 +41,7 @@ struct HostView: View {
                 pairing
                 source
                 stream
-                LanguageChoice().frame(maxWidth: 320).scaleEffect(0.8)
+                LanguageChoice().frame(maxWidth: 520)
                 Button {
                     onboardingDone = false
                 } label: {

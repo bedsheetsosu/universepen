@@ -34,6 +34,8 @@ final class HostServer {
     var onSession: ((String?, String) -> Void)?
     var onPaired: ((String) -> Void)?
     var onStatus: ((String) -> Void)?
+    /// Listener ready (true) or not (false) – a state, independent of the shown language.
+    var onReady: ((Bool) -> Void)?
 
     private var listener: NWListener?
     private var pairingListener: NWListener?
@@ -59,9 +61,15 @@ final class HostServer {
                 }
                 l.stateUpdateHandler = { [weak self] state in
                     switch state {
-                    case .ready: self?.onStatus?(L("Bereit (Port %d)", Int(l.port?.rawValue ?? 0)))
-                    case .failed(let e): self?.onStatus?(L("Listener-Fehler: %@", e.localizedDescription))
-                    case .waiting(let e): self?.onStatus?(L("Wartet: %@", e.localizedDescription))
+                    case .ready:
+                        self?.onReady?(true)
+                        self?.onStatus?(L("Bereit (Port %d)", Int(l.port?.rawValue ?? 0)))
+                    case .failed(let e):
+                        self?.onReady?(false)
+                        self?.onStatus?(L("Listener-Fehler: %@", e.localizedDescription))
+                    case .waiting(let e):
+                        self?.onReady?(false)
+                        self?.onStatus?(L("Wartet: %@", e.localizedDescription))
                     default: break
                     }
                 }
