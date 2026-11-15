@@ -22,6 +22,7 @@ Zielhardware: iPad Air 11" M4 + Äbbl Pencil Pro, MacBook Air M5, Affinity.
 | Tablet-Events an macOS (Druck, Neigung, Rotation, Proximity) | implementiert, baut | **nicht getestet** – kein Pencil im Testlauf; Stifttest-Fenster zur Prüfung eingebaut |
 | Pencil-Eingabe, Hover, Squeeze, Doppeltippen, Gesten auf dem iPad | implementiert, baut | **nicht getestet** – kein iPad/Simulator im Testlauf (keine Simulator-Runtime installiert) |
 | Affinity-Kompatibilität | **unbekannt** | muss mit dem Testplan unten am echten Gerät geprüft werden |
+| Druckkurven-Editor & Shortcut-Leiste pro App | **läuft auf echter Hardware** (15.11.2026) | frei zeichenbare Kurve mit Live-Test, Glättung, Halte-Tasten, Leiste wechselt mit der Mac-App |
 | Zweiter Bildschirm (wie Sidecar) | **läuft auf echter Hardware**, experimentell | einzige private API (`CGVirtualDisplay`), nur in diesem Modus |
 | USB-Kabel | **läuft auf echter Hardware** (15.11.2026, iPad Air M4 ↔ MacBook Air M5) | alle drei Verbindungen über das USB-Ethernet-Interface (Mac `en8`); Fallback WLAN. Nicht dokumentiert, siehe Grenzen |
 | Ton vom Mac | **Daten fließen** (Hörtest steht aus) | ScreenCaptureKit-Audio → 16-bit-PCM → iPad, Puffer max. ~100 ms; der Mac spielt den Ton weiter selbst ab |
