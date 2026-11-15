@@ -77,7 +77,20 @@ final class ClientModel: ObservableObject {
     /// On-screen keyboard shown (hardware keyboards work without it).
     @Published var showKeyboard = false
 
-    @Published var settings: InputSettings { didSet { save(settings, "inputSettings"); sendSettingsSnapshot() } }
+    @Published var settings: InputSettings {
+        didSet {
+            save(settings, "inputSettings")
+            sendSettingsSnapshot()
+            if settings.tabletMode != oldValue.tabletMode { sendConfig() }
+        }
+    }
+    /// Active area being edited (tablet mode).
+    @Published var tabletEditing = false
+    /// Width/height of the Mac display the tablet area maps onto.
+    var tabletAspect: Double {
+        guard let l = sourceList else { return 16.0 / 10.0 }
+        return l.displays.first { $0.id == l.selectedDisplay }?.aspect ?? l.displays.first?.aspect ?? 16.0 / 10.0
+    }
     @Published var quality: StreamQuality { didSet { save(quality, "quality"); sendConfig(); sendSettingsSnapshot() } }
     @Published var showStatusOverlay: Bool { didSet { UserDefaults.standard.set(showStatusOverlay, forKey: "showStatusOverlay") } }
     /// Äbbl peer-to-peer Wi-Fi (AWDL). Off by default: it costs Wi-Fi latency.
@@ -452,7 +465,8 @@ final class ClientModel: ObservableObject {
         guard let session, viewPixelSize.0 > 0 else { return }
         let b = battery
         session.send(config: ClientConfig(viewPixelWidth: viewPixelSize.0, viewPixelHeight: viewPixelSize.1, quality: effectiveQuality,
-                                          diagnostics: diagnostics, batteryLevel: b.level, batteryCharging: b.charging))
+                                          diagnostics: diagnostics, batteryLevel: b.level, batteryCharging: b.charging,
+                                          tabletMode: settings.tabletMode))
     }
 
     // MARK: Developer API (settings live on the iPad; the Mac reads and patches them)

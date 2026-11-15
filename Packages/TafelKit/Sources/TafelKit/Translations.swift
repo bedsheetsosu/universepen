@@ -383,5 +383,11 @@ enum Translations {
         "sichtbar:": "visible:",
         "Kabel-Kandidat:": "cable candidate:",
         "Weg:": "path:",
+        "Aktiven Bereich anpassen": "Adjust active area",
+        "Aktiver Bereich": "Active area",
+        "Seitenverhältnis wie Mac-Bildschirm": "Aspect ratio like the Mac display",
+        "Tablett-Modus": "Tablet mode",
+        "Tablett-Modus (ohne Bild)": "Tablet mode (no picture)",
+        "Zurücksetzen": "Reset",
     ]
 }

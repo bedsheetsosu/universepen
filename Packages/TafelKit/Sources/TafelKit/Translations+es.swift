@@ -340,5 +340,11 @@ extension Translations {
         "sichtbar:": "visibles:",
         "Kabel-Kandidat:": "candidato de cable:",
         "Weg:": "ruta:",
+        "Aktiven Bereich anpassen": "Ajustar área activa",
+        "Aktiver Bereich": "Área activa",
+        "Seitenverhältnis wie Mac-Bildschirm": "Proporción como la pantalla del Mac",
+        "Tablett-Modus": "Modo tableta",
+        "Tablett-Modus (ohne Bild)": "Modo tableta (sin imagen)",
+        "Zurücksetzen": "Restablecer",
     ]
 }

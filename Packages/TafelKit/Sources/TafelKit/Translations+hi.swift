@@ -340,5 +340,11 @@ extension Translations {
         "sichtbar:": "दिख रहे:",
         "Kabel-Kandidat:": "केबल उम्मीदवार:",
         "Weg:": "रास्ता:",
+        "Aktiven Bereich anpassen": "सक्रिय क्षेत्र बदलें",
+        "Aktiver Bereich": "सक्रिय क्षेत्र",
+        "Seitenverhältnis wie Mac-Bildschirm": "Mac डिस्प्ले जैसा आस्पेक्ट रेशियो",
+        "Tablett-Modus": "टैबलेट मोड",
+        "Tablett-Modus (ohne Bild)": "टैबलेट मोड (बिना तस्वीर)",
+        "Zurücksetzen": "रीसेट करें",
     ]
 }

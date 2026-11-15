@@ -340,5 +340,11 @@ extension Translations {
         "sichtbar:": "可见:",
         "Kabel-Kandidat:": "线缆候选:",
         "Weg:": "路径:",
+        "Aktiven Bereich anpassen": "调整活动区域",
+        "Aktiver Bereich": "活动区域",
+        "Seitenverhältnis wie Mac-Bildschirm": "与 Mac 显示器相同的宽高比",
+        "Tablett-Modus": "数位板模式",
+        "Tablett-Modus (ohne Bild)": "数位板模式（无画面）",
+        "Zurücksetzen": "重置",
     ]
 }

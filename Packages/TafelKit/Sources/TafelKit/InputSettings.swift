@@ -1,4 +1,5 @@
 import Foundation
+import CoreGraphics
 
 /// What a Pencil gesture (double tap, squeeze) or a finger tap triggers.
 public enum PencilAction: Codable, Hashable, Sendable {
@@ -195,6 +196,13 @@ public struct InputSettings: Codable, Equatable, Sendable {
     /// Small ring under the hovering Pencil tip, drawn on the iPad.
     public var hoverDot = true
 
+    /// Tablet mode: black dotted surface, no picture; the active area maps onto a Mac display.
+    public var tabletMode = false
+    /// Active area in the iPad's view, normalised (0…1).
+    public var tabletArea = TabletArea()
+    /// Keep the area in the Mac display's aspect ratio (no stretching, like Wacom's "force proportions").
+    public var tabletLockAspect = true
+
     /// Two fingers rest, then drag left/right = undo/redo step by step.
     public var undoScrub = true
     /// Finger travel (points) per undo/redo step.
@@ -236,7 +244,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         case fingerMode, fingerPressure, longPressRightClick, palmRadius
         case threeFingerSwipeLeft, threeFingerSwipeRight, threeFingerSwipeUp, threeFingerSwipeDown, fourFingerTap
         case swapISOKeys, trackpadAsMouse, hideIPadPointer, showShortcutBar, shortcutBarOnRight, shortcutBar
-        case appShortcutBars, appNames, radialMenu, appPenProfiles, gameApps, undoScrub, undoScrubStep, instantInk, hoverDot
+        case appShortcutBars, appNames, radialMenu, appPenProfiles, gameApps, undoScrub, undoScrubStep, instantInk, hoverDot, tabletMode, tabletArea, tabletLockAspect
     }
 
     /// Tolerates settings saved by older versions: missing keys keep their defaults.
@@ -267,6 +275,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         try get(.radialMenu, &radialMenu); try get(.appPenProfiles, &appPenProfiles)
         try get(.gameApps, &gameApps); try get(.undoScrub, &undoScrub); try get(.undoScrubStep, &undoScrubStep)
         try get(.instantInk, &instantInk); try get(.hoverDot, &hoverDot)
+        try get(.tabletMode, &tabletMode); try get(.tabletArea, &tabletArea); try get(.tabletLockAspect, &tabletLockAspect)
     }
 }
 
@@ -310,5 +319,42 @@ public enum RadialMenuLayout {
         if a < 0 { a += 2 * .pi }
         let sector = 2 * .pi / Double(count)
         return Int(((a + sector / 2) / sector).rounded(.down)) % count
+    }
+}
+
+/// Active area of tablet mode, normalised to the iPad's view (0…1, origin top-left).
+public struct TabletArea: Codable, Equatable, Sendable {
+    public var x: Double = 0.2
+    public var y: Double = 0.2
+    public var width: Double = 0.6
+    public var height: Double = 0.6
+    public init() {}
+    public init(x: Double, y: Double, width: Double, height: Double) {
+        self.x = x; self.y = y; self.width = width; self.height = height
+    }
+
+    public func rect(in size: CGSize) -> CGRect {
+        CGRect(x: x * size.width, y: y * size.height, width: width * size.width, height: height * size.height)
+    }
+
+    /// Same area with the given aspect (w/h, in points of a view of `size`), keeping its centre
+    /// and width where possible, and fully inside the view.
+    public func locked(to aspect: Double, in size: CGSize) -> TabletArea {
+        guard aspect > 0, size.width > 0, size.height > 0 else { return self }
+        var w = width * size.width
+        var h = w / aspect
+        if h > size.height { h = size.height; w = h * aspect }
+        if w > size.width { w = size.width; h = w / aspect }
+        let cx = (x + width / 2) * size.width, cy = (y + height / 2) * size.height
+        return TabletArea(x: 0, y: 0, width: w / size.width, height: h / size.height)
+            .moved(toCenter: CGPoint(x: cx, y: cy), in: size)
+    }
+
+    /// Moved so its centre is at `c` (points), clamped inside the view.
+    public func moved(toCenter c: CGPoint, in size: CGSize) -> TabletArea {
+        var a = self
+        a.x = min(max(Double(c.x / size.width) - width / 2, 0), max(1 - width, 0))
+        a.y = min(max(Double(c.y / size.height) - height / 2, 0), max(1 - height, 0))
+        return a
     }
 }

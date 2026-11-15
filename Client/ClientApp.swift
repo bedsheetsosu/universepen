@@ -38,11 +38,20 @@ struct RootView: View {
                 OnboardingView()
                     .transition(.opacity.combined(with: .scale(scale: 0.98)))
             } else if model.phase.showsCanvas {
+                if model.settings.tabletMode {
+                    TabletSurfaceView()
+                        .transition(.opacity)
+                }
                 CanvasRepresentable(model: model)
                     .ignoresSafeArea()
                     .transition(.opacity)
                 overlay
                     .transition(.opacity)
+                if model.tabletEditing && model.settings.tabletMode {
+                    TabletAreaEditor()
+                        .transition(.opacity)
+                        .zIndex(9)
+                }
                 if let c = model.radialCenter {
                     RadialMenuView(center: c)
                         .zIndex(10)
@@ -53,6 +62,7 @@ struct RootView: View {
             }
         }
         .animation(.easeInOut(duration: 0.35), value: model.phase.showsCanvas)
+        .animation(.easeInOut(duration: 0.3), value: model.settings.tabletMode)
         .animation(Brand.spring, value: model.radialCenter != nil)
         .sensoryFeedback(.pathComplete, trigger: model.radialCenter == nil) { old, new in !old && new }
         .animation(.easeInOut(duration: 0.45), value: model.onboardingDone)
@@ -64,7 +74,7 @@ struct RootView: View {
 
     private var overlay: some View {
         ZStack {
-            if model.settings.showShortcutBar {
+            if model.settings.showShortcutBar && !model.settings.tabletMode {
                 HStack {
                     if model.settings.shortcutBarOnRight { Spacer() }
                     ShortcutBar()
@@ -192,6 +202,16 @@ private struct OverlayMenuPanel: View {
                         }
                     }
                     divider
+                }
+                row(L("Tablett-Modus (ohne Bild)"), icon: "rectangle.dashed", checked: model.settings.tabletMode) {
+                    withAnimation(Brand.spring) { model.settings.tabletMode.toggle() }
+                    close()
+                }
+                if model.settings.tabletMode {
+                    row(L("Aktiven Bereich anpassen"), icon: "crop", indent: true) {
+                        close()
+                        withAnimation(Brand.spring) { model.tabletEditing = true }
+                    }
                 }
                 if let app = model.frontApp {
                     row(model.gameModeActive ? L("Spielmodus für %@ aus", app.name) : L("Spielmodus für %@", app.name),

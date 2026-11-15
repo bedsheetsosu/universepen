@@ -186,9 +186,13 @@ public struct ClientConfig: Codable, Equatable, Sendable {
     /// iPad battery 0…1 (nil = unknown) and whether it is charging. Shown in the Mac menu bar.
     public var batteryLevel: Double?
     public var batteryCharging: Bool?
+    /// Tablet mode (like a screenless pen tablet): no picture, the iPad's active area maps onto
+    /// the whole selected Mac display.
+    public var tabletMode: Bool?
 
     public init(viewPixelWidth: Int, viewPixelHeight: Int, quality: StreamQuality, diagnostics: String? = nil,
-                batteryLevel: Double? = nil, batteryCharging: Bool? = nil) {
+                batteryLevel: Double? = nil, batteryCharging: Bool? = nil, tabletMode: Bool? = nil) {
+        self.tabletMode = tabletMode
         self.viewPixelWidth = viewPixelWidth
         self.viewPixelHeight = viewPixelHeight
         self.quality = quality
@@ -201,6 +205,7 @@ public struct ClientConfig: Codable, Equatable, Sendable {
     public func sameStream(as other: ClientConfig?) -> Bool {
         guard let other else { return false }
         return viewPixelWidth == other.viewPixelWidth && viewPixelHeight == other.viewPixelHeight && quality == other.quality
+            && (tabletMode ?? false) == (other.tabletMode ?? false)
     }
 }
 
@@ -237,7 +242,11 @@ public struct SourceOption: Codable, Equatable, Hashable, Identifiable, Sendable
     public var id: String
     public var title: String
     public var available: Bool
-    public init(id: String, title: String, available: Bool = true) { self.id = id; self.title = title; self.available = available }
+    /// Width / height (displays only), e.g. to lock the tablet area to the display's shape.
+    public var aspect: Double?
+    public init(id: String, title: String, available: Bool = true, aspect: Double? = nil) {
+        self.id = id; self.title = title; self.available = available; self.aspect = aspect
+    }
 }
 
 /// What the Mac can stream. Modes: "display", "second-screen", "region", "window".

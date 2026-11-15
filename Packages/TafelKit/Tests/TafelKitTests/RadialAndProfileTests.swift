@@ -73,3 +73,28 @@ final class GameModeAndSourceTests: XCTestCase {
         XCTAssertEqual(try JSONWire.decode(SourceSelection.self, JSONWire.encode(sel)), sel)
     }
 }
+
+final class TabletAreaTests: XCTestCase {
+    func testLockKeepsAspectInsideAndCentre() {
+        let size = CGSize(width: 1180, height: 820)
+        let a = TabletArea(x: 0.1, y: 0.1, width: 0.5, height: 0.5).locked(to: 1710.0 / 1112.0, in: size)
+        let r = a.rect(in: size)
+        XCTAssertEqual(Double(r.width / r.height), 1710.0 / 1112.0, accuracy: 0.001)
+        XCTAssertGreaterThanOrEqual(r.minX, 0); XCTAssertLessThanOrEqual(r.maxX, size.width + 0.001)
+        XCTAssertGreaterThanOrEqual(r.minY, 0); XCTAssertLessThanOrEqual(r.maxY, size.height + 0.001)
+        XCTAssertEqual(Double(r.midX), 0.35 * 1180, accuracy: 0.5)
+    }
+
+    func testHugeAreaIsClampedToTheView() {
+        let size = CGSize(width: 1180, height: 820)
+        let r = TabletArea(x: 0, y: 0, width: 1, height: 1).locked(to: 16.0 / 9.0, in: size).rect(in: size)
+        XCTAssertLessThanOrEqual(r.width, size.width + 0.001)
+        XCTAssertLessThanOrEqual(r.height, size.height + 0.001)
+    }
+
+    func testTabletModeRestartsStream() {
+        let a = ClientConfig(viewPixelWidth: 10, viewPixelHeight: 10, quality: StreamQuality())
+        var b = a; b.tabletMode = true
+        XCTAssertFalse(b.sameStream(as: a))
+    }
+}

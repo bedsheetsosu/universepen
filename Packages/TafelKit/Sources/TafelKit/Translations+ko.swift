@@ -340,5 +340,11 @@ extension Translations {
         "sichtbar:": "표시됨:",
         "Kabel-Kandidat:": "케이블 후보:",
         "Weg:": "경로:",
+        "Aktiven Bereich anpassen": "활성 영역 조정",
+        "Aktiver Bereich": "활성 영역",
+        "Seitenverhältnis wie Mac-Bildschirm": "Mac 디스플레이와 같은 화면비",
+        "Tablett-Modus": "태블릿 모드",
+        "Tablett-Modus (ohne Bild)": "태블릿 모드(화면 없음)",
+        "Zurücksetzen": "재설정",
     ]
 }

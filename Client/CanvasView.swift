@@ -177,6 +177,19 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         onPixelSize?(Int((bounds.width * scale).rounded()), Int((bounds.height * scale).rounded()))
     }
 
+    /// Tablet mode: no picture (the surface below shows through), Pencil maps onto the active area.
+    var tabletMode = false {
+        didSet {
+            guard tabletMode != oldValue else { return }
+            videoLayer.isHidden = tabletMode
+            backgroundColor = tabletMode ? .clear : .black
+            if tabletMode { emitFinger(oneFinger.cancel()) }
+        }
+    }
+
+    /// Area the input coordinates refer to: the picture, or the active area in tablet mode.
+    var inputRect: CGRect { tabletMode ? settings.tabletArea.rect(in: bounds.size) : videoRect }
+
     /// Where the video is drawn inside the view (aspect fit, same as the layer's gravity).
     var videoRect: CGRect {
         videoSize == .zero ? bounds : Geometry.aspectFit(content: videoSize, in: bounds)
@@ -237,7 +250,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     /// Single-finger input is allowed only when it cannot be a resting hand: no Pencil in range
     /// or in use (and not for 0.6 s after it), and not a large contact area.
     private var fingerAllowed: Bool {
-        settings.fingerMode != .off && session != nil && !hovering && pencilTouch == nil
+        !tabletMode && settings.fingerMode != .off && session != nil && !hovering && pencilTouch == nil
             && Date().timeIntervalSince(lastPencilActivity) > 0.6
     }
 
@@ -290,7 +303,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
 
     private func sendFingerPen(_ phase: PenPhase, _ location: CGPoint) {
         guard let session else { return }
-        let n = Geometry.normalized(location, in: videoRect)
+        let n = Geometry.normalized(location, in: inputRect)
         let touching = phase == .down || phase == .move
         session.send(PenSample(phase: phase, x: Float(n.x), y: Float(n.y),
                                pressure: touching ? Float(settings.fingerPressure) : 0,
@@ -307,7 +320,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
 
     private func sendMouse(_ phase: MouseEvent.Phase, _ location: CGPoint, button: MouseEvent.Button = .left) {
         guard let session else { return }
-        let n = Geometry.normalized(location, in: videoRect)
+        let n = Geometry.normalized(location, in: inputRect)
         session.send(MouseEvent(phase: phase, button: button, x: Float(n.x), y: Float(n.y)))
     }
 
@@ -365,7 +378,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
             ink.add(t.preciseLocation(in: self), pressure: settings.pressure.map(raw), newStroke: phase == .down)
         }
         if phase == .down { ink.setHover(nil) }
-        var n = Geometry.normalized(t.preciseLocation(in: self), in: videoRect)
+        var n = Geometry.normalized(t.preciseLocation(in: self), in: inputRect)
         let touching = phase == .down || phase == .move
         var pressure = touching ? settings.pressure.apply(force: Double(t.force), maximumForce: Double(t.maximumPossibleForce)) : 0
         if phase == .down {
@@ -393,7 +406,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         if radialOpen { if gone { hovering = false }; return }
         ink.setHover(settings.hoverDot && !gone && pencilTouch == nil ? g.location(in: self) : nil)
         guard settings.sendHover, let session else { return }
-        let n = Geometry.normalized(g.location(in: self), in: videoRect)
+        let n = Geometry.normalized(g.location(in: self), in: inputRect)
         let tilt = settings.tilt.tilt(altitude: Double(g.altitudeAngle), azimuth: Double(g.azimuthAngle(in: self)))
         let roll = settings.sendRoll ? Double(g.rollAngle) * 180 / .pi : 0
         func sample(_ phase: PenPhase) -> PenSample {
@@ -435,7 +448,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         if radialOpen { onRadialPick?(); return }
         // The Mac should not keep a hovering pen while the menu is up.
         if hovering, pencilTouch == nil, let session, let p = lastHoverPoint {
-            let n = Geometry.normalized(p, in: videoRect)
+            let n = Geometry.normalized(p, in: inputRect)
             session.send(PenSample(phase: .exit, x: Float(n.x), y: Float(n.y), timestamp: ProcessInfo.processInfo.systemUptime))
         }
         let at = hover ?? lastHoverPoint ?? CGPoint(x: bounds.midX, y: bounds.midY)
@@ -511,6 +524,8 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
 
     override func gestureRecognizerShouldBegin(_ g: UIGestureRecognizer) -> Bool {
         if g is UIHoverGestureRecognizer { return true }
+        // Tablet mode: only the Pencil (like a pen tablet; the hand rests on the glass).
+        if tabletMode && !(g is UIPanGestureRecognizer && g.allowedTouchTypes.isEmpty) { return false }
         if g === undoScrub { return settings.undoScrub && !pencilBusy }
         // While scrubbing, the fingers only scrub (no scroll, zoom or rotate).
         if scrubbing { return false }
@@ -544,7 +559,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     }
 
     private func anchor(_ g: UIGestureRecognizer) -> CGPoint {
-        Geometry.normalized(g.location(in: self), in: videoRect)
+        Geometry.normalized(g.location(in: self), in: inputRect)
     }
 
     @objc private func handlePan(_ g: UIPanGestureRecognizer) {
@@ -662,6 +677,7 @@ struct CanvasRepresentable: UIViewRepresentable {
     func updateUIView(_ v: CanvasView, context: Context) {
         v.session = model.session
         v.settings = model.effectiveSettings
+        v.tabletMode = model.settings.tabletMode
         v.ink.color = UIColor(Brand.mint)
         // Visible for about as long as the Mac's own stroke takes to appear in the picture:
         // pen event to the Mac (½ RTT) + drawing + capture/encode/network (frame age) + decode/display.

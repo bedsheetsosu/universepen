@@ -640,6 +640,10 @@ final class HostController: ObservableObject {
         // (at app launch the main window may not have been on screen yet).
         await refreshSources()
         lastError = nil
+        if cfg.tabletMode == true {
+            startTabletMode()
+            return
+        }
         let streamer = ScreenStreamer()
         let server = self.server
         let injector = self.injector
@@ -736,6 +740,23 @@ final class HostController: ObservableObject {
         return (max(2, Int(w) & ~1), max(2, Int(h) & ~1))
     }
 
+    // MARK: Tablet mode (no picture, the iPad's active area maps onto a whole display)
+
+    var tabletModeActive: Bool { clientConfig?.tabletMode == true }
+
+    private func startTabletMode() {
+        // A blank virtual display would only confuse; it comes back when the picture does.
+        if virtualDisplay != nil { removeVirtualDisplay() }
+        let id = scDisplays[selectedDisplay] != nil ? selectedDisplay : CGMainDisplayID()
+        let bounds = CGDisplayBounds(id)
+        injector.region = bounds
+        capturedDisplaySize = bounds.size
+        let name = displays.first { $0.id == id }?.title ?? "Display"
+        streamDescription = L("Tablett-Modus") + " · " + name
+        sourceSnapshot.value = streamDescription
+        server.sendHostInfo()
+    }
+
     // MARK: Time-lapse
 
     func startTimelapse() {
@@ -792,7 +813,10 @@ final class HostController: ObservableObject {
         }
         server.sendSourceList(SourceList(
             mode: Self.modeName(mode), modes: modes,
-            displays: displays.map { SourceOption(id: String($0.id), title: $0.title) }, selectedDisplay: String(selectedDisplay),
+            displays: displays.map { d in
+                let b = CGDisplayBounds(d.id)
+                return SourceOption(id: String(d.id), title: d.title, aspect: b.height > 0 ? Double(b.width / b.height) : nil)
+            }, selectedDisplay: String(selectedDisplay),
             windows: windows.map { SourceOption(id: String($0.id), title: $0.title) }, selectedWindow: String(selectedWindow)))
     }
 
@@ -824,12 +848,14 @@ final class HostController: ObservableObject {
     }
 
     private func displayModeChanged(_ id: CGDirectDisplayID) {
-        guard streamer != nil || virtualDisplay != nil else { return }
+        guard streamer != nil || virtualDisplay != nil || tabletModeActive else { return }
         let affected: Bool
+        if tabletModeActive { affected = id == selectedDisplay || id == CGMainDisplayID() } else {
         switch mode {
         case .virtual: affected = id == virtualDisplay?.displayID
         case .display, .region: affected = id == selectedDisplay
         case .window: affected = false
+        }
         }
         guard affected, CGDisplayBounds(id).size != capturedDisplaySize else { return }
         if mode == .virtual, let s = virtualDisplay?.currentScale { VirtualDisplay.preferredScale = s }
