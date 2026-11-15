@@ -1,0 +1,95 @@
+name: Tafel
+options:
+  deploymentTarget:
+    iOS: "18.0"
+    macOS: "15.0"
+  createIntermediateGroups: true
+packages:
+  TafelKit:
+    path: Packages/TafelKit
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    # Set your own team in Xcode (Signing & Capabilities) or here.
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+targets:
+  TafelHost:
+    type: application
+    platform: macOS
+    sources: [Host]
+    dependencies:
+      - package: TafelKit
+    configFiles:
+      Debug: Config/HostSigning.xcconfig
+      Release: Config/HostSigning.xcconfig
+    settings:
+      base:
+        PRODUCT_NAME: Tafel Host
+        PRODUCT_BUNDLE_IDENTIFIER: local.tafel.host
+        # Not sandboxed: posting tablet/keyboard events needs Accessibility, which sandboxed apps cannot use.
+        ENABLE_APP_SANDBOX: NO
+        ENABLE_HARDENED_RUNTIME: NO
+        GENERATE_INFOPLIST_FILE: NO
+    info:
+      path: Host/Info.plist
+      properties:
+        CFBundleDisplayName: Tafel Host
+        LSApplicationCategoryType: public.app-category.graphics-design
+        NSLocalNetworkUsageDescription: Tafel nimmt Verbindungen von deinem gekoppelten iPad im lokalen Netzwerk an.
+        NSBonjourServices: [_tafel._tcp, _tafelpair._tcp]
+        NSScreenCaptureUsageDescription: Tafel überträgt den gewählten Bildschirmbereich auf dein iPad.
+  Tafel:
+    type: application
+    platform: iOS
+    sources: [Client]
+    dependencies:
+      - package: TafelKit
+    settings:
+      base:
+        PRODUCT_NAME: Tafel
+        PRODUCT_BUNDLE_IDENTIFIER: local.tafel.pad
+        TARGETED_DEVICE_FAMILY: "2"
+        GENERATE_INFOPLIST_FILE: NO
+    info:
+      path: Client/Info.plist
+      properties:
+        CFBundleDisplayName: Tafel
+        UILaunchScreen: {}
+        UIRequiresFullScreen: true
+        UIStatusBarHidden: true
+        UIApplicationSupportsIndirectInputEvents: true
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+        NSLocalNetworkUsageDescription: Tafel sucht deinen gekoppelten Mac im lokalen Netzwerk und verbindet sich direkt mit ihm.
+        NSBonjourServices: [_tafel._tcp, _tafelpair._tcp]
+  PipelineTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - PipelineTests
+      - Host/VideoEncoder.swift
+      - Host/InputInjector.swift
+      - Host/HostServer.swift
+      - Client/VideoRenderer.swift
+      - Client/Session.swift
+      - Client/AudioPlayer.swift
+    dependencies:
+      - package: TafelKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: local.tafel.pipelinetests
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_IDENTITY: "-"
+schemes:
+  PipelineTests:
+    build:
+      targets:
+        PipelineTests: all
+    test:
+      targets: [PipelineTests]
