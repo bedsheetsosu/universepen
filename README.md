@@ -19,15 +19,15 @@ Target hardware: iPad Air 11" M4 + Äbbl Pencil Pro, MacBook Air M5, Affinity.
 | Video encoder (VideoToolbox, hardware, low-latency rate control) → wire → client decoder, H.264 and HEVC at 2360×1640 | implemented | pipeline test on this Mac: 10/10 frames encoded and decoded again, keyframe on request |
 | Keyboard shortcuts following the active layout (QWERTZ) | implemented | layout resolution tested (without sending events) |
 | Screen capture (ScreenCaptureKit) | **runs on real hardware** (2026-11-15) | streaming to the iPad in daily use, e.g. second screen at 2360×1640, HEVC, 60 fps (reported by the developer API) |
-| Tablet events to macOS (pressure, tilt, rotation, proximity) | implemented, data arrives at the host | the host receives pressure, tilt and rotation from the Pencil (developer API, 2026-11-15). **Not yet confirmed** that macOS apps read them as tablet events – check with the pen test window |
-| Pencil input, squeeze, double-tap, gestures on the iPad | **runs on real hardware** (2026-11-15) | pressure, tilt, barrel roll, squeeze, double-tap and pinch/rotate events checked live via the developer API. Hover not checked separately |
-| Affinity compatibility | **unknown** | must be checked on real hardware with the test plan below |
+| Tablet events to macOS (pressure, tilt, rotation, proximity) | **runs on real hardware** (2026-11-15) | Affinity reads pressure, tilt and rotation from the synthetic tablet events (see the Affinity row) |
+| Pencil input, hover, squeeze, double-tap, gestures on the iPad | **runs on real hardware** (2026-11-15) | pressure, tilt, barrel roll, squeeze, double-tap and pinch/rotate checked live via the developer API; hover confirmed in Affinity |
+| Affinity compatibility | **works on real hardware** (2026-11-15) | in regular use: pressure → stroke width, tilt and barrel roll, hover brush preview, gestures and shortcuts (zoom, pan, undo, squeeze/double-tap) |
 | Pressure curve editor & per-app shortcut bar | **runs on real hardware** (2026-11-15) | freely drawable curve with live test, smoothing, hold keys, the bar follows the Mac app |
 | Second screen (like Sidecar) | **runs on real hardware**, experimental | the only private API (`CGVirtualDisplay`), used only in this mode |
 | USB cable | **runs on real hardware** (2026-11-15, iPad Air M4 ↔ MacBook Air M5) | all three connections over the USB Ethernet interface (Mac `en8`); falls back to Wi-Fi. Undocumented, see limits |
 | Sound from the Mac | **data flows** (listening test pending) | ScreenCaptureKit audio → 16-bit PCM → iPad, buffer max. ~100 ms; the Mac keeps playing the sound itself |
 
-None of this is "ready for use" until the test plan has been run on real hardware.
+Confirmed so far on one setup (iPad Air M4, Pencil Pro, MacBook Air M5, Affinity). Other apps, devices and macOS versions are untested.
 
 ---
 
@@ -110,7 +110,7 @@ On first launch both apps walk you through a short **setup** (iPad: connection, 
 | Property | Public API | Result |
 |---|---|---|
 | Pen position, click, drag | `CGEvent` mouse events, `CGEvent.post` (needs Accessibility) | ✅ |
-| Pressure, tilt, rotation, proximity | `CGEventTypes.h`: subtype `kCGEventMouseSubtypeTabletPoint`, fields `kCGMouseEventPressure`, `kCGTabletEventPointPressure`, `kCGTabletEventTiltX/Y`, `kCGTabletEventRotation`, event type `kCGEventTabletProximity` | ✅ implemented. Cocoa apps read this as `NSEvent.pressure/.tilt/.rotation`. **Whether Affinity accepts synthetic tablet events is untested.** |
+| Pressure, tilt, rotation, proximity | `CGEventTypes.h`: subtype `kCGEventMouseSubtypeTabletPoint`, fields `kCGMouseEventPressure`, `kCGTabletEventPointPressure`, `kCGTabletEventTiltX/Y`, `kCGTabletEventRotation`, event type `kCGEventTabletProximity` | ✅ implemented. Cocoa apps read this as `NSEvent.pressure/.tilt/.rotation`. **Affinity accepts them** (pressure, tilt, rotation, confirmed 2026-11-15). |
 | Real virtual tablet HID device | DriverKit `HIDDriverKit` with the virtual HID entitlement | ❌ Äbbl only grants the entitlement on request |
 | Pinch to zoom | magnify gesture events can't be created with public APIs | substitute: scrolling with ⌘/⌥/⌃ or ⌘+/⌘−, selectable |
 | Rotate the canvas | no public rotation gesture | substitute: freely assignable shortcuts per rotation step (default: off) |
