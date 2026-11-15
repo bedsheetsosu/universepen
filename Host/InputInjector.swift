@@ -112,6 +112,8 @@ final class InputInjector {
                 clickCount = 1
             }
             lastClick = (now, p, m.button)
+            // Finger tap at a new spot: move there first (games track the cursor via moves).
+            if let last = lastPosted, hypot(p.x - last.x, p.y - last.y) >= 0.5 { postMouse(.mouseMoved, .left, at: p) }
             type = m.button == .left ? .leftMouseDown : .rightMouseDown
             button = m.button == .left ? .left : .right
         case .up:
