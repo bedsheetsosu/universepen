@@ -9,6 +9,7 @@ struct TafelHostApp: App {
         WindowGroup("Tafel") {
             HostView()
                 .environmentObject(host)
+                .onOpenURL { host.handle(url: $0) }
                 .frame(minWidth: 460, idealWidth: 500, minHeight: 600, idealHeight: 760)
                 .preferredColorScheme(.dark)
         }

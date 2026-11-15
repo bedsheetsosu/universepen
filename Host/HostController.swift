@@ -159,6 +159,32 @@ final class HostController: ObservableObject {
 
     var keyFingerprint: String { HostKey.fingerprint(hostKey) }
 
+    // MARK: Local control API (URL scheme)
+
+    /// Handles `universepen://…` (also `tafel://…`). Local only: macOS delivers these URLs from
+    /// apps on this Mac (Shortcuts, Terminal `open`, Stream Deck …); nothing listens on the network.
+    ///   universepen://mode/display | second-screen | region | window
+    ///   universepen://pair            open the pairing code
+    ///   universepen://pair/stop
+    ///   universepen://show            bring the window to the front
+    func handle(url: URL) {
+        guard ["universepen", "tafel"].contains(url.scheme?.lowercased() ?? "") else { return }
+        let parts = ([url.host ?? ""] + url.pathComponents.filter { $0 != "/" }).map { $0.lowercased() }
+        switch parts.first {
+        case "mode":
+            let map: [String: CaptureMode] = ["display": .display, "second-screen": .virtual, "virtual": .virtual,
+                                              "region": .region, "window": .window]
+            if let name = parts.dropFirst().first, let m = map[name] { mode = m }
+        case "pair":
+            if parts.dropFirst().first == "stop" { endPairing() } else if pairingCode == nil { beginPairing() }
+            NSApp.activate(ignoringOtherApps: true)
+        case "show":
+            NSApp.activate(ignoringOtherApps: true)
+        default:
+            NSLog("UniversePen: unknown URL %@", url.absoluteString)
+        }
+    }
+
     // MARK: Front app (per-app shortcut bars on the iPad)
 
     private var frontAppObserver: NSObjectProtocol?

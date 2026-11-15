@@ -43,6 +43,9 @@ targets:
         LSApplicationCategoryType: public.app-category.graphics-design
         NSLocalNetworkUsageDescription: Tafel nimmt Verbindungen von deinem gekoppelten iPad im lokalen Netzwerk an.
         NSBonjourServices: [_tafel._tcp, _tafelpair._tcp]
+        CFBundleURLTypes:
+          - CFBundleURLName: local.tafel.host.control
+            CFBundleURLSchemes: [universepen, tafel]
         NSScreenCaptureUsageDescription: Tafel überträgt den gewählten Bildschirmbereich auf dein iPad.
   Tafel:
     type: application

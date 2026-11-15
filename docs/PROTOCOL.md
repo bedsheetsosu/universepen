@@ -1,0 +1,91 @@
+# UniversePen wire protocol (version 2)
+
+Everything needed to write another client (e.g. Android) or host (e.g. Windows) that talks to the
+existing apps. All multi-byte numbers are **little-endian**; floats are IEEE 754.
+
+## Discovery
+
+Bonjour (DNS-SD), TCP:
+
+| Service | Purpose | TXT |
+|---|---|---|
+| `_tafel._tcp` | regular sessions | `id` = host ID (UUID string) |
+| `_tafelpair._tcp` | only while the host shows a pairing code | `id` = host ID |
+
+The host advertises on every interface (Wi-Fi, and the iPad's USB-Ethernet link when a cable is
+connected). Peer-to-peer Wi-Fi (AWDL) is off unless enabled on both sides.
+
+## Security
+
+TLS 1.2 with a pre-shared key, cipher suite `TLS_PSK_WITH_AES_128_GCM_SHA256` only.
+
+- **Pairing listener:** PSK = HKDF-SHA256(ikm = 12-character code in Crockford Base32 alphabet
+  `0123456789ABCDEFGHJKMNPQRSTVWXYZ` (upper case, no dashes), salt = `tafel-pairing-v1`,
+  info = `tls-psk`, 32 bytes). PSK identity `tafel-pair`.
+- **Session listener:** PSK = the host's 32-byte random key (handed out once during pairing).
+  PSK identity `tafel-host`.
+
+A peer without the key cannot finish the handshake. There is no forward secrecy.
+
+## Framing
+
+Every message: `[u8 type][u32 length][payload]`, payload ≤ 64 MiB. Unknown types must be ignored.
+
+Strings in binary payloads: `[u16 length][UTF-8]`. Blobs: `[u32 length][bytes]`.
+
+## Connections and roles
+
+A client opens up to three TLS connections to the session listener; the first frame on each must
+be `hello` (otherwise the host drops it, also after 5 s of silence):
+
+1. **control** – opened first. Input to the host; host info, pongs, app info back.
+2. **video** – after `hostInfo` arrived. Host → client video.
+3. **audio** – optional. Host → client sound.
+
+Video and audio use the same `deviceID` as the control connection. Separate connections keep
+large video frames from delaying Pencil input (no head-of-line blocking).
+
+Pairing uses one connection to the pairing listener: client sends `hello` with role `pair`,
+host answers `pairGrant` and closes.
+
+## Messages
+
+JSON messages use plain `JSONEncoder` key names (camelCase).
+
+| Type | Name | Dir. | Payload |
+|---|---|---|---|
+| 0x01 | hello | C→H | JSON `{protocolVersion: 2, role: "control"\|"video"\|"audio"\|"pair", deviceID, deviceName}` |
+| 0x02 | hostInfo | H→C | JSON `{hostID, hostName, protocolVersion, sourceDescription}` |
+| 0x03 | clientConfig | C→H | JSON `{viewPixelWidth, viewPixelHeight, quality: {codec: "h264"\|"hevc", bitrateMbps, fps, resolutionScale, audio, adaptive}, diagnostics?}` |
+| 0x04 | pairGrant | H→C | JSON `{hostID, hostName, keyBase64}` (32-byte key) |
+| 0x05 | error | H→C | JSON `{message}` |
+| 0x06 | appInfo | H→C | JSON `{bundleID, name}` – app in front on the host |
+| 0x10 | pen | C→H | `u8 phase, f32 x, f32 y, f32 pressure, f32 tiltX, f32 tiltY, f32 rotation°, f64 timestamp` |
+| 0x11 | scroll | C→H | `f32 x, f32 y, f32 dx, f32 dy, u8 modifiers` |
+| 0x12 | mouse | C→H | `u8 phase (0 move, 1 down, 2 up, 3 exit), u8 button (0 left, 1 right), f32 x, f32 y` |
+| 0x20 | shortcut | C→H | `u8 modifiers, string key` (character, or `return tab space delete esc left right up down`) |
+| 0x21 | key | C→H | `u16 HID usage (page 7), bool down` |
+| 0x22 | text | C→H | UTF-8 text (typed on an on-screen keyboard) |
+| 0x30 | ping | C→H | `f64 clientTime` (seconds since 1970) |
+| 0x31 | pong | H→C | `f64 clientTime, f64 hostTime` |
+| 0x40 | videoFormat | H→C | `u8 codec (0 H.264, 1 HEVC), u32 width, u32 height, u8 count, count × blob parameter set, [bool displayP3]` |
+| 0x41 | videoFrame | H→C | `bool keyframe, f64 captureTime, rest = AVCC/HVCC (4-byte big-endian NAL lengths)` |
+| 0x42 | requestKeyframe | C→H | empty |
+| 0x50 | audioChunk | H→C | `u32 sampleRate, u8 channels, f64 captureTime, rest = s16 LE interleaved PCM` |
+
+- **Coordinates** (`x`, `y`) are normalised 0…1 over the video image (top-left origin).
+- **Pen phases:** 0 hover, 1 down, 2 move, 3 up, 4 enter (proximity in), 5 exit, 6 cancel.
+  Pressure 0…1; tilt −1…1 per axis; rotation in degrees (Pencil Pro barrel roll).
+- **Modifiers** bit set: 1 ⌘, 2 ⇧, 4 ⌥, 8 ⌃.
+- **Scroll** deltas are fractions of the image size; the host scales them to pixels.
+- **Video:** the host sends `videoFormat` before every keyframe. A client that missed one sends
+  `requestKeyframe`. Frames should be displayed immediately (no buffering).
+- **Timing:** ping every 0.5 s. The client treats 2.5 s without a pong as a dead link and
+  reconnects (cable first, then Wi-Fi).
+- **Backpressure:** the host drops frames *before* encoding while more than ~2 frames are queued on
+  the video socket, and (if `adaptive`) lowers the bitrate.
+
+## Versioning
+
+Hosts reject a `hello` with a different `protocolVersion` with an `error` message. Additions that
+older peers can ignore (new message types, trailing fields) do not bump the version.
