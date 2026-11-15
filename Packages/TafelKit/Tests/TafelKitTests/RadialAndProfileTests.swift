@@ -177,6 +177,18 @@ final class TabletExtrasTests: XCTestCase {
         XCTAssertGreaterThan(f[1].minX, f[0].maxX)
     }
 
+    func testFreelyPlacedKeys() {
+        var k = TabletKeys()
+        k.keys[0].x = 0.05; k.keys[0].y = 0.5      // W far left
+        k.keys[1].x = 0.95; k.keys[1].y = 0.5      // E far right
+        let f = k.frames(in: CGSize(width: 1000, height: 800))
+        XCTAssertEqual(Double(f[0].midX), 60, accuracy: 0.5)     // clamped so the key stays on screen
+        XCTAssertEqual(Double(f[1].midX), 940, accuracy: 0.5)
+        XCTAssertTrue(k.anyMoved)
+        let old = try? JSONDecoder().decode(TabletKey.self, from: Data(#"{"id":"8D2E3F4A-1B2C-4D5E-8F90-123456789ABC","title":"Z","key":"z"}"#.utf8))
+        XCTAssertNil(old?.x)
+    }
+
     func testProfileRoundTrip() throws {
         var s = InputSettings(); s.tabletMode = true; s.tipThreshold = 0.2
         let p = SettingsProfile(name: "osu!", settings: s, quality: StreamQuality(fps: 60))

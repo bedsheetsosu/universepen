@@ -308,7 +308,7 @@ struct SettingsView: View {
         } header: {
             Text(L("Tablett-Modus"))
         } footer: {
-            Text(L("Klick ab Druck: leichte Berührungen bleiben Schweben, erst ab diesem Druck wird geklickt (gilt immer, nicht nur im Tablett-Modus). Tasten-Feld: große Touch-Tasten am Rand im Tablett-Modus – Finger drauf hält die Taste am Mac (z. B. Z/X für osu!). Taste: ein Zeichen oder space, return, tab, esc, delete, left, right, up, down. Die Drehung des Bereichs stellst du im Bereich-Editor ein."))
+            Text(L("Klick ab Druck: leichte Berührungen bleiben Schweben, erst ab diesem Druck wird geklickt (gilt immer, nicht nur im Tablett-Modus). Tasten-Feld: große Touch-Tasten am Rand im Tablett-Modus – Finger drauf hält die Taste am Mac (z. B. Z/X für osu!). Taste: ein Zeichen oder space, return, tab, esc, delete, left, right, up, down. Im Bereich-Editor kannst du jede Taste frei verschieben und den Bereich drehen."))
         }
     }
 

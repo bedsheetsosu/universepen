@@ -84,6 +84,8 @@ struct TabletAreaEditor: View {
     /// The value a field showed before you tapped it (shown greyed while it is empty).
     @State private var before: [Field: String] = [:]
     @State private var viewSize: CGSize = .zero
+    /// Key being dragged and where it is right now (view points).
+    @State private var keyDrag: (id: UUID, at: CGPoint)?
     @State private var presetName = ""
     @State private var naming = false
     @FocusState private var nameFocus: Bool
@@ -130,6 +132,7 @@ struct TabletAreaEditor: View {
                             area = resized(start, to: v.location, in: size)
                         }
                         .onEnded { _ in commit() })
+                if model.settings.tabletKeys.enabled { keyHandles(size) }
                 Text(String(format: "%.0f × %.0f mm", r.width * Self.mmPerPoint, r.height * Self.mmPerPoint))
                     .font(.callout.monospacedDigit().weight(.semibold))
                     .padding(.horizontal, 12).padding(.vertical, 6)
@@ -171,6 +174,16 @@ struct TabletAreaEditor: View {
             }
             Toggle(L("Seitenverhältnis wie Mac-Bildschirm"), isOn: Binding(get: { model.tabletLock }, set: { model.setTabletLock($0) }))
                 .toggleStyle(.switch).tint(Brand.mint).fixedSize()
+            if model.settings.tabletKeys.enabled && model.settings.tabletKeys.anyMoved {
+                Button(L("Tasten zurücksetzen")) {
+                    withAnimation(Brand.spring) {
+                        for i in model.settings.tabletKeys.keys.indices {
+                            model.settings.tabletKeys.keys[i].x = nil
+                            model.settings.tabletKeys.keys[i].y = nil
+                        }
+                    }
+                }
+            }
             Button(L("Zurücksetzen")) {
                 area = nil
                 model.setTabletArea(TabletArea())
@@ -182,6 +195,40 @@ struct TabletAreaEditor: View {
         }
         .padding(.horizontal, 18).padding(.vertical, 10)
         .tafelOverlayGlass(Capsule())
+    }
+
+    /// The tablet keys, each draggable to any place (W left, E right, …).
+    private func keyHandles(_ size: CGSize) -> some View {
+        let cfg = model.settings.tabletKeys
+        let frames = cfg.frames(in: size)
+        return ForEach(Array(cfg.keys.enumerated()), id: \.element.id) { i, k in
+            let f = frames[i]
+            let center = keyDrag?.id == k.id ? keyDrag!.at : CGPoint(x: f.midX, y: f.midY)
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(Brand.mint.opacity(keyDrag?.id == k.id ? 0.35 : 0.15))
+                .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .strokeBorder(Brand.mint, style: StrokeStyle(lineWidth: 2, dash: [6, 5])))
+                .overlay(VStack(spacing: 2) {
+                    Text(k.title).font(.system(size: 26, weight: .bold))
+                    Image(systemName: "arrow.up.and.down.and.arrow.left.and.right").font(.caption2).opacity(0.7)
+                })
+                .frame(width: f.width, height: f.height)
+                .position(center)
+                .gesture(DragGesture()
+                    .onChanged { v in
+                        let half = f.width / 2
+                        let p = CGPoint(x: min(max(f.midX + v.translation.width, half), size.width - half),
+                                        y: min(max(f.midY + v.translation.height, half), size.height - half))
+                        keyDrag = (k.id, p)
+                    }
+                    .onEnded { _ in
+                        if let d = keyDrag, let j = model.settings.tabletKeys.keys.firstIndex(where: { $0.id == d.id }) {
+                            model.settings.tabletKeys.keys[j].x = Double(d.at.x / size.width)
+                            model.settings.tabletKeys.keys[j].y = Double(d.at.y / size.height)
+                        }
+                        keyDrag = nil
+                    })
+        }
     }
 
     /// Width, height and offset (from the top-left of the iPad) typed in millimetres.

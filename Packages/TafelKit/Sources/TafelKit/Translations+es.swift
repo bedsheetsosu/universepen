@@ -389,7 +389,7 @@ extension Translations {
         "Beschriftung": "Etiqueta",
         "Drehung": "Rotación",
         "Klick ab Druck: %d %%": "Clic a partir de presión: %d %%",
-        "Klick ab Druck: leichte Berührungen bleiben Schweben, erst ab diesem Druck wird geklickt (gilt immer, nicht nur im Tablett-Modus). Tasten-Feld: große Touch-Tasten am Rand im Tablett-Modus – Finger drauf hält die Taste am Mac (z. B. Z/X für osu!). Taste: ein Zeichen oder space, return, tab, esc, delete, left, right, up, down. Die Drehung des Bereichs stellst du im Bereich-Editor ein.": "Clic a partir de presión: los toques ligeros siguen siendo hover; el clic empieza solo por encima de esta presión (siempre, no solo en modo tableta). Teclado táctil: teclas grandes en el borde en modo tableta; un dedo encima mantiene la tecla pulsada en el Mac (p. ej. Z/X para osu!). Tecla: un carácter o space, return, tab, esc, delete, left, right, up, down. La rotación del área se ajusta en el editor de área.",
+        "Klick ab Druck: leichte Berührungen bleiben Schweben, erst ab diesem Druck wird geklickt (gilt immer, nicht nur im Tablett-Modus). Tasten-Feld: große Touch-Tasten am Rand im Tablett-Modus – Finger drauf hält die Taste am Mac (z. B. Z/X für osu!). Taste: ein Zeichen oder space, return, tab, esc, delete, left, right, up, down. Im Bereich-Editor kannst du jede Taste frei verschieben und den Bereich drehen.": "Clic a partir de presión: los toques ligeros siguen siendo hover; el clic empieza solo por encima de esta presión (siempre, no solo en modo tableta). Teclado táctil: teclas grandes en el borde en modo tableta; un dedo encima mantiene la tecla pulsada en el Mac (p. ej. Z/X para osu!). Tecla: un carácter o space, return, tab, esc, delete, left, right, up, down. En el editor de área puedes mover cada tecla libremente y rotar el área.",
         "Klick ab Druck: sofort": "Clic a partir de presión: inmediato",
         "Seite": "Lado",
         "Tasten-Feld (wie ExpressKeys)": "Teclas táctiles (como ExpressKeys)",
@@ -410,5 +410,6 @@ extension Translations {
         "Oben": "Arriba",
         "Position: links ↔ rechts": "Posición: izquierda ↔ derecha",
         "Unten": "Abajo",
+        "Tasten zurücksetzen": "Restablecer teclas",
     ]
 }

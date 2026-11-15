@@ -474,8 +474,22 @@ public struct TabletKeys: Codable, Equatable, Sendable {
         keys = try c.decodeIfPresent([TabletKey].self, forKey: .keys) ?? d.keys
     }
 
-    /// Key frames in a view of `size`: a column on the left/right edge or a row on the top/bottom edge.
+    /// Key frames in a view of `size`: keys moved in the area editor sit where they were put,
+    /// the others in a column (left/right edge) or row (top/bottom edge).
     public func frames(in view: CGSize) -> [CGRect] {
+        let auto = autoFrames(in: view)
+        let s = CGFloat(size)
+        return keys.enumerated().map { i, k in
+            guard let x = k.x, let y = k.y else { return auto[i] }
+            let cx = min(max(CGFloat(x) * view.width, s / 2), max(view.width - s / 2, s / 2))
+            let cy = min(max(CGFloat(y) * view.height, s / 2), max(view.height - s / 2, s / 2))
+            return CGRect(x: cx - s / 2, y: cy - s / 2, width: s, height: s)
+        }
+    }
+
+    public var anyMoved: Bool { keys.contains { $0.x != nil } }
+
+    private func autoFrames(in view: CGSize) -> [CGRect] {
         let s = CGFloat(size), gap: CGFloat = 16, margin: CGFloat = 22
         let total = CGFloat(keys.count) * s + CGFloat(max(keys.count - 1, 0)) * gap
         let pos = CGFloat(min(max(vertical, 0), 1))
@@ -495,7 +509,12 @@ public struct TabletKey: Codable, Equatable, Identifiable, Sendable {
     public var title: String
     /// Character (resolved with the Mac's keyboard layout) or a special key name (space, return, …).
     public var key: String
-    public init(id: UUID = UUID(), title: String, key: String) { self.id = id; self.title = title; self.key = key }
+    /// Centre placed freely in the area editor (normalised to the iPad view); nil = automatic.
+    public var x: Double?
+    public var y: Double?
+    public init(id: UUID = UUID(), title: String, key: String, x: Double? = nil, y: Double? = nil) {
+        self.id = id; self.title = title; self.key = key; self.x = x; self.y = y
+    }
 }
 
 /// Hold / release a key by character (resolved on the Mac with its layout).

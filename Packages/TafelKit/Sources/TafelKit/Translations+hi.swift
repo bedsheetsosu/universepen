@@ -389,7 +389,7 @@ extension Translations {
         "Beschriftung": "लेबल",
         "Drehung": "घुमाव",
         "Klick ab Druck: %d %%": "इस दबाव से क्लिक: %d %%",
-        "Klick ab Druck: leichte Berührungen bleiben Schweben, erst ab diesem Druck wird geklickt (gilt immer, nicht nur im Tablett-Modus). Tasten-Feld: große Touch-Tasten am Rand im Tablett-Modus – Finger drauf hält die Taste am Mac (z. B. Z/X für osu!). Taste: ein Zeichen oder space, return, tab, esc, delete, left, right, up, down. Die Drehung des Bereichs stellst du im Bereich-Editor ein.": "इस दबाव से क्लिक: हल्का स्पर्श होवर ही रहता है, क्लिक सिर्फ़ इस दबाव से ऊपर होता है (हमेशा लागू, सिर्फ़ टैबलेट मोड में नहीं)। की पैड: टैबलेट मोड में किनारे पर बड़ी टच कुंजियाँ – उँगली रखने तक Mac पर कुंजी दबी रहती है (जैसे osu! के लिए Z/X)। कुंजी: एक अक्षर या space, return, tab, esc, delete, left, right, up, down। क्षेत्र का घुमाव क्षेत्र एडिटर में सेट करें।",
+        "Klick ab Druck: leichte Berührungen bleiben Schweben, erst ab diesem Druck wird geklickt (gilt immer, nicht nur im Tablett-Modus). Tasten-Feld: große Touch-Tasten am Rand im Tablett-Modus – Finger drauf hält die Taste am Mac (z. B. Z/X für osu!). Taste: ein Zeichen oder space, return, tab, esc, delete, left, right, up, down. Im Bereich-Editor kannst du jede Taste frei verschieben und den Bereich drehen.": "इस दबाव से क्लिक: हल्का स्पर्श होवर ही रहता है, क्लिक सिर्फ़ इस दबाव से ऊपर होता है (हमेशा लागू, सिर्फ़ टैबलेट मोड में नहीं)। की पैड: टैबलेट मोड में किनारे पर बड़ी टच कुंजियाँ – उँगली रखने तक Mac पर कुंजी दबी रहती है (जैसे osu! के लिए Z/X)। कुंजी: एक अक्षर या space, return, tab, esc, delete, left, right, up, down। क्षेत्र एडिटर में आप हर कुंजी को कहीं भी खिसका सकते हैं और क्षेत्र घुमा सकते हैं।",
         "Klick ab Druck: sofort": "इस दबाव से क्लिक: तुरंत",
         "Seite": "किनारा",
         "Tasten-Feld (wie ExpressKeys)": "की पैड (ExpressKeys जैसा)",
@@ -410,5 +410,6 @@ extension Translations {
         "Oben": "ऊपर",
         "Position: links ↔ rechts": "स्थिति: बाएँ ↔ दाएँ",
         "Unten": "नीचे",
+        "Tasten zurücksetzen": "कुंजियाँ रीसेट करें",
     ]
 }
