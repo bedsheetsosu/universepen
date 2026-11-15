@@ -23,7 +23,7 @@ Target hardware: iPad Air 11" M4 + Äbbl Pencil Pro, MacBook Air M5, Affinity.
 | Pencil input, hover, squeeze, double-tap, gestures on the iPad | **runs on real hardware** (2026-11-15) | pressure, tilt, barrel roll, squeeze, double-tap and pinch/rotate checked live via the developer API; hover confirmed in Affinity |
 | Affinity compatibility | **works on real hardware** (2026-11-15) | in regular use: pressure → stroke width, tilt and barrel roll, hover brush preview, gestures and shortcuts (zoom, pan, undo, squeeze/double-tap) |
 | Pressure curve editor & per-app shortcut bar | **runs on real hardware** (2026-11-15) | freely drawable curve with live test, smoothing, hold keys, the bar follows the Mac app |
-| Tablet mode with app-bound presets (osu!), instant ink, hover dot | **runs on real hardware** (2026-11-15) | confirmed by use |
+| Tablet mode with app-bound presets (osu!), key pad, tip threshold, area rotation, instant ink, hover dot | **runs on real hardware** (2026-11-15) | confirmed by use |
 | Plugins, time-lapse | implemented, builds (2026-11-15) | plugin runtime and examples tested on the Mac (filters, actions, timeout); time-lapse writer tested with synthetic frames – **not yet confirmed in daily use** |
 | Source switching from the iPad, undo scrub, game mode, custom colours / flowing background, pen taps in games (osu!: pointer follows every tap) | **runs on real hardware** (2026-11-15) | confirmed by use |
 | Squeeze radial menu, per-app Pencil profiles, Mac menu bar (status, iPad battery, mode) | **runs on real hardware** (2026-11-15) | radial menu with hover + squeeze, Affinity profile switching with the front app, battery shown in the menu bar |
