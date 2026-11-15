@@ -429,6 +429,11 @@ private struct TimelapseControls: View {
                           systemImage: host.timelapseRunning ? "stop.circle.fill" : "record.circle")
                 }
                 .tint(host.timelapseRunning ? .red : Brand.mint)
+                Spacer()
+                Text(L("Tempo"))
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .fixedSize()
                 Picker(L("Tempo"), selection: $host.timelapseSpeed) {
                     Text("10×").tag(10)
                     Text("30×").tag(30)
@@ -436,9 +441,9 @@ private struct TimelapseControls: View {
                     Text("120×").tag(120)
                 }
                 .pickerStyle(.segmented)
-                .frame(maxWidth: 220)
+                .labelsHidden()
+                .fixedSize()
                 .disabled(host.timelapseRunning)
-                Spacer()
             }
             if host.timelapseRunning, let start = host.timelapseStarted {
                 TimelineView(.periodic(from: start, by: 1)) { ctx in
