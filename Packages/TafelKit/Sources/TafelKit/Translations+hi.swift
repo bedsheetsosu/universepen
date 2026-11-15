@@ -475,5 +475,8 @@ extension Translations {
         "Tablett": "टैबलेट",
         "Treffer: %d / %d": "हिट: %d / %d",
         "Unbenannt – Demo": "बिना नाम – डेमो",
+        "Nur Monitor (keine Eingabe)": "सिर्फ़ मॉनिटर (कोई इनपुट नहीं)",
+        "Nur Monitor – Eingaben gehen nicht an den Mac": "सिर्फ़ मॉनिटर – इनपुट Mac पर नहीं जाता",
+        "Eingabe wieder an": "इनपुट फिर से चालू",
     ]
 }

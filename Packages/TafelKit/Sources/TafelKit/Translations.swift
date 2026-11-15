@@ -518,5 +518,8 @@ enum Translations {
         "Tablett": "Tablet",
         "Treffer: %d / %d": "Hits: %d / %d",
         "Unbenannt – Demo": "Untitled – Demo",
+        "Nur Monitor (keine Eingabe)": "Monitor only (no input)",
+        "Nur Monitor – Eingaben gehen nicht an den Mac": "Monitor only – input is not sent to the Mac",
+        "Eingabe wieder an": "Input on again",
     ]
 }

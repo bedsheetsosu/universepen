@@ -475,5 +475,8 @@ extension Translations {
         "Tablett": "タブレット",
         "Treffer: %d / %d": "ヒット：%d / %d",
         "Unbenannt – Demo": "名称未設定 – デモ",
+        "Nur Monitor (keine Eingabe)": "モニターのみ（入力なし）",
+        "Nur Monitor – Eingaben gehen nicht an den Mac": "モニターのみ – 入力は Mac に送られません",
+        "Eingabe wieder an": "入力を再びオン",
     ]
 }

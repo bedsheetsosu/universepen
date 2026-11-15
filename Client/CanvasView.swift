@@ -145,6 +145,29 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         return HIDKeyMap.macKeyCode(usage) != nil ? usage : nil
     }
 
+    /// Monitor only: no input reaches the Mac. Entering it ends whatever is in progress cleanly.
+    private(set) var viewOnly = false
+
+    func setViewOnly(_ on: Bool, session s: Session?) {
+        if on && !viewOnly {
+            if let p = pencilTouch {
+                let n = normalizeInput(p.preciseLocation(in: self))
+                session?.send(PenSample(phase: .cancel, x: Float(n.x), y: Float(n.y), timestamp: p.timestamp))
+                pencilTouch = nil
+            }
+            emitFinger(oneFinger.cancel())
+            trackedFinger = nil
+            fingerTimer?.invalidate(); fingerTimer = nil
+            if let t = pointerTouch { sendMouse(.up, t.location(in: self)); pointerTouch = nil }
+            releaseKeys()
+            keys.releaseAll()
+            ink.clear()
+        }
+        viewOnly = on
+        // Without a session nothing can be sent: every input path ends in `session?.send`.
+        session = on ? nil : s
+    }
+
     func releaseKeys() {
         for usage in heldKeys { session?.send(KeyEvent(hidUsage: usage, down: false)) }
         heldKeys.removeAll()
@@ -441,6 +464,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         // While the radial menu is open nothing goes to the Mac, but the hover state must still
         // end – otherwise single-finger input stays blocked ("Pencil is hovering").
         if radialOpen { if gone { hovering = false }; return }
+        if viewOnly { hovering = false; ink.setHover(nil); return }
         ink.setHover(settings.hoverDot && !gone && pencilTouch == nil ? g.location(in: self) : nil)
         guard settings.sendHover, let session else { return }
         let n = normalizeInput(g.location(in: self))
@@ -470,11 +494,13 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     // MARK: Pencil Pro gestures
 
     func pencilInteraction(_ interaction: UIPencilInteraction, didReceiveTap tap: UIPencilInteraction.Tap) {
+        guard !viewOnly else { return }
         onGesture?(GestureEvent(name: "pencil.doubleTap"))
         perform(settings.doubleTap, at: tap.hoverPose?.location)
     }
 
     func pencilInteraction(_ interaction: UIPencilInteraction, didReceiveSqueeze squeeze: UIPencilInteraction.Squeeze) {
+        guard !viewOnly else { return }
         // Begin/end for plugins (e.g. "hold squeeze and drag the Pencil to scroll").
         if squeeze.phase == .began {
             squeezing = true
@@ -725,12 +751,12 @@ struct CanvasRepresentable: UIViewRepresentable {
     }
 
     func updateUIView(_ v: CanvasView, context: Context) {
-        v.session = model.session
+        v.setViewOnly(model.settings.viewOnly, session: model.session)
         v.settings = model.effectiveSettings
         v.tabletMode = model.settings.tabletMode
         v.keys.config = model.settings.tabletKeys
         v.keys.accent = UIColor(Brand.mint)
-        v.keys.isHidden = !model.settings.tabletMode || !model.settings.tabletKeys.enabled
+        v.keys.isHidden = !model.settings.tabletMode || !model.settings.tabletKeys.enabled || model.settings.viewOnly
         v.ink.color = UIColor(Brand.mint)
         // Visible for about as long as the Mac's own stroke takes to appear in the picture:
         // pen event to the Mac (½ RTT) + drawing + capture/encode/network (frame age) + decode/display.

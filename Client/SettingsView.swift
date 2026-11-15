@@ -33,6 +33,7 @@ struct SettingsView: View {
                 radialSection
                 keyboardSection
                 Section {
+                    Toggle(L("Nur Monitor (keine Eingabe)"), isOn: $model.settings.viewOnly)
                     Toggle(L("Latenz dauerhaft anzeigen"), isOn: $model.showStatusOverlay)
                     Toggle(L("Shortcut-Leiste rechts (Linkshänder)"), isOn: $model.settings.shortcutBarOnRight)
                     Button(L("Einrichtung erneut starten")) {

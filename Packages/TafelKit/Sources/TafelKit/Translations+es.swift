@@ -475,5 +475,8 @@ extension Translations {
         "Tablett": "Tableta",
         "Treffer: %d / %d": "Aciertos: %d / %d",
         "Unbenannt – Demo": "Sin título – Demo",
+        "Nur Monitor (keine Eingabe)": "Solo monitor (sin entrada)",
+        "Nur Monitor – Eingaben gehen nicht an den Mac": "Solo monitor: la entrada no se envía al Mac",
+        "Eingabe wieder an": "Entrada activada de nuevo",
     ]
 }

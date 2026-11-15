@@ -211,6 +211,9 @@ public struct InputSettings: Codable, Equatable, Sendable {
     public var tabletArea = TabletArea.full
     /// Keep the area in the Mac display's aspect ratio (no stretching, like Wacom's "force proportions").
     public var tabletLockAspect = false
+    /// Monitor only: the iPad just shows the picture, nothing is sent to the Mac.
+    public var viewOnly = false
+
     /// For Pencils without hover: touching only moves the pointer; touch again right away at the
     /// same spot (and hold) to click / draw – like double-tap-and-drag on a trackpad.
     public var doubleTapToClick = false
@@ -274,7 +277,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         case fingerMode, fingerPressure, longPressRightClick, palmRadius
         case threeFingerSwipeLeft, threeFingerSwipeRight, threeFingerSwipeUp, threeFingerSwipeDown, fourFingerTap
         case swapISOKeys, trackpadAsMouse, hideIPadPointer, showShortcutBar, shortcutBarOnRight, shortcutBar
-        case appShortcutBars, appNames, radialMenu, appPenProfiles, gameApps, undoScrub, undoScrubStep, instantInk, hoverDot, tabletMode, tabletArea, tabletLockAspect, tabletPresets, tipThreshold, tabletKeys, doubleTapToClick
+        case appShortcutBars, appNames, radialMenu, appPenProfiles, gameApps, undoScrub, undoScrubStep, instantInk, hoverDot, tabletMode, tabletArea, tabletLockAspect, tabletPresets, tipThreshold, tabletKeys, doubleTapToClick, viewOnly
     }
 
     /// Tolerates settings saved by older versions: missing keys keep their defaults.
@@ -308,7 +311,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         try get(.tabletMode, &tabletMode); try get(.tabletArea, &tabletArea); try get(.tabletLockAspect, &tabletLockAspect)
         try get(.tabletPresets, &tabletPresets)
         try get(.tipThreshold, &tipThreshold); try get(.tabletKeys, &tabletKeys)
-        try get(.doubleTapToClick, &doubleTapToClick)
+        try get(.doubleTapToClick, &doubleTapToClick); try get(.viewOnly, &viewOnly)
     }
 }
 

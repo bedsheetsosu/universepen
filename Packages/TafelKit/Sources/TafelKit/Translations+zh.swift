@@ -475,5 +475,8 @@ extension Translations {
         "Tablett": "数位板",
         "Treffer: %d / %d": "命中：%d / %d",
         "Unbenannt – Demo": "未命名 – 演示",
+        "Nur Monitor (keine Eingabe)": "仅显示器（无输入）",
+        "Nur Monitor – Eingaben gehen nicht an den Mac": "仅显示器——输入不会发送到 Mac",
+        "Eingabe wieder an": "输入已重新开启",
     ]
 }

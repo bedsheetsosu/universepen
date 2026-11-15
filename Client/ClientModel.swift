@@ -626,6 +626,7 @@ final class ClientModel: ObservableObject {
     }
 
     func hold(_ key: HoldKey, down: Bool) {
+        guard !settings.viewOnly || !down else { return }
         session?.send(KeyEvent(hidUsage: key.rawValue, down: down))
     }
 
@@ -637,14 +638,16 @@ final class ClientModel: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + t.seconds, execute: w)
     }
 
-    func runPlugin(_ id: String) { session?.runPluginAction(id) }
+    func runPlugin(_ id: String) { guard !settings.viewOnly else { return }; session?.runPluginAction(id) }
 
     /// Runs a bar / radial menu button: its plugin action, or its shortcut.
     func run(_ b: ShortcutButton) {
+        guard !settings.viewOnly else { return }
         if let p = b.pluginAction { runPlugin(p) } else { session?.send(b.shortcut) }
     }
 
     func trigger(_ action: PencilAction) {
+        guard !settings.viewOnly else { return }
         if action == .radialMenu { return }   // opened by the canvas, which knows the Pencil position
         if case .plugin(let id) = action { runPlugin(id); return }
         guard let s = action.shortcut else { return }

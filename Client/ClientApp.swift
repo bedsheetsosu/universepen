@@ -80,7 +80,7 @@ struct RootView: View {
 
     private var overlay: some View {
         ZStack {
-            if model.settings.showShortcutBar && !model.settings.tabletMode {
+            if model.settings.showShortcutBar && !model.settings.tabletMode && !model.settings.viewOnly {
                 HStack {
                     if model.settings.shortcutBarOnRight { Spacer() }
                     ShortcutBar()
@@ -234,6 +234,11 @@ private struct OverlayMenuPanel: View {
                         }
                     }
                     divider
+                }
+                row(L("Nur Monitor (keine Eingabe)"), icon: "display", checked: model.settings.viewOnly) {
+                    withAnimation(Brand.spring) { model.settings.viewOnly.toggle() }
+                    model.show(Toast(text: model.settings.viewOnly ? L("Nur Monitor – Eingaben gehen nicht an den Mac") : L("Eingabe wieder an"), seconds: 1.6))
+                    close()
                 }
                 row(L("Tablett-Modus (ohne Bild)"), icon: "rectangle.dashed", checked: model.settings.tabletMode) {
                     withAnimation(Brand.spring) { model.settings.tabletMode.toggle() }

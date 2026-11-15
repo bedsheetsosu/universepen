@@ -475,5 +475,8 @@ extension Translations {
         "Tablett": "태블릿",
         "Treffer: %d / %d": "명중: %d / %d",
         "Unbenannt – Demo": "제목 없음 – 데모",
+        "Nur Monitor (keine Eingabe)": "모니터 전용(입력 없음)",
+        "Nur Monitor – Eingaben gehen nicht an den Mac": "모니터 전용 – 입력이 Mac으로 전송되지 않음",
+        "Eingabe wieder an": "입력 다시 켬",
     ]
 }
