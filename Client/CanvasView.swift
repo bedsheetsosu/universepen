@@ -368,8 +368,12 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     // MARK: Hover
 
     @objc private func handleHover(_ g: UIHoverGestureRecognizer) {
-        lastHoverPoint = g.state == .ended || g.state == .cancelled ? nil : g.location(in: self)
-        guard settings.sendHover, !radialOpen, let session else { return }
+        let gone = g.state == .ended || g.state == .cancelled || g.state == .failed
+        lastHoverPoint = gone ? nil : g.location(in: self)
+        // While the radial menu is open nothing goes to the Mac, but the hover state must still
+        // end – otherwise single-finger input stays blocked ("Pencil is hovering").
+        if radialOpen { if gone { hovering = false }; return }
+        guard settings.sendHover, let session else { return }
         let n = Geometry.normalized(g.location(in: self), in: videoRect)
         let tilt = settings.tilt.tilt(altitude: Double(g.altitudeAngle), azimuth: Double(g.azimuthAngle(in: self)))
         let roll = settings.sendRoll ? Double(g.rollAngle) * 180 / .pi : 0
@@ -415,7 +419,9 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
             let n = Geometry.normalized(p, in: videoRect)
             session.send(PenSample(phase: .exit, x: Float(n.x), y: Float(n.y), timestamp: ProcessInfo.processInfo.systemUptime))
         }
-        onRadialOpen?(hover ?? lastHoverPoint ?? CGPoint(x: bounds.midX, y: bounds.midY))
+        let at = hover ?? lastHoverPoint ?? CGPoint(x: bounds.midX, y: bounds.midY)
+        hovering = false   // the Mac got its exit above; hover resumes after the menu closes
+        onRadialOpen?(at)
     }
 
     // MARK: Finger gestures
