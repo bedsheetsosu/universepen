@@ -73,6 +73,8 @@ struct TabletAreaEditor: View {
     private enum Field: Hashable, CaseIterable { case w, h, x, y }
     @FocusState private var focus: Field?
     @State private var text: [Field: String] = [:]
+    /// The value a field showed before you tapped it (shown greyed while it is empty).
+    @State private var before: [Field: String] = [:]
     @State private var viewSize: CGSize = .zero
 
     /// Points → millimetres on an 11" iPad Air (264 ppi, 2 px per point).
@@ -133,6 +135,12 @@ struct TabletAreaEditor: View {
                 .onChange(of: area) { fill(area ?? model.settings.tabletArea, size) }
                 .onChange(of: model.settings.tabletArea) { fill(area ?? model.settings.tabletArea, size) }
                 .onChange(of: model.settings.tabletLockAspect) { fill(area ?? model.settings.tabletArea, size) }
+                .onChange(of: focus) { old, new in
+                    // Tapping a field empties it, so typing replaces the value instead of adding digits to it.
+                    if let new { before[new] = text[new]; text[new] = "" }
+                    // Left without typing: show the value again.
+                    if let old, old != new, (text[old] ?? "").isEmpty { text[old] = before[old] }
+                }
             }
         }
         .ignoresSafeArea()
@@ -179,7 +187,7 @@ struct TabletAreaEditor: View {
     private func field(_ label: String, _ f: Field) -> some View {
         HStack(spacing: 4) {
             Text(label).foregroundStyle(.secondary)
-            TextField(label, text: Binding(get: { text[f] ?? "" }, set: { new in
+            TextField(before[f] ?? label, text: Binding(get: { text[f] ?? "" }, set: { new in
                 text[f] = new
                 // Aspect locked: the height follows the typed width right away.
                 if f == .w, model.settings.tabletLockAspect, let w = Self.number(new) {
@@ -222,7 +230,10 @@ struct TabletAreaEditor: View {
         focus = nil
         guard size.width > 0 else { return }
         let cur = (area ?? model.settings.tabletArea).rect(in: size)
-        func pt(_ f: Field, _ fallback: CGFloat) -> CGFloat { Self.number(text[f] ?? "").map { CGFloat($0 / Self.mmPerPoint) } ?? fallback }
+        func pt(_ f: Field, _ fallback: CGFloat) -> CGFloat {
+            let typed = (text[f] ?? "").isEmpty ? before[f] ?? "" : text[f] ?? ""
+            return Self.number(typed).map { CGFloat($0 / Self.mmPerPoint) } ?? fallback
+        }
         var w = pt(.w, cur.width)
         var h = model.settings.tabletLockAspect ? w / model.tabletAspect : pt(.h, cur.height)
         w = min(max(w, 40), size.width); h = min(max(h, 30), size.height)
@@ -234,6 +245,7 @@ struct TabletAreaEditor: View {
         let new = TabletArea(x: Double(x / size.width), y: Double(y / size.height),
                              width: Double(w / size.width), height: Double(h / size.height))
         model.settings.tabletArea = new
+        before = [:]
         fill(new, size)   // show what was actually applied (after clamping)
     }
 
