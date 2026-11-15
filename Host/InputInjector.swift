@@ -17,6 +17,8 @@ final class InputInjector {
     private var penDown = false
     private var inProximity = false
     private var lastPoint = CGPoint.zero
+    /// Where the last pointer event we posted put the cursor (for delta fields and jump moves).
+    private var lastPosted: CGPoint?
     private var scrollX = DeltaAccumulator()
     private var scrollY = DeltaAccumulator()
     private let source = CGEventSource(stateID: .hidSystemState)
@@ -63,10 +65,12 @@ final class InputInjector {
             mouse(.mouseMoved, s, p, buttons: 0)
         case .down:
             if !inProximity { proximity(true, at: p) }
+            moveFirst(s, p)
             penDown = true
             mouse(.leftMouseDown, s, p, buttons: 1)
         case .move:
             if !penDown {
+                moveFirst(s, p)
                 penDown = true
                 mouse(.leftMouseDown, s, p, buttons: 1)
             } else {
@@ -125,6 +129,7 @@ final class InputInjector {
     private func postMouse(_ type: CGEventType, _ button: CGMouseButton, at p: CGPoint) {
         guard let e = CGEvent(mouseEventSource: source, mouseType: type, mouseCursorPosition: p, mouseButton: button) else { return }
         if type != .mouseMoved { e.setIntegerValueField(.mouseEventClickState, value: max(clickCount, 1)) }
+        setDelta(e, to: p)
         e.flags = currentKeyFlags
         e.post(tap: .cghidEventTap)
         lastPoint = p
@@ -214,8 +219,27 @@ final class InputInjector {
         if inProximity { proximity(false, at: lastPoint) }
     }
 
+    /// A tap at a new spot without hovering there first: move the pointer there before the click.
+    /// Games (osu!, …) often track the cursor only through move events and ignore a click's
+    /// own position, so the cursor would stay where it was.
+    private func moveFirst(_ s: PenSample, _ p: CGPoint) {
+        guard let last = lastPosted, hypot(p.x - last.x, p.y - last.y) >= 0.5 else { return }
+        mouse(.mouseMoved, s, p, buttons: 0)
+    }
+
+    /// Relative movement since the last event we posted. Apps with "raw"/relative mouse input
+    /// read only these fields; without them the cursor would not move at all.
+    private func setDelta(_ e: CGEvent, to p: CGPoint) {
+        if let last = lastPosted {
+            e.setIntegerValueField(.mouseEventDeltaX, value: Int64((p.x - last.x).rounded()))
+            e.setIntegerValueField(.mouseEventDeltaY, value: Int64((p.y - last.y).rounded()))
+        }
+        lastPosted = p
+    }
+
     private func mouse(_ type: CGEventType, _ s: PenSample, _ p: CGPoint, buttons: Int64) {
         guard let e = CGEvent(mouseEventSource: source, mouseType: type, mouseCursorPosition: p, mouseButton: .left) else { return }
+        setDelta(e, to: p)
         let pressure = type == .leftMouseDown || type == .leftMouseDragged ? Double(s.pressure) : 0
         e.setIntegerValueField(.mouseEventSubtype, value: Int64(CGEventMouseSubtype.tabletPoint.rawValue))
         e.setDoubleValueField(.mouseEventPressure, value: pressure)
@@ -262,6 +286,7 @@ final class InputInjector {
         let anchor = Geometry.denormalized(CGPoint(x: CGFloat(s.x), y: CGFloat(s.y)), in: r)
         // Move the pointer to the gesture anchor first, so zoom-by-scroll zooms around the fingers.
         if !penDown, let m = CGEvent(mouseEventSource: source, mouseType: .mouseMoved, mouseCursorPosition: anchor, mouseButton: .left) {
+            setDelta(m, to: anchor)
             m.post(tap: .cghidEventTap)
             lastPoint = anchor
         }
