@@ -27,6 +27,16 @@ public extension View {
         }
     }
 
+    /// Calm frosted look for controls that float over the live Mac picture. Liquid Glass adapts
+    /// its brightness to whatever is behind it, which over moving video looks like pulsing.
+    func tafelOverlayGlass<S: Shape>(_ shape: S) -> some View {
+        self
+            .background(.ultraThinMaterial, in: shape)
+            .background(Color.black.opacity(0.35), in: shape)
+            .overlay(shape.stroke(.white.opacity(0.12), lineWidth: 1))
+            .environment(\.colorScheme, .dark)
+    }
+
     /// Rounded card used on both platforms.
     func tafelCard(padding: CGFloat = 16) -> some View {
         self

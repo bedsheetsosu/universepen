@@ -153,9 +153,10 @@ private struct OverlayMenuButton: View, Equatable {
         } label: {
             Image(systemName: "ellipsis")
                 .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.85))
                 .frame(width: 36, height: 36)
-                .tafelGlass(Circle())
-                .opacity(0.7)
+                .tafelOverlayGlass(Circle())
+                .contentShape(Circle())
         }
     }
 }
