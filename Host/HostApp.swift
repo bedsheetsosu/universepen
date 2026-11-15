@@ -37,6 +37,10 @@ struct TafelHostApp: App {
             PenTestView()
         }
 
+        Window(L("Plugins"), id: "plugins") {
+            PluginsWindow().environmentObject(host)
+        }
+
         MenuBarExtra {
             HostMenu().environmentObject(host)
         } label: {
@@ -80,6 +84,10 @@ struct HostMenu: View {
         } else {
             Button(L("Zeitraffer aufnehmen")) { host.startTimelapse() }
         }
+        Button(L("Plugins …")) {
+            openWindow(id: "plugins")
+            NSApp.activate()
+        }
         Divider()
         Button(L("UniversePen öffnen")) { openMain() }
         Button(L("UniversePen beenden")) { NSApp.terminate(nil) }
@@ -116,6 +124,7 @@ struct HostView: View {
                 source
                 stream
                 developer
+                pluginsCard
                 VStack(alignment: .leading, spacing: 10) {
                     SectionTitle(L("Farben"), symbol: "paintpalette")
                     ThemeChoice()
@@ -389,6 +398,23 @@ struct HostView: View {
             r = r.replacingOccurrences(of: de, with: shown)
         }
         return r
+    }
+
+    private var pluginsCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            SectionTitle(L("Plugins"), symbol: "puzzlepiece.extension")
+            Text(L("Eigene Erweiterungen in JavaScript: Stift-Filter (z. B. Glättung), Gesten-Makros, Aktionen für das iPad, Einstellungen steuern. Wie OpenTabletDriver-Plugins, nur für UniversePen."))
+                .font(.caption).foregroundStyle(.secondary)
+            HStack {
+                Button { openWindow(id: "plugins") } label: { Label(L("Plugins …"), systemImage: "puzzlepiece.extension") }
+                let on = host.plugins.entries.filter(\.enabled).count
+                if on > 0 { Text(L("%d aktiv", on)).font(.caption).foregroundStyle(Brand.mint) }
+                Spacer()
+                Link(L("Plugin-Doku"), destination: URL(string: "https://github.com/bedsheetsosu/universepen/tree/main/SDK/plugins")!)
+                    .font(.caption)
+            }
+        }
+        .tafelCard()
     }
 
     private var stream: some View {

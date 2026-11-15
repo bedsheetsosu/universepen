@@ -1,0 +1,7 @@
+{
+  "id": "squeeze-scroll",
+  "name": "Squeeze-Scroll",
+  "version": "1.0",
+  "description": "Hold the squeeze and move the hovering Pencil up/down to scroll. Set Squeeze on the iPad to “None”.",
+  "main": "main.js"
+}

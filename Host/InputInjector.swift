@@ -302,6 +302,16 @@ final class InputInjector {
         e.post(tap: .cghidEventTap)
     }
 
+    /// Scroll by pixels at the current pointer position (plugins).
+    func scrollPixels(dx: Double, dy: Double) {
+        let ix = scrollX.take(dx), iy = scrollY.take(dy)
+        guard ix != 0 || iy != 0,
+              let e = CGEvent(scrollWheelEvent2Source: source, units: .pixel, wheelCount: 2,
+                              wheel1: Int32(clamping: iy), wheel2: Int32(clamping: ix), wheel3: 0) else { return }
+        e.flags = currentKeyFlags
+        e.post(tap: .cghidEventTap)
+    }
+
     /// Must be called on the main thread (Text Input Sources API).
     func shortcut(_ s: Shortcut) {
         guard let resolved = KeyboardLayout.keyCode(for: s.key) else {

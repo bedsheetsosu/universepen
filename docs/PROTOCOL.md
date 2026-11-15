@@ -64,6 +64,9 @@ JSON messages use plain `JSONEncoder` key names (camelCase).
 | 0x08 | settingsPatch | H→C | JSON `{settings?, quality?, removeAppProfiles?}`, deep-merged on the iPad |
 | 0x09 | sourceList | H→C | JSON `{mode, modes: [{id, title, available}], displays: [{id, title, available, aspect}], selectedDisplay, windows: [...], selectedWindow}`; mode ids `display`, `second-screen`, `region`, `window`; display/window ids as text |
 | 0x0A | selectSource | C→H | JSON `{mode?, display?, window?, refresh?}` – `refresh: true` re-reads the window list first |
+| 0x0B | pluginActions | H→C | JSON `[{id: "plugin/action", title, icon?, plugin}]` – actions of running Mac plugins |
+| 0x0C | runPluginAction | C→H | JSON `{id}` |
+| 0x0D | toast | H→C | JSON `{text, seconds}` – short message shown on the iPad |
 | 0x10 | pen | C→H | `u8 phase, f32 x, f32 y, f32 pressure, f32 tiltX, f32 tiltY, f32 rotation°, f64 timestamp` |
 | 0x11 | scroll | C→H | `f32 x, f32 y, f32 dx, f32 dy, u8 modifiers` |
 | 0x12 | mouse | C→H | `u8 phase (0 move, 1 down, 2 up, 3 exit), u8 button (0 left, 1 right), f32 x, f32 y` |

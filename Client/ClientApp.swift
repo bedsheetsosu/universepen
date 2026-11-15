@@ -103,6 +103,15 @@ struct RootView: View {
                     }
                     .buttonStyle(.plain)
                 }
+                if let t = model.toast {
+                    Text(t.text)
+                        .font(.callout.weight(.semibold))
+                        .padding(.horizontal, 16).padding(.vertical, 10)
+                        .tafelOverlayGlass(Capsule())
+                        .allowsHitTesting(false)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .id(t.text)
+                }
                 if let n = model.scrubSteps {
                     ScrubPill(steps: n)
                         .transition(.move(edge: .top).combined(with: .opacity))
@@ -135,6 +144,7 @@ struct RootView: View {
         }
         .animation(Brand.spring, value: reconnecting)
         .animation(Brand.spring, value: model.scrubSteps != nil)
+        .animation(Brand.spring, value: model.toast)
         .animation(Brand.spring, value: showStatus || model.showStatusOverlay)
     }
 }
@@ -217,6 +227,13 @@ private struct OverlayMenuPanel: View {
                         close()
                         withAnimation(Brand.spring) { model.tabletEditing = true }
                     }
+                }
+                if !model.pluginActions.isEmpty {
+                    header(L("Plugins"))
+                    ForEach(model.pluginActions) { a in
+                        row(a.title, icon: a.icon ?? "puzzlepiece.extension") { model.runPlugin(a.id); close() }
+                    }
+                    divider
                 }
                 if let app = model.frontApp {
                     row(model.gameModeActive ? L("Spielmodus für %@ aus", app.name) : L("Spielmodus für %@", app.name),
@@ -369,7 +386,7 @@ struct ShortcutBar: View {
                     HoldButton(title: b.title, key: key)
                 } else {
                     Button {
-                        model.trigger(.shortcut(b.shortcut))
+                        model.run(b)
                     } label: {
                         barLabel(b.title, active: false)
                     }

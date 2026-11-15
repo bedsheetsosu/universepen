@@ -438,6 +438,9 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     }
 
     func pencilInteraction(_ interaction: UIPencilInteraction, didReceiveSqueeze squeeze: UIPencilInteraction.Squeeze) {
+        // Begin/end for plugins (e.g. "hold squeeze and move the Pencil to scroll").
+        if squeeze.phase == .began { onGesture?(GestureEvent(name: "pencil.squeezeBegan")) }
+        if squeeze.phase == .ended || squeeze.phase == .cancelled { onGesture?(GestureEvent(name: "pencil.squeezeEnded")) }
         guard squeeze.phase == .ended else { return }
         onGesture?(GestureEvent(name: "pencil.squeeze"))
         perform(settings.squeeze, at: squeeze.hoverPose?.location)

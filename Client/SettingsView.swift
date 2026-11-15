@@ -353,6 +353,7 @@ struct SettingsView: View {
 struct ActionPicker: View {
     let title: String
     @Binding var action: PencilAction
+    @EnvironmentObject var model: ClientModel
 
     private enum Preset: String, CaseIterable, Identifiable {
         case none, radialMenu, undo, redo, eraser, brush, hand, desktopLeft, desktopRight, missionControl, appWindows, custom
@@ -401,15 +402,37 @@ struct ActionPicker: View {
         })
     }
 
+    /// Picker value: a preset name or "plugin:<id>".
+    private var choice: Binding<String> {
+        Binding(get: {
+            if case .plugin(let id) = action { return "plugin:" + id }
+            return preset.wrappedValue.rawValue
+        }, set: { v in
+            if v.hasPrefix("plugin:") { action = .plugin(String(v.dropFirst(7))) }
+            else if let p = Preset(rawValue: v) { preset.wrappedValue = p }
+        })
+    }
+
     var body: some View {
-        Picker(title, selection: preset) {
-            ForEach(Preset.allCases) { Text($0.label).tag($0) }
+        Picker(title, selection: choice) {
+            ForEach(Preset.allCases) { Text($0.label).tag($0.rawValue) }
+            if !model.pluginActions.isEmpty || isPlugin {
+                Divider()
+                ForEach(model.pluginActions) { a in Text("⚙︎ " + a.title).tag("plugin:" + a.id) }
+                if isPlugin, case .plugin(let id) = action, !model.pluginActions.contains(where: { $0.id == id }) {
+                    Text("⚙︎ " + id + " " + L("(Plugin aus)")).tag("plugin:" + id)
+                }
+            }
         }
-        if preset.wrappedValue == .custom, let s = action.shortcut {
+        if !isPlugin, preset.wrappedValue == .custom, let s = action.shortcut {
             ShortcutEditor(shortcut: Binding(get: { s }, set: { action = .shortcut($0) }))
                 .padding(.leading, 16)
         }
     }
+}
+
+extension ActionPicker {
+    var isPlugin: Bool { if case .plugin = action { return true } else { return false } }
 }
 
 struct ShortcutEditor: View {
@@ -453,17 +476,29 @@ struct ShortcutEditor: View {
 /// Edits one bar button: title, and either a shortcut or a key to hold.
 struct ShortcutButtonEditor: View {
     @Binding var button: ShortcutButton
+    @EnvironmentObject var model: ClientModel
 
     var body: some View {
         Form {
             TextField(L("Titel"), text: $button.title)
-            Picker(L("Art"), selection: Binding(get: { button.hold == nil ? 0 : 1 },
-                                                set: { button.hold = $0 == 0 ? nil : (button.hold ?? .shift) })) {
+            Picker(L("Art"), selection: Binding(get: { button.pluginAction != nil ? 2 : button.hold == nil ? 0 : 1 },
+                                                set: { v in
+                                                    button.hold = v == 1 ? (button.hold ?? .shift) : nil
+                                                    button.pluginAction = v == 2 ? (button.pluginAction ?? model.pluginActions.first?.id ?? "") : nil
+                                                })) {
                 Text(L("Shortcut senden")).tag(0)
                 Text(L("Taste halten")).tag(1)
+                Text(L("Plugin-Aktion")).tag(2)
             }
             .pickerStyle(.segmented)
-            if button.hold != nil {
+            if button.pluginAction != nil {
+                Picker(L("Aktion"), selection: Binding(get: { button.pluginAction ?? "" }, set: { button.pluginAction = $0 })) {
+                    ForEach(model.pluginActions) { a in Text(a.title).tag(a.id) }
+                    if let id = button.pluginAction, !model.pluginActions.contains(where: { $0.id == id }) {
+                        Text(id.isEmpty ? L("Keine Plugin-Aktionen – Plugins am Mac einschalten") : id + " " + L("(Plugin aus)")).tag(id)
+                    }
+                }
+            } else if button.hold != nil {
                 Picker(L("Taste"), selection: Binding(get: { button.hold ?? .shift }, set: { button.hold = $0 })) {
                     ForEach(HoldKey.allCases, id: \.self) { k in
                         Text(k == .space ? L("Leertaste") : k.symbol).tag(k)

@@ -7,6 +7,8 @@ public enum PencilAction: Codable, Hashable, Sendable {
     case shortcut(Shortcut)
     /// Opens the radial menu at the Pencil tip (Pencil Pro squeeze / double tap).
     case radialMenu
+    /// Runs an action of a Mac plugin ("pluginID/actionID").
+    case plugin(String)
 
     public static let undo = PencilAction.shortcut(Shortcut("z", .command))
     public static let redo = PencilAction.shortcut(Shortcut("z", [.command, .shift]))
@@ -30,6 +32,7 @@ public enum PencilAction: Codable, Hashable, Sendable {
         case .none: return L("Keine")
         case .shortcut(let s): return s.display
         case .radialMenu: return L("Radialmenü")
+        case .plugin(let id): return "⚙︎ " + (id.split(separator: "/").last.map(String.init) ?? id)
         }
     }
 }
@@ -102,8 +105,10 @@ public struct ShortcutButton: Codable, Hashable, Identifiable, Sendable {
     /// If set, the button holds this key down while touched (e.g. ⇧ or Space while drawing)
     /// instead of sending `shortcut` once.
     public var hold: HoldKey?
-    public init(id: UUID = UUID(), title: String, shortcut: Shortcut, hold: HoldKey? = nil) {
-        self.id = id; self.title = title; self.shortcut = shortcut; self.hold = hold
+    /// If set, the button runs this Mac plugin action ("pluginID/actionID") instead of the shortcut.
+    public var pluginAction: String?
+    public init(id: UUID = UUID(), title: String, shortcut: Shortcut, hold: HoldKey? = nil, pluginAction: String? = nil) {
+        self.id = id; self.title = title; self.shortcut = shortcut; self.hold = hold; self.pluginAction = pluginAction
     }
 }
 

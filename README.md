@@ -23,7 +23,7 @@ Target hardware: iPad Air 11" M4 + Äbbl Pencil Pro, MacBook Air M5, Affinity.
 | Pencil input, hover, squeeze, double-tap, gestures on the iPad | **runs on real hardware** (2026-11-15) | pressure, tilt, barrel roll, squeeze, double-tap and pinch/rotate checked live via the developer API; hover confirmed in Affinity |
 | Affinity compatibility | **works on real hardware** (2026-11-15) | in regular use: pressure → stroke width, tilt and barrel roll, hover brush preview, gestures and shortcuts (zoom, pan, undo, squeeze/double-tap) |
 | Pressure curve editor & per-app shortcut bar | **runs on real hardware** (2026-11-15) | freely drawable curve with live test, smoothing, hold keys, the bar follows the Mac app |
-| Instant ink, hover dot, time-lapse, tablet mode | implemented, builds (2026-11-15) | **not yet tried on real hardware** |
+| Instant ink, hover dot, time-lapse, tablet mode, plugins | implemented, builds (2026-11-15) | **not yet tried on real hardware** |
 | Source switching from the iPad, undo scrub, game mode, custom colours / flowing background, pen taps in games (osu!: pointer follows every tap) | **runs on real hardware** (2026-11-15) | confirmed by use |
 | Squeeze radial menu, per-app Pencil profiles, Mac menu bar (status, iPad battery, mode) | **runs on real hardware** (2026-11-15) | radial menu with hover + squeeze, Affinity profile switching with the front app, battery shown in the menu bar |
 | Second screen (like Sidecar) | **runs on real hardware**, experimental | the only private API (`CGVirtualDisplay`), used only in this mode |
@@ -197,6 +197,7 @@ UniversePen does not change profiles, restrictions or MDM settings and does not 
 - **Hover dot:** a small ring under the hovering Pencil tip, drawn on the iPad (the Mac cursor in the video lags behind).
 - **Time-lapse (Mac):** records the streamed picture as an HEVC time-lapse (10×–120×) to Movies → UniversePen. ScreenCaptureKit only delivers frames when the screen changes, so idle time is skipped. Start/stop in the Mac window or the menu bar; a change of picture size (other source/resolution) closes the file.
 - **Tablet mode** (like a screenless pen tablet, e.g. for osu! without a tablet): … menu → "Tablet mode (no picture)". The Mac stops capturing; the iPad turns black with a fine dot grid and corner marks for the active area, which maps absolutely onto the whole selected Mac display. Outside the area the cursor stays at the edge. Move/resize the area with "Adjust active area" or type width, height and offset in mm (size shown live, saved as named presets for quick switching from the … menu, optionally locked to the Mac display's aspect ratio). Fingers are off in this mode so the hand can rest on the glass.
+- **Plugins:** small JavaScript plugins run by the Mac app (JavaScriptCore, no file/network access): Pencil filters (smoothing, custom mappings – like OpenTabletDriver), reactions to gestures and the squeeze phases, actions for the iPad (… menu, squeeze, bar, radial menu), toasts on the iPad and full control via the developer API. Plugins window with switches, editor, log and examples. See [`SDK/plugins`](SDK/plugins/README.md).
 - **Menu bar (Mac):** connected iPad, path (USB/Wi-Fi), fps and bitrate, iPad battery, source switch, pairing, quit.
 
 ## Fingers & multi-touch (like on a pen display)

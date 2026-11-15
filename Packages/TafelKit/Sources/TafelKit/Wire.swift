@@ -15,6 +15,9 @@ public enum MessageType: UInt8, Sendable {
     case settingsPatch = 0x08  // host -> client: JSON {settings?, quality?} deep-merged into the iPad's settings
     case sourceList = 0x09     // host -> client: JSON SourceList (what the Mac can stream, for the iPad's source menu)
     case selectSource = 0x0A   // client -> host: JSON SourceSelection
+    case pluginActions = 0x0B  // host -> client: JSON [PluginActionInfo] (actions plugins offer)
+    case runPluginAction = 0x0C // client -> host: JSON {id}
+    case toast = 0x0D          // host -> client: JSON Toast (short message shown on the iPad)
     // binary input
     case pen = 0x10
     case scroll = 0x11
@@ -273,6 +276,30 @@ public struct SourceSelection: Codable, Equatable, Sendable {
     public init(mode: String? = nil, display: String? = nil, window: String? = nil, refresh: Bool? = nil) {
         self.mode = mode; self.display = display; self.window = window; self.refresh = refresh
     }
+}
+
+/// An action a Mac plugin offers; the iPad can put it on squeeze, the bar, the radial menu, ….
+/// `id` is "pluginID/actionID".
+public struct PluginActionInfo: Codable, Equatable, Hashable, Identifiable, Sendable {
+    public var id: String
+    public var title: String
+    public var icon: String?
+    public var plugin: String
+    public init(id: String, title: String, icon: String? = nil, plugin: String) {
+        self.id = id; self.title = title; self.icon = icon; self.plugin = plugin
+    }
+}
+
+public struct RunPluginAction: Codable, Equatable, Sendable {
+    public var id: String
+    public init(id: String) { self.id = id }
+}
+
+/// Short message from the Mac (e.g. a plugin) shown on the iPad.
+public struct Toast: Codable, Equatable, Sendable {
+    public var text: String
+    public var seconds: Double
+    public init(text: String, seconds: Double = 2) { self.text = text; self.seconds = seconds }
 }
 
 public struct AppInfo: Codable, Equatable, Sendable {

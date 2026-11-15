@@ -98,3 +98,16 @@ final class TabletAreaTests: XCTestCase {
         XCTAssertFalse(b.sameStream(as: a))
     }
 }
+
+final class PluginWireTests: XCTestCase {
+    func testPluginActionAndButtonRoundTrip() throws {
+        var s = InputSettings()
+        s.squeeze = .plugin("squeeze-scroll/toggle")
+        s.radialMenu.append(ShortcutButton(title: "Layer", shortcut: Shortcut("n", [.command, .shift]), pluginAction: "x/new-layer"))
+        XCTAssertEqual(try JSONDecoder().decode(InputSettings.self, from: JSONEncoder().encode(s)), s)
+        let old = try JSONDecoder().decode(ShortcutButton.self, from: Data(#"{"id":"8D2E3F4A-1B2C-4D5E-8F90-123456789ABC","title":"Undo","shortcut":{"key":"z","modifiers":1}}"#.utf8))
+        XCTAssertNil(old.pluginAction)
+        let a = [PluginActionInfo(id: "p/a", title: "A", icon: "star", plugin: "P")]
+        XCTAssertEqual(try JSONWire.decode([PluginActionInfo].self, JSONWire.encode(a)), a)
+    }
+}

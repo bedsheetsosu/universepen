@@ -66,6 +66,7 @@ final class HostController: ObservableObject {
         didSet { UserDefaults.standard.set(timelapseSpeed, forKey: "timelapseSpeed") }
     }
     private let timelapseSink = TimelapseSink()
+    let plugins = PluginManager()
 
     @Published var ipadBattery: Double?
     @Published var ipadCharging: Bool?
@@ -179,6 +180,7 @@ final class HostController: ObservableObject {
         observeFrontApp()
         observeDisplayChanges()
         observeSources()
+        setupPlugins()
         let sink = timelapseSink
         NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: nil) { _ in
             sink.recorder?.stopAndWait()
@@ -434,6 +436,7 @@ final class HostController: ObservableObject {
             self?.server.sendAppInfo(info)
             self?.frontAppInfo = info
             self?.devAPI.emit("app", event: "app", data: ["bundleID": info.bundleID, "name": info.name])
+            self?.plugins.emit("app", ["bundleID": info.bundleID, "name": info.name])
         }
         send(NSWorkspace.shared.frontmostApplication)
         frontAppObserver = NSWorkspace.shared.notificationCenter.addObserver(
@@ -453,14 +456,20 @@ final class HostController: ObservableObject {
         server.sourceDescription = { desc.value }
         // Pen and scroll go straight from the network queue to CGEvent (no main-thread hop).
         let api = devAPI
-        server.onPen = { p in
+        let plugins = self.plugins
+        server.onPen = { raw in
+            // Plugin filters may change, drop or multiply the sample (like OpenTabletDriver filters).
+            let samples = plugins.hasFilters ? plugins.filterPen(raw) : [raw]
+            for p in samples {
             injector.handle(p)
+            if !plugins.isEmpty { plugins.emit("pen", plugins.penDict(p)) }
             if api.wants("input") {
                 let sp = injector.screenPoint(x: p.x, y: p.y)
                 api.emit("input", event: "pen", data: [
                     "phase": Self.penPhaseName(p.phase), "x": p.x, "y": p.y, "screenX": sp.x, "screenY": sp.y,
                     "pressure": p.pressure, "tiltX": p.tiltX, "tiltY": p.tiltY, "rotation": p.rotation, "timestamp": p.timestamp,
                 ])
+            }
             }
         }
         server.onScroll = { e in
@@ -487,7 +496,10 @@ final class HostController: ObservableObject {
                                                           "x": m.x, "y": m.y, "screenX": sp.x, "screenY": sp.y])
             }
         }
-        server.onGesture = { g in api.emit("gesture", event: "gesture", data: ["name": g.name, "value": g.value]) }
+        server.onGesture = { g in
+            api.emit("gesture", event: "gesture", data: ["name": g.name, "value": g.value])
+            if !plugins.isEmpty { plugins.emit("gesture", ["name": g.name, "value": g.value]) }
+        }
         server.onClientSettings = { [weak self] o in Task { @MainActor in self?.clientSettingsJSON = o } }
         server.onText = { injector.text($0) }
         server.onRequestKeyframe = { [weak self] in
@@ -518,6 +530,7 @@ final class HostController: ObservableObject {
                 guard let self else { return }
                 self.sessionDevice = name
                 self.sessionLink = link
+                self.plugins.emit(name == nil ? "disconnect" : "connect", ["device": name ?? "", "link": link])
                 self.scheduleVirtualTeardown(sessionActive: name != nil)
                 if name == nil {
                     self.clientConfig = nil
@@ -738,6 +751,21 @@ final class HostController: ObservableObject {
         let f = min(1, cap / max(w, h))
         w *= f; h *= f
         return (max(2, Int(w) & ~1), max(2, Int(h) & ~1))
+    }
+
+    // MARK: Plugins
+
+    private func setupPlugins() {
+        plugins.injector = injector
+        let server = self.server
+        plugins.sendToast = { server.sendToast($0) }
+        plugins.sendActions = { server.sendPluginActions($0) }
+        plugins.apiCall = { [weak self] m, p in
+            guard let self else { throw DeveloperAPI.APIError("Not ready") }
+            return try await self.handleAPI(m, p)
+        }
+        server.onRunPluginAction = { [plugins] id in plugins.runAction(id) }
+        plugins.startEnabled()
     }
 
     // MARK: Tablet mode (no picture, the iPad's active area maps onto a whole display)

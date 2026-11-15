@@ -19,7 +19,11 @@ targets:
   TafelHost:
     type: application
     platform: macOS
-    sources: [Host]
+    sources:
+      - Host
+      - path: SDK/plugins/examples
+        type: folder
+        buildPhase: resources
     dependencies:
       - package: TafelKit
     configFiles:

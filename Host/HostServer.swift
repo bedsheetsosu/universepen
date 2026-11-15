@@ -23,6 +23,7 @@ final class HostServer {
     // Callbacks, invoked on `queue`.
     var onClientConfig: ((ClientConfig) -> Void)?
     var onSelectSource: ((SourceSelection) -> Void)?
+    var onRunPluginAction: ((String) -> Void)?
     var onPen: ((PenSample) -> Void)?
     var onScroll: ((ScrollEvent) -> Void)?
     var onShortcut: ((Shortcut) -> Void)?
@@ -140,6 +141,7 @@ final class HostServer {
             fc.sendJSON(.hostInfo, HostInfo(hostID: hostID, hostName: hostName, sourceDescription: sourceDescription()))
             if let frontApp { fc.sendJSON(.appInfo, frontApp) }
             if let sourceList { fc.sendJSON(.sourceList, sourceList) }
+            if let pluginActions { fc.sendJSON(.pluginActions, pluginActions) }
             onSession?(hello.deviceName, fc.connection.linkDescription)
         case .video:
             guard hello.deviceID == sessionDeviceID else { fc.cancel(); return }
@@ -191,6 +193,8 @@ final class HostServer {
             if let c = try? JSONWire.decode(ClientConfig.self, f.payload) { onClientConfig?(c) }
         case .requestKeyframe:
             onRequestKeyframe?()
+        case .runPluginAction:
+            if let a = try? JSONWire.decode(RunPluginAction.self, f.payload) { onRunPluginAction?(a.id) }
         case .selectSource:
             if let s = try? JSONWire.decode(SourceSelection.self, f.payload) { onSelectSource?(s) }
         default:
@@ -212,6 +216,21 @@ final class HostServer {
             c.send(.settingsPatch, data)
             return true
         }
+    }
+
+    /// Actions of running plugins, also sent to a newly connected iPad.
+    private var pluginActions: [PluginActionInfo]?
+
+    func sendPluginActions(_ list: [PluginActionInfo]) {
+        queue.async { [self] in
+            guard list != pluginActions else { return }
+            pluginActions = list
+            control?.sendJSON(.pluginActions, list)
+        }
+    }
+
+    func sendToast(_ t: Toast) {
+        queue.async { [self] in control?.sendJSON(.toast, t) }
     }
 
     /// Last source list, also sent to a newly connected iPad.

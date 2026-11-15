@@ -48,6 +48,11 @@ final class ClientModel: ObservableObject {
     }
     /// What the Mac can stream (source menu).
     @Published var sourceList: SourceList?
+    /// Actions offered by plugins on the Mac.
+    @Published var pluginActions: [PluginActionInfo] = []
+    /// Message from the Mac (plugins), shown briefly.
+    @Published var toast: Toast?
+    private var toastHide: DispatchWorkItem?
     /// Undo scrub in progress: steps so far (negative = undo), nil = not scrubbing.
     @Published var scrubSteps: Int?
 
@@ -201,7 +206,7 @@ final class ClientModel: ObservableObject {
     /// Runs the item (if one is picked) and closes the menu.
     func pickRadial(_ index: Int?) {
         let items = effectiveSettings.radialMenu
-        if let i = index, items.indices.contains(i) { session?.send(items[i].shortcut) }
+        if let i = index, items.indices.contains(i) { run(items[i]) }
         closeRadial()
     }
 
@@ -384,6 +389,8 @@ final class ClientModel: ObservableObject {
         s.onHostInfo = { [weak self] info in Task { @MainActor in self?.hostInfo = info } }
         s.onAppInfo = { [weak self] app in Task { @MainActor in self?.frontApp = app } }
         s.onSourceList = { [weak self] l in Task { @MainActor in self?.sourceList = l } }
+        s.onPluginActions = { [weak self] l in Task { @MainActor in self?.pluginActions = l } }
+        s.onToast = { [weak self] t in Task { @MainActor in self?.show(t) } }
         s.onSettingsPatch = { [weak self] patch in Task { @MainActor in self?.applySettingsPatch(patch) } }
         s.onTiming = { [weak self] t in
             Task { @MainActor in
@@ -400,6 +407,7 @@ final class ClientModel: ObservableObject {
                 self.hostInfo = nil
                 self.timing = nil
                 self.sourceList = nil
+                self.pluginActions = []
                 self.handleClosed(host: host, reason: reason)
             }
         }
@@ -523,8 +531,24 @@ final class ClientModel: ObservableObject {
         session?.send(KeyEvent(hidUsage: key.rawValue, down: down))
     }
 
+    func show(_ t: Toast) {
+        toast = t
+        toastHide?.cancel()
+        let w = DispatchWorkItem { [weak self] in self?.toast = nil }
+        toastHide = w
+        DispatchQueue.main.asyncAfter(deadline: .now() + t.seconds, execute: w)
+    }
+
+    func runPlugin(_ id: String) { session?.runPluginAction(id) }
+
+    /// Runs a bar / radial menu button: its plugin action, or its shortcut.
+    func run(_ b: ShortcutButton) {
+        if let p = b.pluginAction { runPlugin(p) } else { session?.send(b.shortcut) }
+    }
+
     func trigger(_ action: PencilAction) {
         if action == .radialMenu { return }   // opened by the canvas, which knows the Pencil position
+        if case .plugin(let id) = action { runPlugin(id); return }
         guard let s = action.shortcut else { return }
         session?.send(s)
     }
