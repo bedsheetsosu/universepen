@@ -205,6 +205,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     /// Tablet keys ("ExpressKeys") above the surface in tablet mode.
     let keys = TabletKeysView()
     private var tipGate = TipGate()
+    private var tapGate = DoubleTapClickGate()
 
     /// Where the video is drawn inside the view (aspect fit, same as the layer's gravity).
     var videoRect: CGRect {
@@ -310,6 +311,9 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
             case (.pen, .drag(let p)): sendFingerPen(.move, p)
             case (.pen, .release(let p)): sendFingerPen(.up, p); sendFingerPen(.exit, p)
             case (.pen, .click(let p)): sendFingerPen(.down, p); sendFingerPen(.up, p); sendFingerPen(.exit, p)
+            // Pointer: moving the finger only moves the pointer; a tap clicks.
+            case (.pointer, .press(let p)), (.pointer, .drag(let p)): sendMouse(.move, p)
+            case (.pointer, .release): break
             case (_, .press(let p)): sendMouse(.down, p)
             case (_, .drag(let p)): sendMouse(.move, p)
             case (_, .release(let p)): sendMouse(.up, p)
@@ -390,6 +394,18 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
 
     private func send(_ t: UITouch, _ rawPhase: PenPhase) {
         guard let session else { return }
+        // Pencil without hover: a touch only moves the pointer; touch again at once to click.
+        if settings.doubleTapToClick {
+            let at = t.preciseLocation(in: self)
+            if rawPhase == .down { _ = tapGate.begin(at: at, time: t.timestamp) }
+            if !tapGate.armed {
+                if rawPhase == .up || rawPhase == .cancel { tapGate.end(at: at, time: t.timestamp); return }
+                let n = normalizeInput(at)
+                session.send(PenSample(phase: .hover, x: Float(n.x), y: Float(n.y), timestamp: t.timestamp))
+                return
+            }
+            if rawPhase == .up || rawPhase == .cancel { tapGate.end(at: at, time: t.timestamp) }
+        }
         let touchingRaw = rawPhase == .down || rawPhase == .move
         // Tip threshold: below it a touching Pencil stays hover (no click).
         let curved = touchingRaw ? settings.pressure.apply(force: Double(t.force), maximumForce: Double(t.maximumPossibleForce)) : 0

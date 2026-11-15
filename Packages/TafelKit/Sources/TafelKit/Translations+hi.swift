@@ -411,5 +411,10 @@ extension Translations {
         "Position: links ↔ rechts": "स्थिति: बाएँ ↔ दाएँ",
         "Unten": "नीचे",
         "Tasten zurücksetzen": "कुंजियाँ रीसेट करें",
+        "Doppeltippen zum Klicken (Pencil ohne Hover)": "क्लिक के लिए डबल-टैप (बिना होवर वाली पेंसिल)",
+        "Ein Finger bewegt nur den Zeiger, Tippen = Klick, Halten = Rechtsklick. Gut für Pencils ohne Schweben: mit dem Finger zielen, mit dem Stift zeichnen.": "एक उँगली सिर्फ़ पॉइंटर हिलाती है, टैप = क्लिक, दबाकर रखना = राइट क्लिक। बिना होवर वाली पेंसिल के लिए अच्छा: उँगली से निशाना लगाएँ, पेंसिल से बनाएँ।",
+        "Pencil ohne Hover (Apple Pencil 1, USB-C oder iPads ohne Schweben): Mit „Doppeltippen zum Klicken“ bewegt eine Berührung nur den Zeiger, erst nochmal sofort an derselben Stelle aufsetzen klickt bzw. zeichnet. Alternativen: „Klick ab Druck“ (leicht = Zeiger, fest = Klick) oder Finger-Modus „Zeiger“ (mit dem Finger zielen, mit dem Stift zeichnen).": "बिना होवर वाली पेंसिल (Apple Pencil 1, USB-C या बिना होवर वाले iPad): “क्लिक के लिए डबल-टैप” में पहला स्पर्श सिर्फ़ पॉइंटर हिलाता है, तुरंत उसी जगह दोबारा छूने पर क्लिक या ड्रॉइंग होती है। विकल्प: “इस दबाव से क्लिक” (हल्का = पॉइंटर, ज़ोर से = क्लिक) या उँगली मोड “पॉइंटर” (उँगली से निशाना, पेंसिल से ड्रॉइंग)।",
+        "Zeiger": "पॉइंटर",
+        "Zeiger (Tippen = Klick)": "पॉइंटर (टैप = क्लिक)",
     ]
 }

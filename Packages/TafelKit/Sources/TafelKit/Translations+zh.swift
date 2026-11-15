@@ -411,5 +411,10 @@ extension Translations {
         "Position: links ↔ rechts": "位置：左 ↔ 右",
         "Unten": "下",
         "Tasten zurücksetzen": "重置按键",
+        "Doppeltippen zum Klicken (Pencil ohne Hover)": "双击点击（无悬停的 Pencil）",
+        "Ein Finger bewegt nur den Zeiger, Tippen = Klick, Halten = Rechtsklick. Gut für Pencils ohne Schweben: mit dem Finger zielen, mit dem Stift zeichnen.": "单指只移动指针，轻点＝点击，按住＝右键。适合无悬停的 Pencil：用手指瞄准，用笔绘画。",
+        "Pencil ohne Hover (Apple Pencil 1, USB-C oder iPads ohne Schweben): Mit „Doppeltippen zum Klicken“ bewegt eine Berührung nur den Zeiger, erst nochmal sofort an derselben Stelle aufsetzen klickt bzw. zeichnet. Alternativen: „Klick ab Druck“ (leicht = Zeiger, fest = Klick) oder Finger-Modus „Zeiger“ (mit dem Finger zielen, mit dem Stift zeichnen).": "无悬停的 Pencil（Apple Pencil 第一代、USB-C 或不支持悬停的 iPad）：开启“双击点击”后，触碰只会移动指针，随即在同一位置再次触碰才会点击或绘画。其他方式：“按压阈值”（轻＝指针，重＝点击）或手指模式“指针”（用手指瞄准，用笔绘画）。",
+        "Zeiger": "指针",
+        "Zeiger (Tippen = Klick)": "指针（轻点＝点击）",
     ]
 }

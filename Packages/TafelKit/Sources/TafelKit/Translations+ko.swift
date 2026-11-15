@@ -411,5 +411,10 @@ extension Translations {
         "Position: links ↔ rechts": "위치: 왼쪽 ↔ 오른쪽",
         "Unten": "아래",
         "Tasten zurücksetzen": "키 재설정",
+        "Doppeltippen zum Klicken (Pencil ohne Hover)": "두 번 탭해서 클릭(호버 없는 Pencil)",
+        "Ein Finger bewegt nur den Zeiger, Tippen = Klick, Halten = Rechtsklick. Gut für Pencils ohne Schweben: mit dem Finger zielen, mit dem Stift zeichnen.": "한 손가락은 포인터만 움직이고, 탭 = 클릭, 길게 누르기 = 오른쪽 클릭. 호버 없는 Pencil에 좋습니다: 손가락으로 겨냥하고 펜으로 그리세요.",
+        "Pencil ohne Hover (Apple Pencil 1, USB-C oder iPads ohne Schweben): Mit „Doppeltippen zum Klicken“ bewegt eine Berührung nur den Zeiger, erst nochmal sofort an derselben Stelle aufsetzen klickt bzw. zeichnet. Alternativen: „Klick ab Druck“ (leicht = Zeiger, fest = Klick) oder Finger-Modus „Zeiger“ (mit dem Finger zielen, mit dem Stift zeichnen).": "호버 없는 Pencil(Apple Pencil 1세대, USB-C 또는 호버 미지원 iPad): '두 번 탭해서 클릭'을 켜면 터치는 포인터만 움직이고, 곧바로 같은 자리를 다시 터치하면 클릭하거나 그립니다. 다른 방법: '클릭 필압'(가볍게 = 포인터, 세게 = 클릭) 또는 손가락 모드 '포인터'(손가락으로 겨냥, 펜으로 그리기).",
+        "Zeiger": "포인터",
+        "Zeiger (Tippen = Klick)": "포인터(탭 = 클릭)",
     ]
 }

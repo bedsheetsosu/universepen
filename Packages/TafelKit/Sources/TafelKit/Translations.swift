@@ -454,5 +454,10 @@ enum Translations {
         "Position: links ↔ rechts": "Position: left ↔ right",
         "Unten": "Bottom",
         "Tasten zurücksetzen": "Reset keys",
+        "Doppeltippen zum Klicken (Pencil ohne Hover)": "Double-tap to click (Pencil without hover)",
+        "Ein Finger bewegt nur den Zeiger, Tippen = Klick, Halten = Rechtsklick. Gut für Pencils ohne Schweben: mit dem Finger zielen, mit dem Stift zeichnen.": "One finger only moves the pointer, tap = click, hold = right click. Good for Pencils without hover: aim with the finger, draw with the Pencil.",
+        "Pencil ohne Hover (Apple Pencil 1, USB-C oder iPads ohne Schweben): Mit „Doppeltippen zum Klicken“ bewegt eine Berührung nur den Zeiger, erst nochmal sofort an derselben Stelle aufsetzen klickt bzw. zeichnet. Alternativen: „Klick ab Druck“ (leicht = Zeiger, fest = Klick) oder Finger-Modus „Zeiger“ (mit dem Finger zielen, mit dem Stift zeichnen).": "Pencil without hover (Apple Pencil 1, USB-C or iPads without hover): with “Double-tap to click” a touch only moves the pointer; touching again right away at the same spot clicks or draws. Alternatives: “Click from pressure” (light = pointer, firm = click) or finger mode “Pointer” (aim with the finger, draw with the Pencil).",
+        "Zeiger": "Pointer",
+        "Zeiger (Tippen = Klick)": "Pointer (tap = click)",
     ]
 }

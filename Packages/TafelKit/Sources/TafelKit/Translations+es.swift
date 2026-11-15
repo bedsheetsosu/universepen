@@ -411,5 +411,10 @@ extension Translations {
         "Position: links ↔ rechts": "Posición: izquierda ↔ derecha",
         "Unten": "Abajo",
         "Tasten zurücksetzen": "Restablecer teclas",
+        "Doppeltippen zum Klicken (Pencil ohne Hover)": "Doble toque para hacer clic (lápiz sin hover)",
+        "Ein Finger bewegt nur den Zeiger, Tippen = Klick, Halten = Rechtsklick. Gut für Pencils ohne Schweben: mit dem Finger zielen, mit dem Stift zeichnen.": "Un dedo solo mueve el puntero; tocar = clic, mantener = clic derecho. Ideal para lápices sin hover: apunta con el dedo y dibuja con el lápiz.",
+        "Pencil ohne Hover (Apple Pencil 1, USB-C oder iPads ohne Schweben): Mit „Doppeltippen zum Klicken“ bewegt eine Berührung nur den Zeiger, erst nochmal sofort an derselben Stelle aufsetzen klickt bzw. zeichnet. Alternativen: „Klick ab Druck“ (leicht = Zeiger, fest = Klick) oder Finger-Modus „Zeiger“ (mit dem Finger zielen, mit dem Stift zeichnen).": "Lápiz sin hover (Apple Pencil 1, USB-C o iPads sin hover): con «Doble toque para hacer clic», un toque solo mueve el puntero; volver a tocar enseguida en el mismo sitio hace clic o dibuja. Alternativas: «Clic a partir de presión» (suave = puntero, fuerte = clic) o el modo de dedo «Puntero» (apunta con el dedo, dibuja con el lápiz).",
+        "Zeiger": "Puntero",
+        "Zeiger (Tippen = Klick)": "Puntero (tocar = clic)",
     ]
 }

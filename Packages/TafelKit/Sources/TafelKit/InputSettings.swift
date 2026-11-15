@@ -73,12 +73,16 @@ public enum FingerMode: String, Codable, CaseIterable, Sendable {
     case mouse
     /// Like the Pencil with a fixed pressure (tablet events), hold = right click.
     case pen
+    /// Finger only moves the pointer (no click while dragging); tap = click, hold = right click.
+    /// For Pencils without hover: aim with the finger, draw with the Pencil.
+    case pointer
 
     public var title: String {
         switch self {
         case .off: return L("Aus")
         case .mouse: return L("Maus")
         case .pen: return L("Stift (fester Druck)")
+        case .pointer: return L("Zeiger (Tippen = Klick)")
         }
     }
 }
@@ -207,6 +211,10 @@ public struct InputSettings: Codable, Equatable, Sendable {
     public var tabletArea = TabletArea.full
     /// Keep the area in the Mac display's aspect ratio (no stretching, like Wacom's "force proportions").
     public var tabletLockAspect = false
+    /// For Pencils without hover: touching only moves the pointer; touch again right away at the
+    /// same spot (and hold) to click / draw – like double-tap-and-drag on a trackpad.
+    public var doubleTapToClick = false
+
     /// Click only above this pressure (0 = off); lighter touches stay hover. Like OpenTabletDriver's tip threshold.
     public var tipThreshold: Double = 0
     /// Touch keys next to the active area in tablet mode (like a pen tablet's ExpressKeys).
@@ -266,7 +274,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         case fingerMode, fingerPressure, longPressRightClick, palmRadius
         case threeFingerSwipeLeft, threeFingerSwipeRight, threeFingerSwipeUp, threeFingerSwipeDown, fourFingerTap
         case swapISOKeys, trackpadAsMouse, hideIPadPointer, showShortcutBar, shortcutBarOnRight, shortcutBar
-        case appShortcutBars, appNames, radialMenu, appPenProfiles, gameApps, undoScrub, undoScrubStep, instantInk, hoverDot, tabletMode, tabletArea, tabletLockAspect, tabletPresets, tipThreshold, tabletKeys
+        case appShortcutBars, appNames, radialMenu, appPenProfiles, gameApps, undoScrub, undoScrubStep, instantInk, hoverDot, tabletMode, tabletArea, tabletLockAspect, tabletPresets, tipThreshold, tabletKeys, doubleTapToClick
     }
 
     /// Tolerates settings saved by older versions: missing keys keep their defaults.
@@ -300,6 +308,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         try get(.tabletMode, &tabletMode); try get(.tabletArea, &tabletArea); try get(.tabletLockAspect, &tabletLockAspect)
         try get(.tabletPresets, &tabletPresets)
         try get(.tipThreshold, &tipThreshold); try get(.tabletKeys, &tabletKeys)
+        try get(.doubleTapToClick, &doubleTapToClick)
     }
 }
 
@@ -557,5 +566,32 @@ public struct SettingsProfile: Codable, Equatable, Identifiable, Sendable {
     public var quality: StreamQuality
     public init(id: UUID = UUID(), name: String, settings: InputSettings, quality: StreamQuality) {
         self.id = id; self.name = name; self.settings = settings; self.quality = quality
+    }
+}
+
+/// "Double-tap to click" for Pencils without hover: a touch only moves the pointer; a second touch
+/// soon after, near where the first one lifted, is a real click / stroke.
+public struct DoubleTapClickGate: Sendable {
+    public var window: TimeInterval = 0.35
+    public var radius: CGFloat = 40
+    private var lastLift: (time: TimeInterval, point: CGPoint)?
+    public private(set) var armed = false
+    public init() {}
+
+    /// Pencil touched down. Returns whether this touch clicks.
+    public mutating func begin(at p: CGPoint, time: TimeInterval) -> Bool {
+        if let l = lastLift, time - l.time <= window, hypot(p.x - l.point.x, p.y - l.point.y) <= radius {
+            armed = true
+        } else {
+            armed = false
+        }
+        lastLift = nil
+        return armed
+    }
+
+    /// Pencil lifted. A pointer-only touch arms the next one; a click touch does not.
+    public mutating func end(at p: CGPoint, time: TimeInterval) {
+        lastLift = armed ? nil : (time, p)
+        armed = false
     }
 }

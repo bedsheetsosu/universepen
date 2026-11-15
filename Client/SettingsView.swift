@@ -199,6 +199,7 @@ struct SettingsView: View {
             }
             Toggle(L("Neigung X umkehren"), isOn: $model.settings.tilt.invertX)
             Toggle(L("Neigung Y umkehren"), isOn: $model.settings.tilt.invertY)
+            Toggle(L("Doppeltippen zum Klicken (Pencil ohne Hover)"), isOn: $model.settings.doubleTapToClick)
             Toggle(L("Sofort-Tinte (Strich sofort auf dem iPad)"), isOn: $model.settings.instantInk)
             Toggle(L("Hover-Punkt unter der Stiftspitze"), isOn: $model.settings.hoverDot)
             Toggle(L("Schweben (Hover) senden"), isOn: $model.settings.sendHover)
@@ -206,7 +207,8 @@ struct SettingsView: View {
         } header: {
             Text(L("Stift"))
         } footer: {
-            Text(L("Druckkurve, Glättung, Doppeltippen und Squeeze können pro Mac-App eigene Werte haben (★) und wechseln automatisch mit der App, die am Mac vorne ist. Ob Neigung und Rotation in einer Mac-App ankommen, hängt von der App ab."))
+            Text(L("Druckkurve, Glättung, Doppeltippen und Squeeze können pro Mac-App eigene Werte haben (★) und wechseln automatisch mit der App, die am Mac vorne ist. Ob Neigung und Rotation in einer Mac-App ankommen, hängt von der App ab.") + " " +
+                 L("Pencil ohne Hover (Apple Pencil 1, USB-C oder iPads ohne Schweben): Mit „Doppeltippen zum Klicken“ bewegt eine Berührung nur den Zeiger, erst nochmal sofort an derselben Stelle aufsetzen klickt bzw. zeichnet. Alternativen: „Klick ab Druck“ (leicht = Zeiger, fest = Klick) oder Finger-Modus „Zeiger“ (mit dem Finger zielen, mit dem Stift zeichnen)."))
         }
     }
 

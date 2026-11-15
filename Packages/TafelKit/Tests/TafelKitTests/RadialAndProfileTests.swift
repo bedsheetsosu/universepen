@@ -189,6 +189,19 @@ final class TabletExtrasTests: XCTestCase {
         XCTAssertNil(old?.x)
     }
 
+    func testDoubleTapToClick() {
+        var g = DoubleTapClickGate()
+        XCTAssertFalse(g.begin(at: CGPoint(x: 100, y: 100), time: 0))      // first touch: pointer only
+        g.end(at: CGPoint(x: 300, y: 200), time: 1.0)
+        XCTAssertTrue(g.begin(at: CGPoint(x: 310, y: 205), time: 1.2))      // quick, close: click
+        g.end(at: CGPoint(x: 400, y: 300), time: 2.0)
+        XCTAssertFalse(g.begin(at: CGPoint(x: 400, y: 300), time: 2.1))     // after a click: pointer again
+        g.end(at: CGPoint(x: 400, y: 300), time: 2.2)
+        XCTAssertFalse(g.begin(at: CGPoint(x: 400, y: 300), time: 3.0))     // too late
+        g.end(at: CGPoint(x: 0, y: 0), time: 3.1)
+        XCTAssertFalse(g.begin(at: CGPoint(x: 200, y: 200), time: 3.2))     // too far
+    }
+
     func testProfileRoundTrip() throws {
         var s = InputSettings(); s.tabletMode = true; s.tipThreshold = 0.2
         let p = SettingsProfile(name: "osu!", settings: s, quality: StreamQuality(fps: 60))

@@ -139,6 +139,8 @@ struct OnboardingView: View {
             ActionChoice(title: L("Squeeze (Pencil Pro)"), action: $model.settings.squeeze)
             Toggle(L("Schweben anzeigen (Hover)"), isOn: $model.settings.sendHover).tint(Brand.mint)
                 .tafelCard(padding: 14)
+            Toggle(L("Doppeltippen zum Klicken (Pencil ohne Hover)"), isOn: $model.settings.doubleTapToClick).tint(Brand.mint)
+                .tafelCard(padding: 14)
         }
     }
 
@@ -148,6 +150,7 @@ struct OnboardingView: View {
             ChoiceRow(title: L("Ein Finger"), options: [
                 (L("Maus"), "cursorarrow.click", FingerMode.mouse),
                 (L("Stift"), "scribble", FingerMode.pen),
+                (L("Zeiger"), "hand.point.up", FingerMode.pointer),
                 (L("Aus"), "hand.raised.slash", FingerMode.off),
             ], selected: model.settings.fingerMode) { model.settings.fingerMode = $0 }
             Text(fingerHelp).font(.callout).foregroundStyle(.secondary)
@@ -165,6 +168,7 @@ struct OnboardingView: View {
         case .mouse: return L("Tippen = Klick, Ziehen = Klicken und Ziehen, Halten = Rechtsklick.")
         case .pen: return L("Ein Finger zeichnet wie der Pencil, mit festem Druck. Halten = Rechtsklick.")
         case .off: return L("Ein Finger macht nichts – nur Gesten mit mehreren Fingern.")
+        case .pointer: return L("Ein Finger bewegt nur den Zeiger, Tippen = Klick, Halten = Rechtsklick. Gut für Pencils ohne Schweben: mit dem Finger zielen, mit dem Stift zeichnen.")
         }
     }
 
