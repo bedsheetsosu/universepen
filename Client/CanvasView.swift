@@ -488,13 +488,19 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         switch g.state {
         case .began:
             lastPinchScale = g.scale
+            pinchReport = 1
             zoomSteps.reset()
         case .changed:
             guard lastPinchScale > 0, g.scale > 0 else { return }
             let factor = Double(g.scale / lastPinchScale)
             let delta = log2(factor)
             lastPinchScale = g.scale
-            onGesture?(GestureEvent(name: "pinch", value: factor))
+            // Same for pinch: report once the accumulated scale changed by at least 0.5 %.
+            pinchReport *= factor
+            if abs(pinchReport - 1) >= 0.005 {
+                onGesture?(GestureEvent(name: "pinch", value: pinchReport))
+                pinchReport = 1
+            }
             let a = anchor(g)
             switch settings.zoomMethod {
             case .keyboardSteps:
@@ -511,15 +517,25 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         }
     }
 
+    private var rotateReport = 0.0
+    private var pinchReport = 1.0
+
     @objc private func handleRotate(_ g: UIRotationGestureRecognizer) {
         switch g.state {
         case .began:
             lastRotation = g.rotation
+            rotateReport = 0
             rotateSteps = StepAccumulator(stepSize: max(settings.rotateStepDegrees, 5))
         case .changed:
             let deg = Double(g.rotation - lastRotation) * 180 / .pi
             lastRotation = g.rotation
-            onGesture?(GestureEvent(name: "rotate", value: deg))
+            // Two resting fingers still fire .changed with ~0 / 1e-16 rotation: only report real
+            // turns, accumulated until they reach 0.1°, so API clients don't get floods of zeros.
+            rotateReport += deg
+            if abs(rotateReport) >= 0.1 {
+                onGesture?(GestureEvent(name: "rotate", value: rotateReport))
+                rotateReport = 0
+            }
             let steps = rotateSteps.add(deg)
             for _ in 0..<abs(steps) { onAction?(steps > 0 ? settings.rotateRight : settings.rotateLeft) }
         default:

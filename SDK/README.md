@@ -29,12 +29,12 @@ On connect the server sends `{"event": "hello", "data": {"api": 1, "app": "Unive
 
 | Topic | Event | Data |
 |---|---|---|
-| `input` | `pen` | `phase` (hover, down, move, up, enter, exit, cancel), `x`, `y` (0…1 over the image), `screenX`, `screenY` (Mac points, top-left), `pressure` 0…1, `tiltX`, `tiltY` −1…1, `rotation` degrees, `timestamp` |
+| `input` | `pen` | `phase` (hover, down, move, up, enter, exit, cancel), `x`, `y` (0…1 over the image), `screenX`, `screenY` (global Mac points, origin top-left of the main display; screens left of / above it give negative values, e.g. the second screen), `pressure` 0…1, `tiltX`, `tiltY` −1…1, `rotation` degrees, `timestamp` |
 | `input` | `touch` | one finger / trackpad as pointer: `phase` (move, down, up, exit), `button` (left, right), `x`, `y`, `screenX`, `screenY` |
 | `input` | `scroll` | `x`, `y`, `dx`, `dy` (fractions of the image), `modifiers` |
 | `input` | `key` | `hidUsage` (USB HID page 7), `down` |
 | `input` | `shortcut` | `key`, `modifiers` |
-| `gesture` | `gesture` | `name`: tap2, tap3, tap4, swipe3.left/right/up/down, pinch (`value` = scale step), rotate (`value` = degrees step), pencil.doubleTap, pencil.squeeze |
+| `gesture` | `gesture` | `name`: tap2, tap3, tap4, swipe3.left/right/up/down, pinch (`value` = scale factor since the last event, sent once it changed ≥ 0.5 %), rotate (`value` = degrees since the last event, sent once ≥ 0.1°), pencil.doubleTap, pencil.squeeze |
 | `status` | `status` | every second: `connected`, `device`, `link`, `usb`, `fps`, `mbps`, `targetMbps`, `dropped` |
 | `display` | `display` | same as `display.get`, on every change |
 | `app` | `app` | `bundleID`, `name` of the app in front on the Mac |
