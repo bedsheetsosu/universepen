@@ -134,15 +134,18 @@ struct RootView: View {
                 Color.black.opacity(0.001)
                     .ignoresSafeArea()
                     .onTapGesture { withAnimation(Brand.spring) { menuOpen = false } }
-                VStack {
-                    HStack {
+                GeometryReader { g in
+                    VStack {
+                        HStack {
+                            Spacer()
+                            OverlayMenuPanel(
+                                close: { withAnimation(Brand.spring) { menuOpen = false } },
+                                toggleStatus: { showStatus.toggle() }, showStatus: showStatus,
+                                openSettings: { showSettings = true },
+                                maxHeight: max(g.size.height - 54 - 16, 200))
+                        }
                         Spacer()
-                        OverlayMenuPanel(
-                            close: { withAnimation(Brand.spring) { menuOpen = false } },
-                            toggleStatus: { showStatus.toggle() }, showStatus: showStatus,
-                            openSettings: { showSettings = true })
                     }
-                    Spacer()
                 }
                 .padding(.top, 54).padding(.trailing, 10)
                 .transition(.scale(scale: 0.85, anchor: .topTrailing).combined(with: .opacity))
@@ -163,7 +166,10 @@ private struct OverlayMenuPanel: View {
     let toggleStatus: () -> Void
     let showStatus: Bool
     let openSettings: () -> Void
+    /// Height available on screen for the panel.
+    var maxHeight: CGFloat = 560
     @State private var windowsOpen = false
+    @State private var contentHeight: CGFloat = 400
 
     private func modeTitle(_ id: String) -> String {
         switch id {
@@ -267,11 +273,13 @@ private struct OverlayMenuPanel: View {
                 row(L("Trennen"), icon: "xmark.circle", destructive: true) { close(); model.disconnect() }
             }
             .padding(8)
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentHeight = $0 }
         }
         .scrollBounceBehavior(.basedOnSize)
+        .scrollIndicators(.visible)
         .frame(width: 300)
-        .fixedSize(horizontal: false, vertical: true)
-        .frame(maxHeight: 560)
+        // As tall as the content, but never taller than the screen allows: the rest scrolls.
+        .frame(height: min(max(contentHeight, 1), maxHeight))
         .tafelOverlayGlass(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .shadow(color: .black.opacity(0.35), radius: 18, y: 8)
