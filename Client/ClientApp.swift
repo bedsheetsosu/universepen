@@ -79,45 +79,16 @@ struct RootView: View {
                         StatusPill()
                             .transition(.move(edge: .trailing).combined(with: .opacity))
                     }
-                    Menu {
-                        SourceMenu()
-                        if let app = model.frontApp {
-                            Button {
-                                model.toggleGameMode()
-                            } label: {
-                                Label(model.gameModeActive ? L("Spielmodus für %@ aus", app.name) : L("Spielmodus für %@", app.name),
-                                      systemImage: "gamecontroller")
-                            }
-                        }
-                        Divider()
-                        Button {
-                            showStatus.toggle()
-                        } label: {
-                            Label(showStatus ? L("Status ausblenden") : L("Status anzeigen"), systemImage: "gauge.with.dots.needle.33percent")
-                        }
-                        Button {
-                            model.showKeyboard.toggle()
-                        } label: {
-                            Label(model.showKeyboard ? L("Bildschirmtastatur ausblenden") : L("Bildschirmtastatur"), systemImage: "keyboard")
-                        }
-                        Button {
-                            showSettings = true
-                        } label: {
-                            Label(L("Einstellungen …"), systemImage: "gearshape")
-                        }
-                        Divider()
-                        Button(role: .destructive) {
-                            model.disconnect()
-                        } label: {
-                            Label(L("Trennen"), systemImage: "xmark.circle")
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis")
-                            .font(.system(size: 15, weight: .semibold))
-                            .frame(width: 36, height: 36)
-                            .tafelGlass(Circle())
-                            .opacity(0.7)
-                    }
+                    OverlayMenuButton(
+                        sourceList: model.sourceList, frontAppName: model.frontApp?.name,
+                        gameModeActive: model.gameModeActive, showStatus: showStatus, showKeyboard: model.showKeyboard,
+                        select: { [weak model] in model?.selectSource($0) },
+                        toggleGameMode: { [weak model] in model?.toggleGameMode() },
+                        toggleStatus: { showStatus.toggle() },
+                        toggleKeyboard: { [weak model] in model?.showKeyboard.toggle() },
+                        openSettings: { showSettings = true },
+                        disconnect: { [weak model] in model?.disconnect() })
+                        .equatable()
                 }
                 if let n = model.scrubSteps {
                     ScrubPill(steps: n)
@@ -137,9 +108,62 @@ struct RootView: View {
     }
 }
 
+/// The … button. Only redraws when what it shows changes: rebuilding a Menu re-runs its glass
+/// animation, and the app state changes several times a second (latency, status).
+private struct OverlayMenuButton: View, Equatable {
+    let sourceList: SourceList?
+    let frontAppName: String?
+    let gameModeActive: Bool
+    let showStatus: Bool
+    let showKeyboard: Bool
+    let select: (SourceSelection) -> Void
+    let toggleGameMode: () -> Void
+    let toggleStatus: () -> Void
+    let toggleKeyboard: () -> Void
+    let openSettings: () -> Void
+    let disconnect: () -> Void
+
+    static func == (a: Self, b: Self) -> Bool {
+        a.sourceList == b.sourceList && a.frontAppName == b.frontAppName && a.gameModeActive == b.gameModeActive
+            && a.showStatus == b.showStatus && a.showKeyboard == b.showKeyboard
+    }
+
+    var body: some View {
+        Menu {
+            if let sourceList { SourceMenu(list: sourceList, select: select) }
+            if let name = frontAppName {
+                Button(action: toggleGameMode) {
+                    Label(gameModeActive ? L("Spielmodus für %@ aus", name) : L("Spielmodus für %@", name), systemImage: "gamecontroller")
+                }
+            }
+            Divider()
+            Button(action: toggleStatus) {
+                Label(showStatus ? L("Status ausblenden") : L("Status anzeigen"), systemImage: "gauge.with.dots.needle.33percent")
+            }
+            Button(action: toggleKeyboard) {
+                Label(showKeyboard ? L("Bildschirmtastatur ausblenden") : L("Bildschirmtastatur"), systemImage: "keyboard")
+            }
+            Button(action: openSettings) {
+                Label(L("Einstellungen …"), systemImage: "gearshape")
+            }
+            Divider()
+            Button(role: .destructive, action: disconnect) {
+                Label(L("Trennen"), systemImage: "xmark.circle")
+            }
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(.system(size: 15, weight: .semibold))
+                .frame(width: 36, height: 36)
+                .tafelGlass(Circle())
+                .opacity(0.7)
+        }
+    }
+}
+
 /// Source picker in the … menu: what the Mac streams, switched from the iPad.
 private struct SourceMenu: View {
-    @EnvironmentObject var model: ClientModel
+    let list: SourceList
+    let select: (SourceSelection) -> Void
 
     /// Mode names from the Mac, shown in the iPad's language.
     private func title(_ o: SourceOption) -> String {
@@ -162,42 +186,41 @@ private struct SourceMenu: View {
     }
 
     var body: some View {
-        if let l = model.sourceList {
-            Menu {
-                ForEach(l.modes.filter { $0.id != "window" }) { m in
-                    Button {
-                        model.selectSource(SourceSelection(mode: m.id))
-                    } label: {
-                        Label(title(m), systemImage: l.mode == m.id ? "checkmark" : icon(m.id))
-                    }
-                    .disabled(!m.available)
-                }
-                Menu {
-                    ForEach(l.windows) { w in
-                        Button {
-                            model.selectSource(SourceSelection(mode: "window", window: w.id))
-                        } label: {
-                            if l.mode == "window" && l.selectedWindow == w.id { Label(w.title, systemImage: "checkmark") } else { Text(w.title) }
-                        }
-                    }
-                    Divider()
-                    Button(L("Fensterliste aktualisieren")) { model.selectSource(SourceSelection(refresh: true)) }
+        let l = list
+        Menu {
+            ForEach(l.modes.filter { $0.id != "window" }) { m in
+                Button {
+                    select(SourceSelection(mode: m.id))
                 } label: {
-                    Label(L("Fenster"), systemImage: l.mode == "window" ? "checkmark" : "macwindow")
+                    Label(title(m), systemImage: l.mode == m.id ? "checkmark" : icon(m.id))
                 }
-                if l.displays.count > 1 {
-                    Divider()
-                    ForEach(l.displays) { d in
-                        Button {
-                            model.selectSource(SourceSelection(display: d.id))
-                        } label: {
-                            if l.selectedDisplay == d.id { Label(d.title, systemImage: "checkmark") } else { Text(d.title) }
-                        }
+                .disabled(!m.available)
+            }
+            Menu {
+                ForEach(l.windows) { w in
+                    Button {
+                        select(SourceSelection(mode: "window", window: w.id))
+                    } label: {
+                        if l.mode == "window" && l.selectedWindow == w.id { Label(w.title, systemImage: "checkmark") } else { Text(w.title) }
                     }
                 }
+                Divider()
+                Button(L("Fensterliste aktualisieren")) { select(SourceSelection(refresh: true)) }
             } label: {
-                Label(L("Quelle"), systemImage: "rectangle.on.rectangle.angled")
+                Label(L("Fenster"), systemImage: l.mode == "window" ? "checkmark" : "macwindow")
             }
+            if l.displays.count > 1 {
+                Divider()
+                ForEach(l.displays) { d in
+                    Button {
+                        select(SourceSelection(display: d.id))
+                    } label: {
+                        if l.selectedDisplay == d.id { Label(d.title, systemImage: "checkmark") } else { Text(d.title) }
+                    }
+                }
+            }
+        } label: {
+            Label(L("Quelle"), systemImage: "rectangle.on.rectangle.angled")
         }
     }
 }
