@@ -154,7 +154,7 @@ struct OnboardingView: View {
             InfoRow(symbol: "hand.draw", title: L("Zwei Finger"),
                     text: L("Verschieben = Scrollen, Pinch = Zoomen, Tippen = Widerrufen."))
             InfoRow(symbol: "hand.wave", title: L("Drei Finger"),
-                    text: L("Nach links wischen = Widerrufen, nach rechts = Wiederholen."))
+                    text: L("Links/rechts wischen = Schreibtisch wechseln, oben = Mission Control, unten = App-Fenster."))
         }
     }
 

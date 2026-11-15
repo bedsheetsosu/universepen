@@ -203,7 +203,7 @@ struct ActionPicker: View {
     @Binding var action: PencilAction
 
     private enum Preset: String, CaseIterable, Identifiable {
-        case none, undo, redo, eraser, brush, hand, custom
+        case none, undo, redo, eraser, brush, hand, desktopLeft, desktopRight, missionControl, appWindows, custom
         var id: String { rawValue }
         var label: String {
             switch self {
@@ -213,6 +213,10 @@ struct ActionPicker: View {
             case .eraser: return L("Radierer (E)")
             case .brush: return L("Pinsel (B)")
             case .hand: return L("Hand (H)")
+            case .desktopLeft: return L("Schreibtisch links ⌃←")
+            case .desktopRight: return L("Schreibtisch rechts ⌃→")
+            case .missionControl: return L("Mission Control ⌃↑")
+            case .appWindows: return L("App-Fenster ⌃↓")
             case .custom: return L("Eigener Shortcut")
             }
         }
@@ -224,6 +228,10 @@ struct ActionPicker: View {
             case .eraser: return .eraser
             case .brush: return .brush
             case .hand: return .hand
+            case .desktopLeft: return .desktopLeft
+            case .desktopRight: return .desktopRight
+            case .missionControl: return .missionControl
+            case .appWindows: return .appWindows
             case .custom: return .shortcut(Shortcut("a"))
             }
         }

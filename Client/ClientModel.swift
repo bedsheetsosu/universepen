@@ -100,7 +100,21 @@ final class ClientModel: ObservableObject {
             deviceID = UUID().uuidString
             d.set(deviceID, forKey: "deviceID")
         }
-        settings = Self.load(InputSettings.self, "inputSettings") ?? InputSettings()
+        var loaded = Self.load(InputSettings.self, "inputSettings") ?? InputSettings()
+        // v2: three-finger swipes switch desktops. Move users who still have the old, untouched
+        // defaults (undo/redo/none/none) to the new ones; customised settings stay as they are.
+        if !d.bool(forKey: "swipeDefaultsV2") {
+            if loaded.threeFingerSwipeLeft == .undo, loaded.threeFingerSwipeRight == .redo,
+               loaded.threeFingerSwipeUp == .none, loaded.threeFingerSwipeDown == .none {
+                let fresh = InputSettings()
+                loaded.threeFingerSwipeLeft = fresh.threeFingerSwipeLeft
+                loaded.threeFingerSwipeRight = fresh.threeFingerSwipeRight
+                loaded.threeFingerSwipeUp = fresh.threeFingerSwipeUp
+                loaded.threeFingerSwipeDown = fresh.threeFingerSwipeDown
+            }
+            d.set(true, forKey: "swipeDefaultsV2")
+        }
+        settings = loaded
         quality = Self.load(StreamQuality.self, "quality") ?? StreamQuality()
         showStatusOverlay = d.bool(forKey: "showStatusOverlay")
         peerToPeer = d.bool(forKey: "peerToPeer")

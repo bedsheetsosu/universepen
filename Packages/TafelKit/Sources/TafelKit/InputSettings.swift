@@ -11,6 +11,11 @@ public enum PencilAction: Codable, Hashable, Sendable {
     public static let eraser = PencilAction.shortcut(Shortcut("e"))
     public static let brush = PencilAction.shortcut(Shortcut("b"))
     public static let hand = PencilAction.shortcut(Shortcut("h"))
+    /// macOS system shortcuts (System Settings → Keyboard → Shortcuts → Mission Control, on by default).
+    public static let desktopLeft = PencilAction.shortcut(Shortcut("left", .control))
+    public static let desktopRight = PencilAction.shortcut(Shortcut("right", .control))
+    public static let missionControl = PencilAction.shortcut(Shortcut("up", .control))
+    public static let appWindows = PencilAction.shortcut(Shortcut("down", .control))
 
     public var shortcut: Shortcut? {
         if case .shortcut(let s) = self { return s }
@@ -107,10 +112,11 @@ public struct InputSettings: Codable, Equatable, Sendable {
     public var longPressRightClick = true
     /// Touches with a larger contact radius (points) count as palm and are ignored.
     public var palmRadius: Double = 32
-    public var threeFingerSwipeLeft: PencilAction = .undo
-    public var threeFingerSwipeRight: PencilAction = .redo
-    public var threeFingerSwipeUp: PencilAction = .none
-    public var threeFingerSwipeDown: PencilAction = .none
+    /// Like a Mac trackpad: fingers move left → the desktop on the right slides in.
+    public var threeFingerSwipeLeft: PencilAction = .desktopRight
+    public var threeFingerSwipeRight: PencilAction = .desktopLeft
+    public var threeFingerSwipeUp: PencilAction = .missionControl
+    public var threeFingerSwipeDown: PencilAction = .appWindows
     public var fourFingerTap: PencilAction = .none
 
     /// Swap the ISO keys "^" and "<" (some keyboards report them the other way round).

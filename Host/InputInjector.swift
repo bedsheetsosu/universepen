@@ -276,6 +276,9 @@ final class InputInjector {
         }
         var flags = Self.flags(s.modifiers)
         if resolved.needsShift { flags.insert(.maskShift) }
+        // A real keyboard sends arrow keys with the fn + numeric-pad flags; the Mission Control
+        // shortcuts (⌃ + arrow) only trigger with them.
+        if HIDKeyMap.isArrow(macKeyCode: UInt16(resolved.code)) { flags.formUnion([.maskSecondaryFn, .maskNumericPad]) }
         for down in [true, false] {
             guard let e = CGEvent(keyboardEventSource: source, virtualKey: resolved.code, keyDown: down) else { continue }
             e.flags = flags
