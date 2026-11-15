@@ -195,6 +195,8 @@ struct SettingsView: View {
             }
             Toggle(L("Neigung X umkehren"), isOn: $model.settings.tilt.invertX)
             Toggle(L("Neigung Y umkehren"), isOn: $model.settings.tilt.invertY)
+            Toggle(L("Sofort-Tinte (Strich sofort auf dem iPad)"), isOn: $model.settings.instantInk)
+            Toggle(L("Hover-Punkt unter der Stiftspitze"), isOn: $model.settings.hoverDot)
             Toggle(L("Schweben (Hover) senden"), isOn: $model.settings.sendHover)
             Toggle(L("Barrel Roll als Rotation senden"), isOn: $model.settings.sendRoll)
         } header: {

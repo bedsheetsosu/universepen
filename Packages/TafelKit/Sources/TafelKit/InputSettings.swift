@@ -190,6 +190,11 @@ public struct InputSettings: Codable, Equatable, Sendable {
     /// while they are in front (e.g. osu!).
     public var gameApps: [String: String] = [:]
 
+    /// Draw the stroke on the iPad right away (fades when the Mac's picture catches up).
+    public var instantInk = true
+    /// Small ring under the hovering Pencil tip, drawn on the iPad.
+    public var hoverDot = true
+
     /// Two fingers rest, then drag left/right = undo/redo step by step.
     public var undoScrub = true
     /// Finger travel (points) per undo/redo step.
@@ -231,7 +236,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         case fingerMode, fingerPressure, longPressRightClick, palmRadius
         case threeFingerSwipeLeft, threeFingerSwipeRight, threeFingerSwipeUp, threeFingerSwipeDown, fourFingerTap
         case swapISOKeys, trackpadAsMouse, hideIPadPointer, showShortcutBar, shortcutBarOnRight, shortcutBar
-        case appShortcutBars, appNames, radialMenu, appPenProfiles, gameApps, undoScrub, undoScrubStep
+        case appShortcutBars, appNames, radialMenu, appPenProfiles, gameApps, undoScrub, undoScrubStep, instantInk, hoverDot
     }
 
     /// Tolerates settings saved by older versions: missing keys keep their defaults.
@@ -261,6 +266,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         try get(.appShortcutBars, &appShortcutBars); try get(.appNames, &appNames)
         try get(.radialMenu, &radialMenu); try get(.appPenProfiles, &appPenProfiles)
         try get(.gameApps, &gameApps); try get(.undoScrub, &undoScrub); try get(.undoScrubStep, &undoScrubStep)
+        try get(.instantInk, &instantInk); try get(.hoverDot, &hoverDot)
     }
 }
 

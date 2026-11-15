@@ -22,7 +22,9 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     /// Radial menu: open at a point, or (already open) pick what the Pencil hovers over.
     var onRadialOpen: ((CGPoint) -> Void)?
     var onRadialPick: (() -> Void)?
-    var radialOpen = false
+    var radialOpen = false { didSet { if radialOpen { ink.clear() } } }
+    /// Local instant ink and hover dot above the picture.
+    let ink = InkOverlayView()
     /// Undo scrub progress (steps, negative = undo), nil when it ends.
     var onScrub: ((Int?) -> Void)?
     private var undoScrub: UILongPressGestureRecognizer?
@@ -66,6 +68,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         backgroundColor = .black
         isMultipleTouchEnabled = true
         layer.addSublayer(videoLayer)
+        addSubview(ink)
         setupGestures()
         let pencil = UIPencilInteraction(delegate: self)
         addInteraction(pencil)
@@ -169,6 +172,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         CATransaction.setDisableActions(true)
         videoLayer.frame = bounds
         CATransaction.commit()
+        ink.frame = bounds
         let scale = traitCollection.displayScale
         onPixelSize?(Int((bounds.width * scale).rounded()), Int((bounds.height * scale).rounded()))
     }
@@ -356,6 +360,11 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
 
     private func send(_ t: UITouch, _ phase: PenPhase) {
         guard let session else { return }
+        if settings.instantInk, phase == .down || phase == .move {
+            let raw = t.maximumPossibleForce > 0 ? Double(t.force / t.maximumPossibleForce) : 0.5
+            ink.add(t.preciseLocation(in: self), pressure: settings.pressure.map(raw), newStroke: phase == .down)
+        }
+        if phase == .down { ink.setHover(nil) }
         var n = Geometry.normalized(t.preciseLocation(in: self), in: videoRect)
         let touching = phase == .down || phase == .move
         var pressure = touching ? settings.pressure.apply(force: Double(t.force), maximumForce: Double(t.maximumPossibleForce)) : 0
@@ -382,6 +391,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         // While the radial menu is open nothing goes to the Mac, but the hover state must still
         // end – otherwise single-finger input stays blocked ("Pencil is hovering").
         if radialOpen { if gone { hovering = false }; return }
+        ink.setHover(settings.hoverDot && !gone && pencilTouch == nil ? g.location(in: self) : nil)
         guard settings.sendHover, let session else { return }
         let n = Geometry.normalized(g.location(in: self), in: videoRect)
         let tilt = settings.tilt.tilt(altitude: Double(g.altitudeAngle), azimuth: Double(g.azimuthAngle(in: self)))
@@ -652,6 +662,12 @@ struct CanvasRepresentable: UIViewRepresentable {
     func updateUIView(_ v: CanvasView, context: Context) {
         v.session = model.session
         v.settings = model.effectiveSettings
+        v.ink.color = UIColor(Brand.mint)
+        // Visible for about as long as the Mac's own stroke takes to appear in the picture:
+        // pen event to the Mac (½ RTT) + drawing + capture/encode/network (frame age) + decode/display.
+        if let t = model.timing {
+            v.ink.lifetime = min(max((t.rttMs / 2 + (t.frameAgeMs ?? 40) + 45) / 1000, 0.06), 0.4)
+        }
         v.radialOpen = model.radialCenter != nil
         v.videoSize = model.videoSize
         v.keyboardProxy.onDismiss = { [weak model] in model?.showKeyboard = false }

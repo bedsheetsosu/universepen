@@ -326,5 +326,16 @@ extension Translations {
         "Geschwindigkeit": "速度",
         "Akzentfarbe aus den Vorschlägen oder frei im Farbrad. „Fließender Hintergrund“ lässt die Farben langsam verlaufen und wandern (nur hinter Menüs und Einrichtung, nie über dem Mac-Bild).": "从推荐中选择强调色，或在色轮中自由选择。“流动背景”会让颜色缓慢交融、变化（仅在菜单和设置背后，绝不覆盖 Mac 画面）。",
         "Keine Fenster gefunden": "未找到窗口",
+        "Hover-Punkt unter der Stiftspitze": "笔尖下方的悬停点",
+        "Im Finder zeigen": "在访达中显示",
+        "Läuft seit %@ · %lld Bilder · ergibt %@ Video": "已录制 %@ · %lld 帧 · 生成 %@ 视频",
+        "Nimmt das übertragene Bild als Zeitraffer auf (Filme → UniversePen). Ruhephasen ohne Bildänderung werden automatisch übersprungen.": "将传输的画面录制为延时视频（影片 → UniversePen）。画面无变化的时段会自动跳过。",
+        "Sofort-Tinte (Strich sofort auf dem iPad)": "即时墨迹（笔画立即显示在 iPad 上）",
+        "Tempo": "速度",
+        "Zeitraffer aufnehmen": "录制延时视频",
+        "Zeitraffer beendet: Die Bildgröße hat sich geändert (andere Quelle oder Auflösung).": "延时录制已停止：画面尺寸发生变化（其他来源或分辨率）。",
+        "Zeitraffer konnte nicht starten: %@": "无法开始延时录制：%@",
+        "Zeitraffer stoppen": "停止延时录制",
+        "Zeitraffer war leer – nichts gespeichert.": "延时视频为空，未保存任何内容。",
     ]
 }

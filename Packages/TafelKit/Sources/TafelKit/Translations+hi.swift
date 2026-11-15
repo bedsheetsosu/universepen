@@ -326,5 +326,16 @@ extension Translations {
         "Geschwindigkeit": "गति",
         "Akzentfarbe aus den Vorschlägen oder frei im Farbrad. „Fließender Hintergrund“ lässt die Farben langsam verlaufen und wandern (nur hinter Menüs und Einrichtung, nie über dem Mac-Bild).": "सुझावों में से या कलर व्हील से अपनी पसंद का एक्सेंट रंग चुनें। “बहता बैकग्राउंड” रंगों को धीरे-धीरे मिलाता और बदलता है (सिर्फ़ मेन्यू और सेटअप के पीछे, Mac की तस्वीर के ऊपर कभी नहीं)।",
         "Keine Fenster gefunden": "कोई विंडो नहीं मिली",
+        "Hover-Punkt unter der Stiftspitze": "पेंसिल की नोक के नीचे होवर बिंदु",
+        "Im Finder zeigen": "Finder में दिखाएँ",
+        "Läuft seit %@ · %lld Bilder · ergibt %@ Video": "%@ से चल रहा है · %lld फ़्रेम · %@ का वीडियो बनेगा",
+        "Nimmt das übertragene Bild als Zeitraffer auf (Filme → UniversePen). Ruhephasen ohne Bildänderung werden automatisch übersprungen.": "भेजी जा रही तस्वीर को टाइम-लैप्स के रूप में रिकॉर्ड करता है (Movies → UniversePen)। बिना बदलाव वाला समय अपने आप छोड़ दिया जाता है।",
+        "Sofort-Tinte (Strich sofort auf dem iPad)": "इंस्टेंट इंक (स्ट्रोक तुरंत iPad पर दिखता है)",
+        "Tempo": "गति",
+        "Zeitraffer aufnehmen": "टाइम-लैप्स रिकॉर्ड करें",
+        "Zeitraffer beendet: Die Bildgröße hat sich geändert (andere Quelle oder Auflösung).": "टाइम-लैप्स रुक गया: तस्वीर का आकार बदल गया (दूसरा स्रोत या रिज़ॉल्यूशन)।",
+        "Zeitraffer konnte nicht starten: %@": "टाइम-लैप्स शुरू नहीं हो सका: %@",
+        "Zeitraffer stoppen": "टाइम-लैप्स रोकें",
+        "Zeitraffer war leer – nichts gespeichert.": "टाइम-लैप्स खाली था – कुछ सेव नहीं हुआ।",
     ]
 }

@@ -326,5 +326,16 @@ extension Translations {
         "Geschwindigkeit": "속도",
         "Akzentfarbe aus den Vorschlägen oder frei im Farbrad. „Fließender Hintergrund“ lässt die Farben langsam verlaufen und wandern (nur hinter Menüs und Einrichtung, nie über dem Mac-Bild).": "추천 색상 중에서 고르거나 색상 휠에서 자유롭게 강조 색상을 고르세요. '흐르는 배경'은 색이 천천히 섞이며 흐르게 합니다(메뉴와 설정 뒤에서만, Mac 화면 위에는 절대 표시되지 않음).",
         "Keine Fenster gefunden": "창을 찾을 수 없음",
+        "Hover-Punkt unter der Stiftspitze": "펜 끝 아래 호버 점",
+        "Im Finder zeigen": "Finder에서 보기",
+        "Läuft seit %@ · %lld Bilder · ergibt %@ Video": "%@ 동안 녹화 중 · %lld 프레임 · %@ 길이의 영상",
+        "Nimmt das übertragene Bild als Zeitraffer auf (Filme → UniversePen). Ruhephasen ohne Bildänderung werden automatisch übersprungen.": "전송되는 화면을 타임랩스로 녹화합니다(동영상 → UniversePen). 변화가 없는 시간은 자동으로 건너뜁니다.",
+        "Sofort-Tinte (Strich sofort auf dem iPad)": "즉시 잉크(획이 iPad에 바로 표시)",
+        "Tempo": "속도",
+        "Zeitraffer aufnehmen": "타임랩스 녹화",
+        "Zeitraffer beendet: Die Bildgröße hat sich geändert (andere Quelle oder Auflösung).": "타임랩스 중지됨: 화면 크기가 바뀌었습니다(다른 소스 또는 해상도).",
+        "Zeitraffer konnte nicht starten: %@": "타임랩스를 시작할 수 없음: %@",
+        "Zeitraffer stoppen": "타임랩스 중지",
+        "Zeitraffer war leer – nichts gespeichert.": "타임랩스가 비어 있어 아무것도 저장되지 않았습니다.",
     ]
 }

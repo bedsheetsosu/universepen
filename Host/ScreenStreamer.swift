@@ -13,6 +13,8 @@ struct StreamStats: Equatable {
 
 /// ScreenCaptureKit -> VideoToolbox pipeline. One instance per running stream.
 final class ScreenStreamer: NSObject, SCStreamOutput, SCStreamDelegate {
+    /// Every complete captured frame (capture queue), e.g. for the time-lapse recorder.
+    var onFrame: ((CVPixelBuffer, CMTime) -> Void)?
     private var stream: SCStream?
     private var encoder: VideoEncoder?
     private let sampleQueue = DispatchQueue(label: "tafel.capture", qos: .userInteractive)
@@ -142,6 +144,7 @@ final class ScreenStreamer: NSObject, SCStreamOutput, SCStreamDelegate {
               let raw = attachments.first?[.status] as? Int,
               let status = SCFrameStatus(rawValue: raw), status == .complete,
               let pixelBuffer = CMSampleBufferGetImageBuffer(sbuf) else { return }
+        onFrame?(pixelBuffer, CMSampleBufferGetPresentationTimeStamp(sbuf))
         if let shouldEncode, !shouldEncode() {
             statsLock.withLock { dropped += 1 }
             return

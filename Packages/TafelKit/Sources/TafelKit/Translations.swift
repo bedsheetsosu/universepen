@@ -369,5 +369,16 @@ enum Translations {
         "Geschwindigkeit": "Speed",
         "Akzentfarbe aus den Vorschlägen oder frei im Farbrad. „Fließender Hintergrund“ lässt die Farben langsam verlaufen und wandern (nur hinter Menüs und Einrichtung, nie über dem Mac-Bild).": "Accent colour from the suggestions or freely from the colour wheel. “Flowing background” lets the colours slowly blend and drift (only behind menus and setup, never over the Mac picture).",
         "Keine Fenster gefunden": "No windows found",
+        "Hover-Punkt unter der Stiftspitze": "Hover dot under the Pencil tip",
+        "Im Finder zeigen": "Show in Finder",
+        "Läuft seit %@ · %lld Bilder · ergibt %@ Video": "Running for %@ · %lld frames · makes a %@ video",
+        "Nimmt das übertragene Bild als Zeitraffer auf (Filme → UniversePen). Ruhephasen ohne Bildänderung werden automatisch übersprungen.": "Records the streamed picture as a time-lapse (Movies → UniversePen). Idle stretches without changes are skipped automatically.",
+        "Sofort-Tinte (Strich sofort auf dem iPad)": "Instant ink (stroke shows on the iPad right away)",
+        "Tempo": "Speed",
+        "Zeitraffer aufnehmen": "Record time-lapse",
+        "Zeitraffer beendet: Die Bildgröße hat sich geändert (andere Quelle oder Auflösung).": "Time-lapse stopped: the picture size changed (other source or resolution).",
+        "Zeitraffer konnte nicht starten: %@": "Time-lapse could not start: %@",
+        "Zeitraffer stoppen": "Stop time-lapse",
+        "Zeitraffer war leer – nichts gespeichert.": "Time-lapse was empty – nothing saved.",
     ]
 }

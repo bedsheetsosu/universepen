@@ -75,6 +75,12 @@ struct HostMenu: View {
             host.beginPairing()
         }
         Divider()
+        if host.timelapseRunning {
+            Button(L("Zeitraffer stoppen")) { host.stopTimelapse() }
+        } else {
+            Button(L("Zeitraffer aufnehmen")) { host.startTimelapse() }
+        }
+        Divider()
         Button(L("UniversePen öffnen")) { openMain() }
         Button(L("UniversePen beenden")) { NSApp.terminate(nil) }
             .keyboardShortcut("q")
@@ -392,6 +398,8 @@ struct HostView: View {
             }
             Text(L("Zeigt, welche Druck-, Neigungs- und Rotationswerte eine Mac-App wirklich empfängt. Das Stifttest-Fenster wird mit übertragen, dieses Fenster nicht."))
                 .font(.caption).foregroundStyle(.secondary)
+            Divider().opacity(0.4)
+            TimelapseControls()
             if !host.clientDiagnostics.isEmpty, connected {
                 DisclosureGroup(L("Netzwerk-Diagnose")) {
                     Text(host.clientDiagnostics).font(.caption2.monospaced()).textSelection(.enabled)
@@ -405,6 +413,54 @@ struct HostView: View {
 }
 
 // MARK: - Components
+
+/// Start/stop the time-lapse, speed, running time and the last file.
+private struct TimelapseControls: View {
+    @EnvironmentObject var host: HostController
+    @ObservedObject var theme = Theme.shared
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 10) {
+                Button {
+                    withAnimation(Brand.spring) { host.timelapseRunning ? host.stopTimelapse() : host.startTimelapse() }
+                } label: {
+                    Label(host.timelapseRunning ? L("Zeitraffer stoppen") : L("Zeitraffer aufnehmen"),
+                          systemImage: host.timelapseRunning ? "stop.circle.fill" : "record.circle")
+                }
+                .tint(host.timelapseRunning ? .red : Brand.mint)
+                Picker(L("Tempo"), selection: $host.timelapseSpeed) {
+                    Text("10×").tag(10)
+                    Text("30×").tag(30)
+                    Text("60×").tag(60)
+                    Text("120×").tag(120)
+                }
+                .pickerStyle(.segmented)
+                .frame(maxWidth: 220)
+                .disabled(host.timelapseRunning)
+                Spacer()
+            }
+            if host.timelapseRunning, let start = host.timelapseStarted {
+                TimelineView(.periodic(from: start, by: 1)) { ctx in
+                    let secs = Int(ctx.date.timeIntervalSince(start))
+                    let movie = Double(host.timelapseFrames) / Double(TimelapseRecorder.outputFPS)
+                    Text(L("Läuft seit %@ · %lld Bilder · ergibt %@ Video", Self.clock(secs), host.timelapseFrames, Self.clock(Int(movie.rounded()))))
+                        .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                }
+            } else if let file = host.timelapseLastFile {
+                HStack {
+                    Text(file.lastPathComponent).font(.caption).lineLimit(1).truncationMode(.middle)
+                    Button(L("Im Finder zeigen")) { NSWorkspace.shared.activateFileViewerSelecting([file]) }
+                        .buttonStyle(.link).font(.caption)
+                }
+            }
+            Text(L("Nimmt das übertragene Bild als Zeitraffer auf (Filme → UniversePen). Ruhephasen ohne Bildänderung werden automatisch übersprungen."))
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    static func clock(_ s: Int) -> String { String(format: "%d:%02d", s / 60, s % 60) }
+}
 
 private struct SectionTitle: View {
     /// Redraw when the colours change.

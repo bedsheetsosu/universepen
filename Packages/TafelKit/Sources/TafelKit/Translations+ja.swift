@@ -326,5 +326,16 @@ extension Translations {
         "Geschwindigkeit": "速度",
         "Akzentfarbe aus den Vorschlägen oder frei im Farbrad. „Fließender Hintergrund“ lässt die Farben langsam verlaufen und wandern (nur hinter Menüs und Einrichtung, nie über dem Mac-Bild).": "アクセントカラーは候補から、またはカラーホイールで自由に選べます。「流れる背景」は色をゆっくり混ざり合わせて移ろわせます（メニューと設定の背後のみ。Mac の映像の上には表示されません）。",
         "Keine Fenster gefunden": "ウィンドウが見つかりません",
+        "Hover-Punkt unter der Stiftspitze": "ペン先の下にホバーポイント",
+        "Im Finder zeigen": "Finder で表示",
+        "Läuft seit %@ · %lld Bilder · ergibt %@ Video": "録画中 %@ · %lld フレーム · %@ の動画になります",
+        "Nimmt das übertragene Bild als Zeitraffer auf (Filme → UniversePen). Ruhephasen ohne Bildänderung werden automatisch übersprungen.": "転送中の映像をタイムラプスとして録画します（ムービー → UniversePen）。変化のない時間は自動的にスキップされます。",
+        "Sofort-Tinte (Strich sofort auf dem iPad)": "インスタントインク（線をすぐ iPad に表示）",
+        "Tempo": "速度",
+        "Zeitraffer aufnehmen": "タイムラプスを録画",
+        "Zeitraffer beendet: Die Bildgröße hat sich geändert (andere Quelle oder Auflösung).": "タイムラプスを停止しました：映像のサイズが変わりました（別のソースまたは解像度）。",
+        "Zeitraffer konnte nicht starten: %@": "タイムラプスを開始できませんでした：%@",
+        "Zeitraffer stoppen": "タイムラプスを停止",
+        "Zeitraffer war leer – nichts gespeichert.": "タイムラプスが空でした。何も保存されていません。",
     ]
 }

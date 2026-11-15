@@ -57,6 +57,16 @@ final class HostController: ObservableObject {
     @Published var sessionLink = ""
     @Published var clientDiagnostics = ""
     /// iPad battery 0…1 and charging state, as reported by the iPad (nil = unknown / not connected).
+    // Time-lapse recording
+    @Published var timelapseRunning = false
+    @Published var timelapseFrames: Int64 = 0
+    @Published var timelapseStarted: Date?
+    @Published var timelapseLastFile: URL?
+    @Published var timelapseSpeed = UserDefaults.standard.object(forKey: "timelapseSpeed") as? Int ?? 30 {
+        didSet { UserDefaults.standard.set(timelapseSpeed, forKey: "timelapseSpeed") }
+    }
+    private let timelapseSink = TimelapseSink()
+
     @Published var ipadBattery: Double?
     @Published var ipadCharging: Bool?
     // MARK: Developer API state
@@ -169,6 +179,10 @@ final class HostController: ObservableObject {
         observeFrontApp()
         observeDisplayChanges()
         observeSources()
+        let sink = timelapseSink
+        NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: nil) { _ in
+            sink.recorder?.stopAndWait()
+        }
         server.peerToPeer = peerToPeer
         server.start(key: hostKey)
         Task { await refreshSources() }
@@ -634,6 +648,8 @@ final class HostController: ObservableObject {
         streamer.shouldEncode = { server.videoBacklog < maxBacklog }
         streamer.onEncoded = { format, frame in server.sendVideo(format: format, frame: frame) }
         streamer.onAudio = { server.sendAudio($0) }
+        let sink = timelapseSink
+        streamer.onFrame = { sink.append($0, $1) }
         streamer.onStats = { [weak self] s in
             Task { @MainActor in
                 guard let self else { return }
@@ -718,6 +734,41 @@ final class HostController: ObservableObject {
         let f = min(1, cap / max(w, h))
         w *= f; h *= f
         return (max(2, Int(w) & ~1), max(2, Int(h) & ~1))
+    }
+
+    // MARK: Time-lapse
+
+    func startTimelapse() {
+        guard !timelapseRunning else { return }
+        do {
+            let r = try TimelapseRecorder(speed: timelapseSpeed)
+            r.onProgress = { [weak self] n in self?.timelapseFrames = n }
+            r.onStoppedBySize = { [weak self] url in
+                guard let self else { return }
+                self.timelapseSink.recorder = nil
+                self.timelapseRunning = false
+                self.timelapseStarted = nil
+                if let url { self.timelapseLastFile = url }
+                self.lastError = L("Zeitraffer beendet: Die Bildgröße hat sich geändert (andere Quelle oder Auflösung).")
+            }
+            timelapseFrames = 0
+            timelapseStarted = Date()
+            timelapseRunning = true
+            timelapseSink.recorder = r
+        } catch {
+            lastError = L("Zeitraffer konnte nicht starten: %@", error.localizedDescription)
+        }
+    }
+
+    func stopTimelapse() {
+        guard let r = timelapseSink.recorder else { timelapseRunning = false; return }
+        timelapseSink.recorder = nil
+        timelapseRunning = false
+        timelapseStarted = nil
+        r.stop { [weak self] url in
+            guard let self else { return }
+            if let url { self.timelapseLastFile = url } else { self.lastError = L("Zeitraffer war leer – nichts gespeichert.") }
+        }
     }
 
     // MARK: Source menu on the iPad

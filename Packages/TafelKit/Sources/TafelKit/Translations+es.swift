@@ -326,5 +326,16 @@ extension Translations {
         "Geschwindigkeit": "Velocidad",
         "Akzentfarbe aus den Vorschlägen oder frei im Farbrad. „Fließender Hintergrund“ lässt die Farben langsam verlaufen und wandern (nur hinter Menüs und Einrichtung, nie über dem Mac-Bild).": "Color de acento de las sugerencias o libre en la rueda de color. «Fondo fluido» hace que los colores se mezclen y se desplacen lentamente (solo detrás de menús y configuración, nunca sobre la imagen del Mac).",
         "Keine Fenster gefunden": "No se encontraron ventanas",
+        "Hover-Punkt unter der Stiftspitze": "Punto bajo la punta del lápiz al pasar por encima",
+        "Im Finder zeigen": "Mostrar en el Finder",
+        "Läuft seit %@ · %lld Bilder · ergibt %@ Video": "Grabando desde hace %@ · %lld imágenes · da un vídeo de %@",
+        "Nimmt das übertragene Bild als Zeitraffer auf (Filme → UniversePen). Ruhephasen ohne Bildänderung werden automatisch übersprungen.": "Graba la imagen transmitida como cámara rápida (Películas → UniversePen). Los ratos sin cambios se omiten automáticamente.",
+        "Sofort-Tinte (Strich sofort auf dem iPad)": "Tinta instantánea (el trazo aparece al momento en el iPad)",
+        "Tempo": "Velocidad",
+        "Zeitraffer aufnehmen": "Grabar cámara rápida",
+        "Zeitraffer beendet: Die Bildgröße hat sich geändert (andere Quelle oder Auflösung).": "Cámara rápida detenida: cambió el tamaño de la imagen (otra fuente o resolución).",
+        "Zeitraffer konnte nicht starten: %@": "No se pudo iniciar la cámara rápida: %@",
+        "Zeitraffer stoppen": "Detener cámara rápida",
+        "Zeitraffer war leer – nichts gespeichert.": "La cámara rápida estaba vacía: no se guardó nada.",
     ]
 }
