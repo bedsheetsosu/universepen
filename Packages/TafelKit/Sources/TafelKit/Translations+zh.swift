@@ -337,5 +337,8 @@ extension Translations {
         "Zeitraffer konnte nicht starten: %@": "无法开始延时录制：%@",
         "Zeitraffer stoppen": "停止延时录制",
         "Zeitraffer war leer – nichts gespeichert.": "延时视频为空，未保存任何内容。",
+        "sichtbar:": "可见:",
+        "Kabel-Kandidat:": "线缆候选:",
+        "Weg:": "路径:",
     ]
 }

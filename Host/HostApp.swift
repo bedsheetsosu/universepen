@@ -380,6 +380,17 @@ struct HostView: View {
 
     // MARK: Stream
 
+    /// The iPad sends its diagnostics with fixed German labels; show them in the Mac's language.
+    static func localizedDiagnostics(_ s: String) -> String {
+        var r = localizedLink(s)
+        guard L10n.shared.language != .de else { return r }
+        for (de, shown) in [("sichtbar:", L("sichtbar:")), ("Kabel-Kandidat:", L("Kabel-Kandidat:")),
+                            ("Weg:", L("Weg:")), ("keiner", L("keiner"))] {
+            r = r.replacingOccurrences(of: de, with: shown)
+        }
+        return r
+    }
+
     private var stream: some View {
         VStack(alignment: .leading, spacing: 12) {
             SectionTitle("Stream", symbol: "waveform.path.ecg")
@@ -402,7 +413,7 @@ struct HostView: View {
             TimelapseControls()
             if !host.clientDiagnostics.isEmpty, connected {
                 DisclosureGroup(L("Netzwerk-Diagnose")) {
-                    Text(host.clientDiagnostics).font(.caption2.monospaced()).textSelection(.enabled)
+                    Text(Self.localizedDiagnostics(host.clientDiagnostics)).font(.caption2.monospaced()).textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .font(.caption)

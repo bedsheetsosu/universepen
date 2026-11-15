@@ -337,5 +337,8 @@ extension Translations {
         "Zeitraffer konnte nicht starten: %@": "No se pudo iniciar la cámara rápida: %@",
         "Zeitraffer stoppen": "Detener cámara rápida",
         "Zeitraffer war leer – nichts gespeichert.": "La cámara rápida estaba vacía: no se guardó nada.",
+        "sichtbar:": "visibles:",
+        "Kabel-Kandidat:": "candidato de cable:",
+        "Weg:": "ruta:",
     ]
 }

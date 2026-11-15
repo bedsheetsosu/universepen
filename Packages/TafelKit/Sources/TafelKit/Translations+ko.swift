@@ -337,5 +337,8 @@ extension Translations {
         "Zeitraffer konnte nicht starten: %@": "타임랩스를 시작할 수 없음: %@",
         "Zeitraffer stoppen": "타임랩스 중지",
         "Zeitraffer war leer – nichts gespeichert.": "타임랩스가 비어 있어 아무것도 저장되지 않았습니다.",
+        "sichtbar:": "표시됨:",
+        "Kabel-Kandidat:": "케이블 후보:",
+        "Weg:": "경로:",
     ]
 }

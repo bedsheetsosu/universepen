@@ -380,5 +380,8 @@ enum Translations {
         "Zeitraffer konnte nicht starten: %@": "Time-lapse could not start: %@",
         "Zeitraffer stoppen": "Stop time-lapse",
         "Zeitraffer war leer – nichts gespeichert.": "Time-lapse was empty – nothing saved.",
+        "sichtbar:": "visible:",
+        "Kabel-Kandidat:": "cable candidate:",
+        "Weg:": "path:",
     ]
 }

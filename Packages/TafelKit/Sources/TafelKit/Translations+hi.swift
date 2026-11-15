@@ -337,5 +337,8 @@ extension Translations {
         "Zeitraffer konnte nicht starten: %@": "टाइम-लैप्स शुरू नहीं हो सका: %@",
         "Zeitraffer stoppen": "टाइम-लैप्स रोकें",
         "Zeitraffer war leer – nichts gespeichert.": "टाइम-लैप्स खाली था – कुछ सेव नहीं हुआ।",
+        "sichtbar:": "दिख रहे:",
+        "Kabel-Kandidat:": "केबल उम्मीदवार:",
+        "Weg:": "रास्ता:",
     ]
 }

@@ -337,5 +337,8 @@ extension Translations {
         "Zeitraffer konnte nicht starten: %@": "タイムラプスを開始できませんでした：%@",
         "Zeitraffer stoppen": "タイムラプスを停止",
         "Zeitraffer war leer – nichts gespeichert.": "タイムラプスが空でした。何も保存されていません。",
+        "sichtbar:": "表示中:",
+        "Kabel-Kandidat:": "ケーブル候補:",
+        "Weg:": "経路:",
     ]
 }
