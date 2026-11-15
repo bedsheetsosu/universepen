@@ -18,9 +18,9 @@ Target hardware: iPad Air 11" M4 + Äbbl Pencil Pro, MacBook Air M5, Affinity.
 | Pairing → key handover → control + video connection → pen/shortcut events reach the host, ping/RTT | implemented | integration test with a real `HostServer` + real client `Session` over 127.0.0.1 |
 | Video encoder (VideoToolbox, hardware, low-latency rate control) → wire → client decoder, H.264 and HEVC at 2360×1640 | implemented | pipeline test on this Mac: 10/10 frames encoded and decoded again, keyframe on request |
 | Keyboard shortcuts following the active layout (QWERTZ) | implemented | layout resolution tested (without sending events) |
-| Screen capture (ScreenCaptureKit) | implemented, builds | **not tested on device** (needs Screen Recording permission) |
-| Tablet events to macOS (pressure, tilt, rotation, proximity) | implemented, builds | **not tested** – no Pencil in the test run; a pen test window is built in for checking |
-| Pencil input, hover, squeeze, double-tap, gestures on the iPad | implemented, builds | **not tested** – no iPad/simulator in the test run (no simulator runtime installed) |
+| Screen capture (ScreenCaptureKit) | **runs on real hardware** (2026-11-15) | streaming to the iPad in daily use, e.g. second screen at 2360×1640, HEVC, 60 fps (reported by the developer API) |
+| Tablet events to macOS (pressure, tilt, rotation, proximity) | implemented, data arrives at the host | the host receives pressure, tilt and rotation from the Pencil (developer API, 2026-11-15). **Not yet confirmed** that macOS apps read them as tablet events – check with the pen test window |
+| Pencil input, squeeze, double-tap, gestures on the iPad | **runs on real hardware** (2026-11-15) | pressure, tilt, barrel roll, squeeze, double-tap and pinch/rotate events checked live via the developer API. Hover not checked separately |
 | Affinity compatibility | **unknown** | must be checked on real hardware with the test plan below |
 | Pressure curve editor & per-app shortcut bar | **runs on real hardware** (2026-11-15) | freely drawable curve with live test, smoothing, hold keys, the bar follows the Mac app |
 | Second screen (like Sidecar) | **runs on real hardware**, experimental | the only private API (`CGVirtualDisplay`), used only in this mode |
