@@ -23,6 +23,7 @@ Target hardware: iPad Air 11" M4 + Äbbl Pencil Pro, MacBook Air M5, Affinity.
 | Pencil input, hover, squeeze, double-tap, gestures on the iPad | **runs on real hardware** (2026-11-15) | pressure, tilt, barrel roll, squeeze, double-tap and pinch/rotate checked live via the developer API; hover confirmed in Affinity |
 | Affinity compatibility | **works on real hardware** (2026-11-15) | in regular use: pressure → stroke width, tilt and barrel roll, hover brush preview, gestures and shortcuts (zoom, pan, undo, squeeze/double-tap) |
 | Pressure curve editor & per-app shortcut bar | **runs on real hardware** (2026-11-15) | freely drawable curve with live test, smoothing, hold keys, the bar follows the Mac app |
+| Squeeze radial menu, per-app Pencil profiles, Mac menu bar (status, iPad battery, mode) | implemented, builds (2026-11-15) | **not yet tried on real hardware** |
 | Second screen (like Sidecar) | **runs on real hardware**, experimental | the only private API (`CGVirtualDisplay`), used only in this mode |
 | USB cable | **runs on real hardware** (2026-11-15, iPad Air M4 ↔ MacBook Air M5) | all three connections over the USB Ethernet interface (Mac `en8`); falls back to Wi-Fi. Undocumented, see limits |
 | Sound from the Mac | **data flows** (listening test pending) | ScreenCaptureKit audio → 16-bit PCM → iPad, buffer max. ~100 ms; the Mac keeps playing the sound itself |
@@ -47,7 +48,7 @@ xcodegen generate
 open Tafel.xcodeproj
 ```
 
-- **UniversePen Host** (Mac): runs without an App ID and without a developer account. Not sandboxed (see permissions). The default is ad-hoc signing – then macOS forgets Accessibility and Screen Recording after **every rebuild**. Fix: create `Config/HostSigning.local.xcconfig` (not in git) with `CODE_SIGN_IDENTITY = <SHA-1 of your "Apple Development" certificate>` (`security find-identity -v -p codesigning`). The signature then stays the same and the permissions are kept.
+- **UniversePen Host** (Mac, bundle ID `local.universepen.host`; up to 0.1.1 it was "Tafel Host", `local.tafel.host` – its settings are taken over on first launch, permissions have to be granted again): runs without an App ID and without a developer account. Not sandboxed (see permissions). The default is ad-hoc signing – then macOS forgets Accessibility and Screen Recording after **every rebuild**. Fix: create `Config/HostSigning.local.xcconfig` (not in git) with `CODE_SIGN_IDENTITY = <SHA-1 of your "Apple Development" certificate>` (`security find-identity -v -p codesigning`). The signature then stays the same and the permissions are kept.
 - **UniversePen** (iPad): pick your team under *Signing & Capabilities*. With a free Äbbl account the app runs for 7 days and uses up one App ID. If `local.tafel.pad` is already taken, change the bundle ID in `project.yml` and regenerate. Developer Mode must be on on the iPad.
 
 ### Without a Mac: sideload the IPA
@@ -180,6 +181,12 @@ UniversePen does not change profiles, restrictions or MDM settings and does not 
 - **Risk:** Äbbl can change or remove this interface with any macOS update. UniversePen then reports "not available"; all other modes are unaffected. The declarations are isolated in `Host/Private/CGVirtualDisplayPrivate.h` and only used by `Host/VirtualDisplay.swift`.
 - No changes to MDM, profiles or system settings; it only creates a display session.
 - Free alternative without a private API: an HDMI/USB-C display dummy plug + "Full display" mode on that display (usually 16:9 → bars).
+
+## Radial menu, per-app Pencil profiles, menu bar
+
+- **Radial menu:** set squeeze (or double-tap) to "Radial menu". A ring with 2–8 actions appears at the Pencil tip (where it hovers). Hover over an item and squeeze again, or tap it; tap the centre or outside to close. Highlight and pick give a haptic tick on the Pencil Pro. Items: iPad → Settings → Radial menu. While the ring is open, nothing is sent to the Mac.
+- **Per-app Pencil profiles:** pressure curve, smoothing, double-tap and squeeze can have their own values per Mac app (iPad → Settings → Pencil → "Settings for"). They switch automatically with the app in front on the Mac, like the per-app shortcut bars.
+- **Menu bar (Mac):** connected iPad, path (USB/Wi-Fi), fps and bitrate, iPad battery, source switch, pairing, quit.
 
 ## Fingers & multi-touch (like on a pen display)
 

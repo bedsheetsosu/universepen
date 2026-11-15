@@ -10,7 +10,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-// weak_import: if a future macOS drops one of these classes, Tafel Host still launches (the class
+// weak_import: if a future macOS drops one of these classes, UniversePen Host still launches (the class
 // reference is simply nil) instead of failing at load time. VirtualDisplay.availability checks
 // every class and method before anything is called.
 #define TAFEL_WEAK __attribute__((weak_import))

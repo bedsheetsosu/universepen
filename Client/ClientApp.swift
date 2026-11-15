@@ -40,12 +40,18 @@ struct RootView: View {
                     .transition(.opacity)
                 overlay
                     .transition(.opacity)
+                if let c = model.radialCenter {
+                    RadialMenuView(center: c)
+                        .zIndex(10)
+                }
             } else {
                 ConnectView()
                     .transition(.opacity.combined(with: .scale(scale: 1.03)))
             }
         }
         .animation(.easeInOut(duration: 0.35), value: model.phase.showsCanvas)
+        .animation(Brand.spring, value: model.radialCenter != nil)
+        .sensoryFeedback(.pathComplete, trigger: model.radialCenter == nil) { old, new in !old && new }
         .animation(.easeInOut(duration: 0.45), value: model.onboardingDone)
         .id(l10n.language)   // re-render every text when the language changes
         .sheet(isPresented: $showSettings) {

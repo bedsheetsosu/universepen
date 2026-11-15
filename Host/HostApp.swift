@@ -5,8 +5,25 @@ import TafelKit
 struct TafelHostApp: App {
     @StateObject private var host = HostController()
 
+    init() { Self.migrateOldDefaults() }
+
+    /// The app was called "Tafel Host" (bundle ID local.tafel.host). Take its settings over once,
+    /// before anything reads them, so mode, developer API switch etc. survive the rename.
+    /// Pairing keys live in the keychain (service "Tafel") and are not affected by the bundle ID;
+    /// macOS may ask once whether the renamed app may read them.
+    private static func migrateOldDefaults() {
+        let d = UserDefaults.standard
+        guard !d.bool(forKey: "migratedFromTafelHost"), let id = Bundle.main.bundleIdentifier, id != "local.tafel.host" else { return }
+        if let old = d.persistentDomain(forName: "local.tafel.host"), !old.isEmpty {
+            var merged = old
+            for (k, v) in d.persistentDomain(forName: id) ?? [:] { merged[k] = v }   // never overwrite newer values
+            d.setPersistentDomain(merged, forName: id)
+        }
+        d.set(true, forKey: "migratedFromTafelHost")
+    }
+
     var body: some Scene {
-        WindowGroup("UniversePen") {
+        WindowGroup("UniversePen", id: "main") {
             HostView()
                 .environmentObject(host)
                 .onOpenURL { host.handle(url: $0) }
@@ -19,8 +36,56 @@ struct TafelHostApp: App {
         Window(L("Stifttest"), id: "pentest") {
             PenTestView()
         }
+
+        MenuBarExtra {
+            HostMenu().environmentObject(host)
+        } label: {
+            Image(systemName: host.sessionDevice == nil ? "pencil.tip" : "pencil.tip.crop.circle.fill")
+        }
     }
 }
+
+/// Menu bar menu: connection at a glance, mode switch, pairing.
+struct HostMenu: View {
+    @EnvironmentObject var host: HostController
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        if let device = host.sessionDevice {
+            Text(L("Verbunden: %@", device))
+            Text(localizedLink(host.sessionLink))
+            if host.stats.fps > 0 {
+                Text(String(format: "%.0f fps · %.1f Mbit/s", host.stats.fps, host.stats.mbps))
+            }
+            if let b = host.ipadBattery {
+                Text(L("iPad-Akku: %d %%", Int((b * 100).rounded())) + (host.ipadCharging == true ? " ⚡︎" : ""))
+            }
+        } else {
+            Text(host.listenerReady ? L("Warte auf das iPad …") : host.listenerStatus)
+        }
+        Divider()
+        Picker(L("Quelle"), selection: $host.mode) {
+            ForEach(CaptureMode.allCases) { m in
+                Text(m.title).tag(m)
+                    .disabled(m == .virtual && !HostController.secondScreenAvailable)
+            }
+        }
+        Button(L("iPad koppeln …")) {
+            openMain()
+            host.beginPairing()
+        }
+        Divider()
+        Button(L("UniversePen öffnen")) { openMain() }
+        Button(L("UniversePen beenden")) { NSApp.terminate(nil) }
+            .keyboardShortcut("q")
+    }
+
+    private func openMain() {
+        openWindow(id: "main")
+        NSApp.activate()
+    }
+}
+
 
 struct HostView: View {
     @EnvironmentObject var host: HostController

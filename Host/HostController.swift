@@ -55,6 +55,9 @@ final class HostController: ObservableObject {
     @Published var sessionDevice: String?
     @Published var sessionLink = ""
     @Published var clientDiagnostics = ""
+    /// iPad battery 0…1 and charging state, as reported by the iPad (nil = unknown / not connected).
+    @Published var ipadBattery: Double?
+    @Published var ipadCharging: Bool?
     // MARK: Developer API state
     let devAPI = DeveloperAPI()
     @Published var devAPIClients = 0
@@ -239,6 +242,7 @@ final class HostController: ObservableObject {
             "link": sessionLink.isEmpty ? NSNull() : sessionLink,
             "usb": sessionLink.hasPrefix("USB"),
             "fps": stats.fps, "mbps": stats.mbps, "targetMbps": stats.targetMbps, "dropped": stats.dropped,
+            "ipadBattery": ipadBattery ?? NSNull(), "ipadCharging": ipadCharging ?? NSNull(),
         ]
     }
 
@@ -483,6 +487,8 @@ final class HostController: ObservableObject {
                     self.clientDiagnostics = d
                     NSLog("Tafel iPad-Diagnose: %@", d)
                 }
+                if self.ipadBattery != cfg.batteryLevel { self.ipadBattery = cfg.batteryLevel }
+                if self.ipadCharging != cfg.batteryCharging { self.ipadCharging = cfg.batteryCharging }
                 let restart = !cfg.sameStream(as: self.clientConfig)
                 self.clientConfig = cfg
                 if restart { self.restartStream() }
@@ -497,6 +503,8 @@ final class HostController: ObservableObject {
                 self.scheduleVirtualTeardown(sessionActive: name != nil)
                 if name == nil {
                     self.clientConfig = nil
+                    self.ipadBattery = nil
+                    self.ipadCharging = nil
                     await self.stopStream()
                 }
             }

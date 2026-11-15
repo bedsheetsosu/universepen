@@ -35,7 +35,7 @@ On connect the server sends `{"event": "hello", "data": {"api": 1, "app": "Unive
 | `input` | `key` | `hidUsage` (USB HID page 7), `down` |
 | `input` | `shortcut` | `key`, `modifiers` |
 | `gesture` | `gesture` | `name`: tap2, tap3, tap4, swipe3.left/right/up/down, pinch (`value` = scale factor since the last event, sent once it changed ≥ 0.5 %), rotate (`value` = degrees since the last event, sent once ≥ 0.1°), pencil.doubleTap, pencil.squeeze |
-| `status` | `status` | every second: `connected`, `device`, `link`, `usb`, `fps`, `mbps`, `targetMbps`, `dropped` |
+| `status` | `status` | every second: `connected`, `device`, `link`, `usb`, `fps`, `mbps`, `targetMbps`, `dropped`, `ipadBattery` (0…1 or null), `ipadCharging` (bool or null) |
 | `display` | `display` | same as `display.get`, on every change |
 | `app` | `app` | `bundleID`, `name` of the app in front on the Mac |
 
@@ -62,6 +62,10 @@ Gestures still run their configured action; the event is additional.
 | `control.patchSettings` | `settings` and/or `quality` objects, deep-merged | `{sent: true}` |
 
 Settings live on the iPad; Control methods need a connected iPad (error `No iPad connected`).
+Per-app Pencil profiles (`settings.appPenProfiles[bundleID]` = {`pressure`, `positionSmoothing`,
+`pressureSmoothing`, `doubleTap`, `squeeze`}) and the radial menu items (`settings.radialMenu`, 2…8
+buttons) can be set with `control.patchSettings`; an action `{"radialMenu": {}}` opens the radial
+menu. `control.removeAppProfile` removes both the app's bar and its Pencil profile.
 Shortcuts and text need the Mac app's Accessibility permission.
 
 ## Examples

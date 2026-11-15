@@ -19,6 +19,11 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     /// Gesture report for the developer API (in addition to the action).
     var onGesture: ((GestureEvent) -> Void)?
     var onPixelSize: ((Int, Int) -> Void)?
+    /// Radial menu: open at a point, or (already open) pick what the Pencil hovers over.
+    var onRadialOpen: ((CGPoint) -> Void)?
+    var onRadialPick: (() -> Void)?
+    var radialOpen = false
+    private var lastHoverPoint: CGPoint?
     var videoSize: CGSize = .zero { didSet { setNeedsLayout() } }
     /// Hidden text field for the on-screen keyboard.
     let keyboardProxy = KeyboardProxy()
@@ -357,7 +362,8 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     // MARK: Hover
 
     @objc private func handleHover(_ g: UIHoverGestureRecognizer) {
-        guard settings.sendHover, let session else { return }
+        lastHoverPoint = g.state == .ended || g.state == .cancelled ? nil : g.location(in: self)
+        guard settings.sendHover, !radialOpen, let session else { return }
         let n = Geometry.normalized(g.location(in: self), in: videoRect)
         let tilt = settings.tilt.tilt(altitude: Double(g.altitudeAngle), azimuth: Double(g.azimuthAngle(in: self)))
         let roll = settings.sendRoll ? Double(g.rollAngle) * 180 / .pi : 0
@@ -386,11 +392,24 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
 
     func pencilInteraction(_ interaction: UIPencilInteraction, didReceiveTap tap: UIPencilInteraction.Tap) {
         onGesture?(GestureEvent(name: "pencil.doubleTap"))
-        onAction?(settings.doubleTap)
+        perform(settings.doubleTap, at: tap.hoverPose?.location)
     }
 
     func pencilInteraction(_ interaction: UIPencilInteraction, didReceiveSqueeze squeeze: UIPencilInteraction.Squeeze) {
-        if squeeze.phase == .ended { onGesture?(GestureEvent(name: "pencil.squeeze")); onAction?(settings.squeeze) }
+        guard squeeze.phase == .ended else { return }
+        onGesture?(GestureEvent(name: "pencil.squeeze"))
+        perform(settings.squeeze, at: squeeze.hoverPose?.location)
+    }
+
+    private func perform(_ action: PencilAction, at hover: CGPoint?) {
+        guard action == .radialMenu else { onAction?(action); return }
+        if radialOpen { onRadialPick?(); return }
+        // The Mac should not keep a hovering pen while the menu is up.
+        if hovering, pencilTouch == nil, let session, let p = lastHoverPoint {
+            let n = Geometry.normalized(p, in: videoRect)
+            session.send(PenSample(phase: .exit, x: Float(n.x), y: Float(n.y), timestamp: ProcessInfo.processInfo.systemUptime))
+        }
+        onRadialOpen?(hover ?? lastHoverPoint ?? CGPoint(x: bounds.midX, y: bounds.midY))
     }
 
     // MARK: Finger gestures
@@ -569,12 +588,15 @@ struct CanvasRepresentable: UIViewRepresentable {
         v.onAction = { [weak model] a in model?.trigger(a) }
         v.onGesture = { [weak model] g in model?.report(g) }
         v.onPixelSize = { [weak model] w, h in model?.updateViewPixelSize(width: w, height: h) }
+        v.onRadialOpen = { [weak model] p in model?.openRadial(at: p) }
+        v.onRadialPick = { [weak model] in model?.pickRadial(model?.radialHighlight) }
         return v
     }
 
     func updateUIView(_ v: CanvasView, context: Context) {
         v.session = model.session
-        v.settings = model.settings
+        v.settings = model.effectiveSettings
+        v.radialOpen = model.radialCenter != nil
         v.videoSize = model.videoSize
         v.keyboardProxy.onDismiss = { [weak model] in model?.showKeyboard = false }
         v.setOnScreenKeyboard(model.showKeyboard)

@@ -45,6 +45,13 @@ final class ClientModel: ObservableObject {
     /// App in front on the Mac.
     @Published var frontApp: AppInfo?
 
+    /// Settings in effect for the app in front on the Mac (its own Pencil profile, if any).
+    var effectiveSettings: InputSettings { settings.effective(for: frontApp?.bundleID) }
+
+    /// Radial menu open at this point (canvas/window coordinates), and the item under the Pencil.
+    @Published var radialCenter: CGPoint?
+    @Published var radialHighlight: Int?
+
     /// The bar for the app in front, or the standard bar.
     var currentBar: [ShortcutButton] {
         frontApp.flatMap { settings.appShortcutBars[$0.bundleID] } ?? settings.shortcutBar
@@ -128,10 +135,51 @@ final class ClientModel: ObservableObject {
         paired = Self.load([PairedHost].self, "pairedHosts") ?? []
         renderer.onSize = { [weak self] size in self?.videoSize = size }
         startWiredMonitor()
+        startBatteryMonitor()
         startBrowsing()
         backToCableTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.checkBackToCable() }
         }
+    }
+
+    // MARK: Battery (shown in the Mac menu bar)
+
+    private func startBatteryMonitor() {
+        UIDevice.current.isBatteryMonitoringEnabled = true
+        for n in [UIDevice.batteryLevelDidChangeNotification, UIDevice.batteryStateDidChangeNotification] {
+            NotificationCenter.default.addObserver(forName: n, object: nil, queue: .main) { [weak self] _ in
+                Task { @MainActor in self?.sendConfig() }
+            }
+        }
+    }
+
+    private var battery: (level: Double?, charging: Bool?) {
+        let d = UIDevice.current
+        let level = d.batteryLevel < 0 ? nil : Double(d.batteryLevel)
+        switch d.batteryState {
+        case .charging, .full: return (level, true)
+        case .unplugged: return (level, false)
+        default: return (level, nil)
+        }
+    }
+
+    // MARK: Radial menu
+
+    func openRadial(at p: CGPoint) {
+        radialHighlight = nil
+        radialCenter = p
+    }
+
+    func closeRadial() {
+        radialCenter = nil
+        radialHighlight = nil
+    }
+
+    /// Runs the item (if one is picked) and closes the menu.
+    func pickRadial(_ index: Int?) {
+        let items = effectiveSettings.radialMenu
+        if let i = index, items.indices.contains(i) { session?.send(items[i].shortcut) }
+        closeRadial()
     }
 
     // MARK: Cable
@@ -390,8 +438,9 @@ final class ClientModel: ObservableObject {
 
     private func sendConfig() {
         guard let session, viewPixelSize.0 > 0 else { return }
+        let b = battery
         session.send(config: ClientConfig(viewPixelWidth: viewPixelSize.0, viewPixelHeight: viewPixelSize.1, quality: quality,
-                                          diagnostics: diagnostics))
+                                          diagnostics: diagnostics, batteryLevel: b.level, batteryCharging: b.charging))
     }
 
     // MARK: Developer API (settings live on the iPad; the Mac reads and patches them)
@@ -406,6 +455,7 @@ final class ClientModel: ObservableObject {
         if let sp = patch["settings"] as? [String: Any], let merged = applyPatch(s, sp) { s = merged }
         for id in patch["removeAppProfiles"] as? [String] ?? [] {
             s.appShortcutBars[id] = nil
+            s.appPenProfiles[id] = nil
             s.appNames[id] = nil
         }
         if s != settings { settings = s }
@@ -419,6 +469,7 @@ final class ClientModel: ObservableObject {
     }
 
     func trigger(_ action: PencilAction) {
+        if action == .radialMenu { return }   // opened by the canvas, which knows the Pencil position
         guard let s = action.shortcut else { return }
         session?.send(s)
     }

@@ -27,4 +27,4 @@ open "universepen://mode/second-screen"
 - **Stream Deck:** “Website” action with the URL (uncheck “open in browser” if offered).
 - **AppleScript:** `open location "universepen://mode/display"`
 
-Unknown URLs are ignored and logged (Console, process “Tafel Host”).
+Unknown URLs are ignored and logged (Console, process “UniversePen Host”).

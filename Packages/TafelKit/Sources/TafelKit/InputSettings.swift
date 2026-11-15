@@ -4,6 +4,8 @@ import Foundation
 public enum PencilAction: Codable, Hashable, Sendable {
     case none
     case shortcut(Shortcut)
+    /// Opens the radial menu at the Pencil tip (Pencil Pro squeeze / double tap).
+    case radialMenu
 
     public static let undo = PencilAction.shortcut(Shortcut("z", .command))
     public static let redo = PencilAction.shortcut(Shortcut("z", [.command, .shift]))
@@ -26,6 +28,7 @@ public enum PencilAction: Codable, Hashable, Sendable {
         switch self {
         case .none: return L("Keine")
         case .shortcut(let s): return s.display
+        case .radialMenu: return L("Radialmenü")
         }
     }
 }
@@ -165,7 +168,46 @@ public struct InputSettings: Codable, Equatable, Sendable {
         ShortcutButton(title: "⌥", shortcut: Shortcut("a"), hold: .option),
     ]
 
+    /// Items of the radial menu (Pencil Pro squeeze), clockwise from the top. 2…8 items.
+    public var radialMenu: [ShortcutButton] = InputSettings.defaultRadialMenu
+    public static let maxRadialItems = 8
+    public static var defaultRadialMenu: [ShortcutButton] {
+        [
+            ShortcutButton(title: "Undo", shortcut: Shortcut("z", .command)),
+            ShortcutButton(title: L("Pinsel"), shortcut: Shortcut("b")),
+            ShortcutButton(title: L("Radierer"), shortcut: Shortcut("e")),
+            ShortcutButton(title: L("Pipette"), shortcut: Shortcut("i")),
+            ShortcutButton(title: L("Hand"), shortcut: Shortcut("h")),
+            ShortcutButton(title: "Redo", shortcut: Shortcut("z", [.command, .shift])),
+        ]
+    }
+
+    /// Own Pencil settings per Mac app (bundle ID); they replace the standard ones while that app
+    /// is in front on the Mac.
+    public var appPenProfiles: [String: PenProfile] = [:]
+
     public init() {}
+
+    /// The Pencil part of these settings (what a per-app profile can override).
+    public var penProfile: PenProfile {
+        get { PenProfile(pressure: pressure, positionSmoothing: positionSmoothing, pressureSmoothing: pressureSmoothing,
+                         doubleTap: doubleTap, squeeze: squeeze) }
+        set {
+            pressure = newValue.pressure
+            positionSmoothing = newValue.positionSmoothing
+            pressureSmoothing = newValue.pressureSmoothing
+            doubleTap = newValue.doubleTap
+            squeeze = newValue.squeeze
+        }
+    }
+
+    /// Settings in effect while the app with `bundleID` is in front on the Mac.
+    public func effective(for bundleID: String?) -> InputSettings {
+        guard let bundleID, let p = appPenProfiles[bundleID] else { return self }
+        var s = self
+        s.penProfile = p
+        return s
+    }
 
     private enum CodingKeys: String, CodingKey {
         case pressure, tilt, sendHover, sendRoll, doubleTap, squeeze, twoFingerTap, threeFingerTap
@@ -174,7 +216,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         case fingerMode, fingerPressure, longPressRightClick, palmRadius
         case threeFingerSwipeLeft, threeFingerSwipeRight, threeFingerSwipeUp, threeFingerSwipeDown, fourFingerTap
         case swapISOKeys, trackpadAsMouse, hideIPadPointer, showShortcutBar, shortcutBarOnRight, shortcutBar
-        case appShortcutBars, appNames
+        case appShortcutBars, appNames, radialMenu, appPenProfiles
     }
 
     /// Tolerates settings saved by older versions: missing keys keep their defaults.
@@ -202,5 +244,49 @@ public struct InputSettings: Codable, Equatable, Sendable {
         try get(.shortcutBarOnRight, &shortcutBarOnRight)
         try get(.showShortcutBar, &showShortcutBar); try get(.shortcutBar, &shortcutBar)
         try get(.appShortcutBars, &appShortcutBars); try get(.appNames, &appNames)
+        try get(.radialMenu, &radialMenu); try get(.appPenProfiles, &appPenProfiles)
+    }
+}
+
+/// Pencil settings that can differ per Mac app.
+public struct PenProfile: Codable, Equatable, Sendable {
+    public var pressure: PressureCurve
+    public var positionSmoothing: Double
+    public var pressureSmoothing: Double
+    public var doubleTap: PencilAction
+    public var squeeze: PencilAction
+
+    public init(pressure: PressureCurve, positionSmoothing: Double, pressureSmoothing: Double,
+                doubleTap: PencilAction, squeeze: PencilAction) {
+        self.pressure = pressure
+        self.positionSmoothing = positionSmoothing
+        self.pressureSmoothing = pressureSmoothing
+        self.doubleTap = doubleTap
+        self.squeeze = squeeze
+    }
+}
+
+/// Geometry of the radial menu: which item lies under a point.
+public enum RadialMenuLayout {
+    public static let radius: Double = 112
+    /// Inside this distance from the centre nothing is selected (lets you back out).
+    public static let deadZone: Double = 38
+    public static let outerLimit: Double = 190
+
+    /// Centre of item `i` of `count`, relative to the menu centre (item 0 at the top, clockwise).
+    public static func offset(of i: Int, count: Int) -> (x: Double, y: Double) {
+        let a = -Double.pi / 2 + Double(i) * 2 * .pi / Double(max(count, 1))
+        return (radius * cos(a), radius * sin(a))
+    }
+
+    /// Item under the point (dx, dy) from the centre, or nil in the dead zone / far outside.
+    public static func item(dx: Double, dy: Double, count: Int) -> Int? {
+        guard count > 0 else { return nil }
+        let d = (dx * dx + dy * dy).squareRoot()
+        guard d >= deadZone, d <= outerLimit else { return nil }
+        var a = atan2(dy, dx) + .pi / 2          // 0 at the top, clockwise
+        if a < 0 { a += 2 * .pi }
+        let sector = 2 * .pi / Double(count)
+        return Int(((a + sector / 2) / sector).rounded(.down)) % count
     }
 }

@@ -1,4 +1,4 @@
-// Signing for Tafel Host.
+// Signing for UniversePen Host.
 // Default: ad-hoc ("Sign to Run Locally"). Downside: every rebuild gets a new signature, so macOS
 // forgets the Accessibility and Screen Recording permissions.
 // For stable permissions, create Config/HostSigning.local.xcconfig (not in git) with e.g.

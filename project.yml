@@ -27,8 +27,8 @@ targets:
       Release: Config/HostSigning.xcconfig
     settings:
       base:
-        PRODUCT_NAME: Tafel Host
-        PRODUCT_BUNDLE_IDENTIFIER: local.tafel.host
+        PRODUCT_NAME: UniversePen Host
+        PRODUCT_BUNDLE_IDENTIFIER: local.universepen.host
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         # Not sandboxed: posting tablet/keyboard events needs Accessibility, which sandboxed apps cannot use.
         ENABLE_APP_SANDBOX: NO
@@ -47,7 +47,7 @@ targets:
         NSLocalNetworkUsageDescription: UniversePen accepts connections from your paired iPad on the local network.
         NSBonjourServices: [_tafel._tcp, _tafelpair._tcp]
         CFBundleURLTypes:
-          - CFBundleURLName: local.tafel.host.control
+          - CFBundleURLName: local.universepen.host.control
             CFBundleURLSchemes: [universepen, tafel]
         NSScreenCaptureUsageDescription: UniversePen shows the selected part of your screen on your iPad.
   Tafel:

@@ -21,6 +21,7 @@ struct SettingsView: View {
                 pencilSection
                 gestureSection
                 shortcutSection
+                radialSection
                 keyboardSection
                 Section {
                     Toggle(L("Latenz dauerhaft anzeigen"), isOn: $model.showStatusOverlay)
@@ -101,43 +102,110 @@ struct SettingsView: View {
         }
     }
 
+    /// "" = standard Pencil settings, otherwise the bundle ID of a Mac app with its own profile.
+    @State private var penTarget = ""
+
+    private var penApps: [(id: String, name: String)] {
+        var ids = Set(model.settings.appPenProfiles.keys)
+        if let f = model.frontApp { ids.insert(f.bundleID) }
+        return ids.map { id in (id, model.settings.appNames[id] ?? (model.frontApp?.bundleID == id ? model.frontApp!.name : id)) }
+            .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+    }
+
+    private var targetHasOwnProfile: Bool { !penTarget.isEmpty && model.settings.appPenProfiles[penTarget] != nil }
+
+    private var pen: Binding<PenProfile> {
+        Binding(get: {
+            penTarget.isEmpty ? model.settings.penProfile : (model.settings.appPenProfiles[penTarget] ?? model.settings.penProfile)
+        }, set: { v in
+            if penTarget.isEmpty { model.settings.penProfile = v } else { model.settings.appPenProfiles[penTarget] = v }
+        })
+    }
+
     private var pencilSection: some View {
         Section {
-            NavigationLink {
-                Form {
-                    Section {
-                        PressureCurveEditor(curve: $model.settings.pressure)
-                            .listRowBackground(Color.clear)
-                    } footer: {
-                        Text(L("Punkte mit dem Finger ziehen. Unten mit dem Pencil drücken, um zu sehen, wo dein Druck auf der Kurve landet."))
+            Picker(L("Einstellungen für"), selection: $penTarget) {
+                Text(L("Standard (alle Apps)")).tag("")
+                ForEach(penApps, id: \.id) { app in
+                    Text(model.settings.appPenProfiles[app.id] == nil ? app.name : "\(app.name) ★").tag(app.id)
+                }
+            }
+            if !penTarget.isEmpty && !targetHasOwnProfile {
+                Button(L("Eigenes Stift-Profil für diese App anlegen")) {
+                    model.settings.appPenProfiles[penTarget] = model.settings.penProfile
+                    model.settings.appNames[penTarget] = penApps.first { $0.id == penTarget }?.name
+                }
+            } else {
+                NavigationLink {
+                    Form {
+                        Section {
+                            PressureCurveEditor(curve: pen.pressure)
+                                .listRowBackground(Color.clear)
+                        } footer: {
+                            Text(L("Punkte mit dem Finger ziehen. Unten mit dem Pencil drücken, um zu sehen, wo dein Druck auf der Kurve landet."))
+                        }
+                    }
+                    .navigationTitle(L("Druckkurve"))
+                } label: {
+                    LabeledContent(L("Druckkurve"), value: pen.wrappedValue.pressure.points.isEmpty ? L("Voreinstellung") : L("Eigene Kurve"))
+                }
+                VStack(alignment: .leading) {
+                    Text(L("Strich glätten: %d %%", Int(pen.wrappedValue.positionSmoothing * 100)))
+                    Slider(value: pen.positionSmoothing, in: 0...1)
+                }
+                VStack(alignment: .leading) {
+                    Text(L("Druck glätten: %d %%", Int(pen.wrappedValue.pressureSmoothing * 100)))
+                    Slider(value: pen.pressureSmoothing, in: 0...1)
+                }
+                VStack(alignment: .leading) {
+                    Text(L("Mindestdruck: %.2f", pen.wrappedValue.pressure.minimum))
+                    Slider(value: pen.pressure.minimum, in: 0...0.2)
+                }
+                ActionPicker(title: L("Doppeltippen"), action: pen.doubleTap)
+                ActionPicker(title: L("Squeeze"), action: pen.squeeze)
+                if targetHasOwnProfile {
+                    Button(L("Eigenes Stift-Profil löschen"), role: .destructive) {
+                        model.settings.appPenProfiles[penTarget] = nil
+                        if model.settings.appShortcutBars[penTarget] == nil { model.settings.appNames[penTarget] = nil }
+                        penTarget = ""
                     }
                 }
-                .navigationTitle(L("Druckkurve"))
-            } label: {
-                LabeledContent(L("Druckkurve"), value: model.settings.pressure.points.isEmpty ? L("Voreinstellung") : L("Eigene Kurve"))
-            }
-            VStack(alignment: .leading) {
-                Text(L("Strich glätten: %d %%", Int(model.settings.positionSmoothing * 100)))
-                Slider(value: $model.settings.positionSmoothing, in: 0...1)
-            }
-            VStack(alignment: .leading) {
-                Text(L("Druck glätten: %d %%", Int(model.settings.pressureSmoothing * 100)))
-                Slider(value: $model.settings.pressureSmoothing, in: 0...1)
-            }
-            VStack(alignment: .leading) {
-                Text(L("Mindestdruck: %.2f", model.settings.pressure.minimum))
-                Slider(value: $model.settings.pressure.minimum, in: 0...0.2)
             }
             Toggle(L("Neigung X umkehren"), isOn: $model.settings.tilt.invertX)
             Toggle(L("Neigung Y umkehren"), isOn: $model.settings.tilt.invertY)
             Toggle(L("Schweben (Hover) senden"), isOn: $model.settings.sendHover)
             Toggle(L("Barrel Roll als Rotation senden"), isOn: $model.settings.sendRoll)
-            ActionPicker(title: L("Doppeltippen"), action: $model.settings.doubleTap)
-            ActionPicker(title: L("Squeeze"), action: $model.settings.squeeze)
         } header: {
             Text(L("Stift"))
         } footer: {
-            Text(L("Ob Neigung und Rotation in einer Mac-App ankommen, hängt von der App ab. Bitte mit dem Testplan in der README prüfen."))
+            Text(L("Druckkurve, Glättung, Doppeltippen und Squeeze können pro Mac-App eigene Werte haben (★) und wechseln automatisch mit der App, die am Mac vorne ist. Ob Neigung und Rotation in einer Mac-App ankommen, hängt von der App ab."))
+        }
+    }
+
+    private var radialSection: some View {
+        Section {
+            ForEach($model.settings.radialMenu) { $b in
+                NavigationLink {
+                    ShortcutButtonEditor(button: $b)
+                } label: {
+                    LabeledContent(b.title, value: b.shortcut.display)
+                }
+            }
+            .onDelete { idx in
+                guard model.settings.radialMenu.count - idx.count >= 2 else { return }
+                model.settings.radialMenu.remove(atOffsets: idx)
+            }
+            .onMove { model.settings.radialMenu.move(fromOffsets: $0, toOffset: $1) }
+            if model.settings.radialMenu.count < InputSettings.maxRadialItems {
+                Button(L("Aktion hinzufügen")) {
+                    model.settings.radialMenu.append(ShortcutButton(title: L("Neu"), shortcut: Shortcut("a")))
+                }
+            }
+            Button(L("Auf Standard zurücksetzen")) { model.settings.radialMenu = InputSettings.defaultRadialMenu }
+        } header: {
+            Text(L("Radialmenü"))
+        } footer: {
+            Text(L("Squeeze oder Doppeltippen auf „Radialmenü“ stellen. Dann erscheint an der Stiftspitze ein Ring: mit dem Pencil darüber schweben und nochmal drücken, oder antippen. Mitte oder daneben tippen schließt ihn. 2 bis 8 Aktionen, oben beginnend im Uhrzeigersinn."))
         }
     }
 
@@ -256,11 +324,12 @@ struct ActionPicker: View {
     @Binding var action: PencilAction
 
     private enum Preset: String, CaseIterable, Identifiable {
-        case none, undo, redo, eraser, brush, hand, desktopLeft, desktopRight, missionControl, appWindows, custom
+        case none, radialMenu, undo, redo, eraser, brush, hand, desktopLeft, desktopRight, missionControl, appWindows, custom
         var id: String { rawValue }
         var label: String {
             switch self {
             case .none: return L("Keine")
+            case .radialMenu: return L("Radialmenü")
             case .undo: return L("Widerrufen ⌘Z")
             case .redo: return L("Wiederholen ⇧⌘Z")
             case .eraser: return L("Radierer (E)")
@@ -276,6 +345,7 @@ struct ActionPicker: View {
         var action: PencilAction {
             switch self {
             case .none: return .none
+            case .radialMenu: return .radialMenu
             case .undo: return .undo
             case .redo: return .redo
             case .eraser: return .eraser

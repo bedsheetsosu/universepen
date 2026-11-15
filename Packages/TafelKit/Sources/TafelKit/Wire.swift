@@ -162,12 +162,18 @@ public struct ClientConfig: Codable, Equatable, Sendable {
     /// Free-text network diagnostics from the iPad (interfaces it can see). Shown/logged on the
     /// Mac; never affects streaming.
     public var diagnostics: String?
+    /// iPad battery 0…1 (nil = unknown) and whether it is charging. Shown in the Mac menu bar.
+    public var batteryLevel: Double?
+    public var batteryCharging: Bool?
 
-    public init(viewPixelWidth: Int, viewPixelHeight: Int, quality: StreamQuality, diagnostics: String? = nil) {
+    public init(viewPixelWidth: Int, viewPixelHeight: Int, quality: StreamQuality, diagnostics: String? = nil,
+                batteryLevel: Double? = nil, batteryCharging: Bool? = nil) {
         self.viewPixelWidth = viewPixelWidth
         self.viewPixelHeight = viewPixelHeight
         self.quality = quality
         self.diagnostics = diagnostics
+        self.batteryLevel = batteryLevel
+        self.batteryCharging = batteryCharging
     }
 
     /// Same config, ignoring diagnostics (decides whether the stream must restart).
