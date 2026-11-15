@@ -68,6 +68,9 @@ final class ScreenStreamer: NSObject, SCStreamOutput, SCStreamDelegate {
         cfg.height = height
         if let sourceRect { cfg.sourceRect = sourceRect }
         cfg.scalesToFit = true
+        // Capture the full backing pixels of HiDPI displays ("automatic" may pick the point size
+        // and upscale it, which looks blurry on the iPad).
+        cfg.captureResolution = .best
         cfg.minimumFrameInterval = CMTime(value: 1, timescale: CMTimeScale(max(quality.fps, 1)))
         cfg.pixelFormat = kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
         cfg.colorSpaceName = CGColorSpace.displayP3
@@ -93,6 +96,9 @@ final class ScreenStreamer: NSObject, SCStreamOutput, SCStreamDelegate {
         cfg.height = height
         cfg.sourceRect = rect
         cfg.scalesToFit = true
+        // Capture the full backing pixels of HiDPI displays ("automatic" may pick the point size
+        // and upscale it, which looks blurry on the iPad).
+        cfg.captureResolution = .best
         cfg.minimumFrameInterval = CMTime(value: 1, timescale: CMTimeScale(max(fps, 1)))
         cfg.pixelFormat = kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
         cfg.colorSpaceName = CGColorSpace.displayP3
