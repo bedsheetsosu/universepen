@@ -50,6 +50,12 @@ open Tafel.xcodeproj
 - **UniversePen Host** (Mac): runs without an App ID and without a developer account. Not sandboxed (see permissions). The default is ad-hoc signing – then macOS forgets Accessibility and Screen Recording after **every rebuild**. Fix: create `Config/HostSigning.local.xcconfig` (not in git) with `CODE_SIGN_IDENTITY = <SHA-1 of your "Apple Development" certificate>` (`security find-identity -v -p codesigning`). The signature then stays the same and the permissions are kept.
 - **UniversePen** (iPad): pick your team under *Signing & Capabilities*. With a free Äbbl account the app runs for 7 days and uses up one App ID. If `local.tafel.pad` is already taken, change the bundle ID in `project.yml` and regenerate. Developer Mode must be on on the iPad.
 
+### Without a Mac: sideload the IPA
+
+Every [release](https://github.com/bedsheetsosu/universepen/releases) has an **unsigned** `UniversePen-<version>-unsigned.ipa`. iPadOS only runs apps that are signed for your device, so a sideloading tool has to sign it with your own Äbbl account first – e.g. SideStore, AltStore or Sideloadly (the last two also run on Windows). With a free account the app runs for 7 days at a time and the tool usually changes the bundle ID; both are fine.
+
+For now the iPad still needs the Mac app (UniversePen Host) on the other side – there is no Windows host yet. The IPA just means you don't need Xcode for the iPad part.
+
 Tests:
 
 ```bash
