@@ -335,5 +335,12 @@ enum Translations {
         "Voreinstellung": "Preset",
         "fest": "firm",
         "leicht": "light",
+        // MARK: Developer API
+        "%d Programme verbunden": "%d apps connected",
+        "Andere Programme auf diesem Mac lesen Stift-Eingaben und steuern UniversePen (nur lokal, 127.0.0.1:%d).": "Other apps on this Mac can read Pencil input and control UniversePen (local only, 127.0.0.1:%d).",
+        "Dokumentation (SDK, MIT-Lizenz)": "Documentation (SDK, MIT license)",
+        "Entwickler": "Developer",
+        "Entwickler-API": "Developer API",
+        "Entwickler-API konnte nicht starten: %@": "Developer API could not start: %@",
     ]
 }

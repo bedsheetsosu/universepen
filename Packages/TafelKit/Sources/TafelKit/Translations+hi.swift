@@ -292,5 +292,12 @@ extension Translations {
         "Voreinstellung": "प्रीसेट",
         "fest": "ज़्यादा",
         "leicht": "हल्का",
+        // MARK: Developer API
+        "%d Programme verbunden": "%d ऐप कनेक्ट हैं",
+        "Andere Programme auf diesem Mac lesen Stift-Eingaben und steuern UniversePen (nur lokal, 127.0.0.1:%d).": "इस Mac के दूसरे ऐप Pencil इनपुट पढ़ सकते हैं और UniversePen को नियंत्रित कर सकते हैं (केवल लोकल, 127.0.0.1:%d)।",
+        "Dokumentation (SDK, MIT-Lizenz)": "दस्तावेज़ (SDK, MIT लाइसेंस)",
+        "Entwickler": "डेवलपर",
+        "Entwickler-API": "डेवलपर API",
+        "Entwickler-API konnte nicht starten: %@": "डेवलपर API शुरू नहीं हो सका: %@",
     ]
 }

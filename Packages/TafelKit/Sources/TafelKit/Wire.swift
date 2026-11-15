@@ -11,10 +11,13 @@ public enum MessageType: UInt8, Sendable {
     case pairGrant = 0x04      // host -> client, only on the pairing listener
     case error = 0x05          // host -> client
     case appInfo = 0x06        // host -> client: app in front on the Mac
+    case clientSettings = 0x07 // client -> host: JSON {settings, quality} (for the developer API)
+    case settingsPatch = 0x08  // host -> client: JSON {settings?, quality?} deep-merged into the iPad's settings
     // binary input
     case pen = 0x10
     case scroll = 0x11
     case mouse = 0x12          // trackpad / mouse pointer
+    case gesture = 0x13        // client -> host: JSON GestureEvent (informational, for the developer API)
     case shortcut = 0x20
     case key = 0x21            // hardware keyboard key down/up (HID usage)
     case text = 0x22           // on-screen keyboard text (UTF-8)
@@ -172,6 +175,33 @@ public struct ClientConfig: Codable, Equatable, Sendable {
         guard let other else { return false }
         return viewPixelWidth == other.viewPixelWidth && viewPixelHeight == other.viewPixelHeight && quality == other.quality
     }
+}
+
+/// A recognised gesture on the iPad, reported in addition to its configured action.
+/// Names: tap2, tap3, tap4, swipe3.left/right/up/down, pinch (value = scale factor of this step),
+/// rotate (value = degrees of this step), pencil.doubleTap, pencil.squeeze.
+public struct GestureEvent: Codable, Equatable, Sendable {
+    public var name: String
+    public var value: Double
+    public init(name: String, value: Double = 0) { self.name = name; self.value = value }
+}
+
+/// Deep-merges `patch` into `base` (dictionaries recursively, everything else replaced).
+public func deepMerge(_ base: [String: Any], _ patch: [String: Any]) -> [String: Any] {
+    var out = base
+    for (k, v) in patch {
+        if let b = out[k] as? [String: Any], let p = v as? [String: Any] { out[k] = deepMerge(b, p) } else { out[k] = v }
+    }
+    return out
+}
+
+/// Applies a JSON patch to a Codable value via its JSON form (unknown keys are ignored by the
+/// tolerant decoders of InputSettings / StreamQuality).
+public func applyPatch<T: Codable>(_ value: T, _ patch: [String: Any]) -> T? {
+    guard let data = try? JSONEncoder().encode(value),
+          let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+          let merged = try? JSONSerialization.data(withJSONObject: deepMerge(obj, patch)) else { return nil }
+    return try? JSONDecoder().decode(T.self, from: merged)
 }
 
 /// The app in front on the Mac (for per-app shortcut bars).

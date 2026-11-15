@@ -292,5 +292,12 @@ extension Translations {
         "Voreinstellung": "Preajuste",
         "fest": "firme",
         "leicht": "suave",
+        // MARK: Developer API
+        "%d Programme verbunden": "%d apps conectadas",
+        "Andere Programme auf diesem Mac lesen Stift-Eingaben und steuern UniversePen (nur lokal, 127.0.0.1:%d).": "Otras apps de este Mac pueden leer la entrada del Pencil y controlar UniversePen (solo local, 127.0.0.1:%d).",
+        "Dokumentation (SDK, MIT-Lizenz)": "Documentación (SDK, licencia MIT)",
+        "Entwickler": "Desarrolladores",
+        "Entwickler-API": "API para desarrolladores",
+        "Entwickler-API konnte nicht starten: %@": "No se pudo iniciar la API para desarrolladores: %@",
     ]
 }

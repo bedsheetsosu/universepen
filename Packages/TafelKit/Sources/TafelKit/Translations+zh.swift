@@ -292,5 +292,12 @@ extension Translations {
         "Voreinstellung": "预设",
         "fest": "重",
         "leicht": "轻",
+        // MARK: Developer API
+        "%d Programme verbunden": "已连接 %d 个应用",
+        "Andere Programme auf diesem Mac lesen Stift-Eingaben und steuern UniversePen (nur lokal, 127.0.0.1:%d).": "这台 Mac 上的其他应用可以读取 Pencil 输入并控制 UniversePen（仅限本机，127.0.0.1:%d）。",
+        "Dokumentation (SDK, MIT-Lizenz)": "文档（SDK，MIT 许可证）",
+        "Entwickler": "开发者",
+        "Entwickler-API": "开发者 API",
+        "Entwickler-API konnte nicht starten: %@": "无法启动开发者 API：%@",
     ]
 }

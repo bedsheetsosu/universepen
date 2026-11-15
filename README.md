@@ -232,6 +232,8 @@ Bitte der Reihe nach, Ergebnis jeweils notieren:
 
 ## Steuerung von außen & Protokoll
 
+- **[UniversePen SDK](SDK/README.md) – MIT-Lizenz, für jeden nutzbar:** lokale Entwickler-API (in der Mac-App einschalten, nur `127.0.0.1:47800`) mit **Input API** (Druck, Neigung, Drehung, Hover, Touch, Gesten live), **Display API** (Modus, zweiter Bildschirm, Auflösung, Bildrate, Verbindungsstatus) und **Control API** (Shortcuts, App-Profile, Druckkurven, alle iPad-Einstellungen). Swift-Paket `UniversePenKit`, Beispiele in Python, JavaScript und Swift. Auf echter Hardware getestet (15.11.2026).
+
 - [`docs/API.md`](docs/API.md): `universepen://…`-URLs für Kurzbefehle, Terminal, Stream Deck (Modus wechseln, Koppeln).
 - [`docs/PROTOCOL.md`](docs/PROTOCOL.md): vollständiges Wire-Protokoll – Grundlage für eigene Clients/Hosts (z. B. Android, Windows).
 
@@ -248,3 +250,5 @@ Die Apps haben eine eigene Sprachwahl (erster Schritt der Einrichtung, später i
 Copyright © 2026 Biene
 
 UniversePen ist freie Software unter der **GNU General Public License v3.0** (siehe [`LICENSE`](LICENSE)): Du darfst den Code nutzen, verändern und weitergeben. Wer eine veränderte Version weitergibt, muss deren Quellcode ebenfalls unter der GPL-3.0 offenlegen. Es gibt keine Gewährleistung.
+
+Ausnahme: Der Ordner [`SDK/`](SDK) (Entwickler-SDK, Beispiele, API-Beschreibung) steht unter der **MIT-Lizenz** ([`SDK/LICENSE`](SDK/LICENSE)) und darf auch in geschlossenen Programmen verwendet werden.

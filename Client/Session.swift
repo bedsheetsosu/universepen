@@ -22,6 +22,7 @@ final class Session: @unchecked Sendable {
 
     var onHostInfo: ((HostInfo) -> Void)?
     var onAppInfo: ((AppInfo) -> Void)?
+    var onSettingsPatch: (([String: Any]) -> Void)?
     var onConnected: (() -> Void)?
     var onClosed: ((String?) -> Void)?
     var onTiming: ((Timing) -> Void)?
@@ -175,6 +176,8 @@ final class Session: @unchecked Sendable {
 
     private func handleControl(_ f: Frame) {
         switch f.type {
+        case .settingsPatch:
+            if let o = try? JSONSerialization.jsonObject(with: f.payload) as? [String: Any] { onSettingsPatch?(o) }
         case .appInfo:
             if let a = try? JSONWire.decode(AppInfo.self, f.payload) { onAppInfo?(a) }
         case .hostInfo:
@@ -248,6 +251,18 @@ final class Session: @unchecked Sendable {
     func send(_ shortcut: Shortcut) { control?.send(.shortcut, shortcut.encoded()) }
     func send(_ key: KeyEvent) { control?.send(.key, key.encoded()) }
     func send(_ mouse: MouseEvent) { control?.send(.mouse, mouse.encoded()) }
+    func send(_ gesture: GestureEvent) { control?.sendJSON(.gesture, gesture) }
+
+    /// Settings snapshot for the developer API on the Mac (sent once ready, and on change).
+    func send(settings: InputSettings, quality: StreamQuality) {
+        queue.async { [self] in
+            guard controlReady,
+                  let s = try? JSONSerialization.jsonObject(with: JSONEncoder().encode(settings)),
+                  let q = try? JSONSerialization.jsonObject(with: JSONEncoder().encode(quality)),
+                  let d = try? JSONSerialization.data(withJSONObject: ["settings": s, "quality": q]) else { return }
+            control?.send(.clientSettings, d)
+        }
+    }
     func send(text: String) { control?.send(.text, TextInput(text).encoded()) }
 
     func send(config: ClientConfig) {

@@ -292,5 +292,12 @@ extension Translations {
         "Voreinstellung": "사전 설정",
         "fest": "강하게",
         "leicht": "약하게",
+        // MARK: Developer API
+        "%d Programme verbunden": "앱 %d개 연결됨",
+        "Andere Programme auf diesem Mac lesen Stift-Eingaben und steuern UniversePen (nur lokal, 127.0.0.1:%d).": "이 Mac의 다른 앱이 Pencil 입력을 읽고 UniversePen을 제어할 수 있습니다(로컬 전용, 127.0.0.1:%d).",
+        "Dokumentation (SDK, MIT-Lizenz)": "문서(SDK, MIT 라이선스)",
+        "Entwickler": "개발자",
+        "Entwickler-API": "개발자 API",
+        "Entwickler-API konnte nicht starten: %@": "개발자 API를 시작할 수 없음: %@",
     ]
 }

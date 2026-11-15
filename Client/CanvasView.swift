@@ -16,6 +16,8 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     var session: Session?
     var settings = InputSettings()
     var onAction: ((PencilAction) -> Void)?
+    /// Gesture report for the developer API (in addition to the action).
+    var onGesture: ((GestureEvent) -> Void)?
     var onPixelSize: ((Int, Int) -> Void)?
     var videoSize: CGSize = .zero { didSet { setNeedsLayout() } }
     /// Hidden text field for the on-screen keyboard.
@@ -383,11 +385,12 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     // MARK: Pencil Pro gestures
 
     func pencilInteraction(_ interaction: UIPencilInteraction, didReceiveTap tap: UIPencilInteraction.Tap) {
+        onGesture?(GestureEvent(name: "pencil.doubleTap"))
         onAction?(settings.doubleTap)
     }
 
     func pencilInteraction(_ interaction: UIPencilInteraction, didReceiveSqueeze squeeze: UIPencilInteraction.Squeeze) {
-        if squeeze.phase == .ended { onAction?(settings.squeeze) }
+        if squeeze.phase == .ended { onGesture?(GestureEvent(name: "pencil.squeeze")); onAction?(settings.squeeze) }
     }
 
     // MARK: Finger gestures
@@ -488,8 +491,10 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
             zoomSteps.reset()
         case .changed:
             guard lastPinchScale > 0, g.scale > 0 else { return }
-            let delta = log2(Double(g.scale / lastPinchScale))
+            let factor = Double(g.scale / lastPinchScale)
+            let delta = log2(factor)
             lastPinchScale = g.scale
+            onGesture?(GestureEvent(name: "pinch", value: factor))
             let a = anchor(g)
             switch settings.zoomMethod {
             case .keyboardSteps:
@@ -514,6 +519,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         case .changed:
             let deg = Double(g.rotation - lastRotation) * 180 / .pi
             lastRotation = g.rotation
+            onGesture?(GestureEvent(name: "rotate", value: deg))
             let steps = rotateSteps.add(deg)
             for _ in 0..<abs(steps) { onAction?(steps > 0 ? settings.rotateRight : settings.rotateLeft) }
         default:
@@ -521,11 +527,13 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         }
     }
 
-    @objc private func handleTwoFingerTap() { onAction?(settings.twoFingerTap) }
-    @objc private func handleThreeFingerTap() { onAction?(settings.threeFingerTap) }
-    @objc private func handleFourFingerTap() { onAction?(settings.fourFingerTap) }
+    @objc private func handleTwoFingerTap() { onGesture?(GestureEvent(name: "tap2")); onAction?(settings.twoFingerTap) }
+    @objc private func handleThreeFingerTap() { onGesture?(GestureEvent(name: "tap3")); onAction?(settings.threeFingerTap) }
+    @objc private func handleFourFingerTap() { onGesture?(GestureEvent(name: "tap4")); onAction?(settings.fourFingerTap) }
 
     @objc private func handleThreeFingerSwipe(_ g: UISwipeGestureRecognizer) {
+        let dir = g.direction == .left ? "left" : g.direction == .right ? "right" : g.direction == .up ? "up" : "down"
+        onGesture?(GestureEvent(name: "swipe3.\(dir)"))
         switch g.direction {
         case .left: onAction?(settings.threeFingerSwipeLeft)
         case .right: onAction?(settings.threeFingerSwipeRight)
@@ -543,6 +551,7 @@ struct CanvasRepresentable: UIViewRepresentable {
         let v = CanvasView(renderer: model.renderer)
         let model = self.model
         v.onAction = { [weak model] a in model?.trigger(a) }
+        v.onGesture = { [weak model] g in model?.report(g) }
         v.onPixelSize = { [weak model] w, h in model?.updateViewPixelSize(width: w, height: h) }
         return v
     }

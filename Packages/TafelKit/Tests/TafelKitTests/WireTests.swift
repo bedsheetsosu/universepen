@@ -303,3 +303,21 @@ final class PressureCurveTests: XCTestCase {
         XCTAssertEqual(t.add(1), 0.15, accuracy: 1e-9)
     }
 }
+
+final class PatchTests: XCTestCase {
+    func testDeepMergeKeepsSiblings() {
+        var st = InputSettings()
+        st.appShortcutBars["a"] = [ShortcutButton(title: "A", shortcut: Shortcut("a"))]
+        let btn = try! JSONSerialization.jsonObject(with: JSONEncoder().encode(ShortcutButton(title: "B", shortcut: Shortcut("b", .command))))
+        let out = applyPatch(st, ["appShortcutBars": ["b": [btn]], "fingerPressure": 0.8])!
+        XCTAssertEqual(out.appShortcutBars["a"]?.first?.title, "A")
+        XCTAssertEqual(out.appShortcutBars["b"]?.first?.shortcut, Shortcut("b", .command))
+        XCTAssertEqual(out.fingerPressure, 0.8)
+    }
+
+    func testPressureCurvePatch() {
+        let out = applyPatch(InputSettings(), ["pressure": ["points": [["x": 0, "y": 0], ["x": 0.5, "y": 0.8], ["x": 1, "y": 1]]]])!
+        XCTAssertEqual(out.pressure.points.count, 3)
+        XCTAssertEqual(out.pressure.minimum, 0.01)   // sibling kept
+    }
+}

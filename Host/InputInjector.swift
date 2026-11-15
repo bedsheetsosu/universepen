@@ -34,6 +34,11 @@ final class InputInjector {
 
     static var isTrusted: Bool { AXIsProcessTrusted() }
 
+    /// Global Mac screen point (points, top-left origin) for a normalised image coordinate.
+    func screenPoint(x: Float, y: Float) -> CGPoint {
+        Geometry.denormalized(CGPoint(x: CGFloat(x), y: CGFloat(y)), in: region)
+    }
+
     static func requestTrust() {
         let opts = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
         _ = AXIsProcessTrustedWithOptions(opts)

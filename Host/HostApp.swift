@@ -42,6 +42,7 @@ struct HostView: View {
                 pairing
                 source
                 stream
+                developer
                 LanguageChoice().frame(maxWidth: 520)
                 Button {
                     onboardingDone = false
@@ -271,6 +272,32 @@ struct HostView: View {
             Text(title).frame(width: 80, alignment: .leading)
             Slider(value: value, in: range).tint(Brand.mint)
         }
+    }
+
+    // MARK: Developer API
+
+    private var developer: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            SectionTitle(L("Entwickler"), symbol: "chevron.left.forwardslash.chevron.right")
+            Toggle(isOn: $host.devAPIEnabled) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(L("Entwickler-API"))
+                    Text(L("Andere Programme auf diesem Mac lesen Stift-Eingaben und steuern UniversePen (nur lokal, 127.0.0.1:%d).", Int(DeveloperAPI.defaultPort)))
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            .toggleStyle(.switch)
+            if host.devAPIEnabled {
+                Label(L("%d Programme verbunden", host.devAPIClients), systemImage: "link")
+                    .font(.caption).foregroundStyle(host.devAPIClients > 0 ? Brand.mint : .secondary)
+                    .contentTransition(.numericText())
+            }
+            if let e = host.devAPIError { Text(e).font(.caption).foregroundStyle(.orange) }
+            Link(L("Dokumentation (SDK, MIT-Lizenz)"), destination: URL(string: "https://github.com/BieneBzz/universepen/tree/main/SDK")!)
+                .font(.caption)
+        }
+        .tafelCard()
+        .animation(Brand.spring, value: host.devAPIEnabled)
     }
 
     // MARK: Stream

@@ -55,6 +55,21 @@ final class HostController: ObservableObject {
     @Published var sessionDevice: String?
     @Published var sessionLink = ""
     @Published var clientDiagnostics = ""
+    // MARK: Developer API state
+    let devAPI = DeveloperAPI()
+    @Published var devAPIClients = 0
+    @Published var devAPIError: String?
+    @Published var devAPIEnabled = UserDefaults.standard.bool(forKey: "devAPI") {
+        didSet {
+            guard devAPIEnabled != oldValue else { return }
+            UserDefaults.standard.set(devAPIEnabled, forKey: "devAPI")
+            applyDevAPI()
+        }
+    }
+    /// Last settings snapshot reported by the iPad.
+    private var clientSettingsJSON: [String: Any]?
+    private var frontAppInfo: AppInfo?
+
     @Published var peerToPeer = UserDefaults.standard.bool(forKey: "peerToPeer") {
         didSet {
             guard peerToPeer != oldValue else { return }
@@ -83,6 +98,7 @@ final class HostController: ObservableObject {
             UserDefaults.standard.set(mode.rawValue, forKey: "captureMode")
             if oldValue == .virtual { removeVirtualDisplay() }
             restartStream()
+            emitDisplay()
         }
     }
     @Published var displays: [DisplayChoice] = []
@@ -145,6 +161,7 @@ final class HostController: ObservableObject {
             Keychain.set(hostKey, account: Self.hostKeyAccount)
         }
         wireServer()
+        setupDevAPI()
         observeFrontApp()
         server.peerToPeer = peerToPeer
         server.start(key: hostKey)
@@ -158,6 +175,205 @@ final class HostController: ObservableObject {
     }
 
     var keyFingerprint: String { HostKey.fingerprint(hostKey) }
+
+    // MARK: Developer API (localhost JSON, see SDK/README.md)
+
+    private func setupDevAPI() {
+        devAPI.onClientsChanged = { [weak self] n in self?.devAPIClients = n }
+        devAPI.handler = { [weak self] method, params in
+            guard let self else { throw DeveloperAPI.APIError("Not ready") }
+            return try await self.handleAPI(method, params)
+        }
+        applyDevAPI()
+    }
+
+    private func applyDevAPI() {
+        devAPI.stop()
+        devAPIError = nil
+        guard devAPIEnabled else { return }
+        do { try devAPI.start() } catch {
+            devAPIError = L("Entwickler-API konnte nicht starten: %@", error.localizedDescription)
+        }
+    }
+
+    nonisolated static func modeName(_ m: CaptureMode) -> String {
+        switch m {
+        case .display: return "display"
+        case .virtual: return "second-screen"
+        case .region: return "region"
+        case .window: return "window"
+        }
+    }
+
+    nonisolated static func penPhaseName(_ p: PenPhase) -> String {
+        ["hover", "down", "move", "up", "enter", "exit", "cancel"][Int(p.rawValue)]
+    }
+
+    nonisolated static func modifierNames(_ m: ModifierSet) -> [String] {
+        var r: [String] = []
+        if m.contains(.command) { r.append("cmd") }
+        if m.contains(.shift) { r.append("shift") }
+        if m.contains(.option) { r.append("option") }
+        if m.contains(.control) { r.append("control") }
+        return r
+    }
+
+    nonisolated static func modifierSet(_ names: [String]) -> ModifierSet {
+        var m: ModifierSet = []
+        for n in names.map({ $0.lowercased() }) {
+            switch n {
+            case "cmd", "command", "⌘": m.insert(.command)
+            case "shift", "⇧": m.insert(.shift)
+            case "option", "alt", "opt", "⌥": m.insert(.option)
+            case "control", "ctrl", "⌃": m.insert(.control)
+            default: break
+            }
+        }
+        return m
+    }
+
+    func statusInfo() -> [String: Any] {
+        [
+            "connected": sessionDevice != nil,
+            "device": sessionDevice ?? NSNull(),
+            "link": sessionLink.isEmpty ? NSNull() : sessionLink,
+            "usb": sessionLink.hasPrefix("USB"),
+            "fps": stats.fps, "mbps": stats.mbps, "targetMbps": stats.targetMbps, "dropped": stats.dropped,
+        ]
+    }
+
+    func displayInfo() -> [String: Any] {
+        var second: [String: Any] = ["available": Self.secondScreenAvailable, "active": virtualDisplay != nil]
+        if let v = virtualDisplay {
+            second["displayID"] = v.displayID
+            second["pixelWidth"] = v.pixelWidth
+            second["pixelHeight"] = v.pixelHeight
+        }
+        var stream: [String: Any] = ["running": streamer != nil, "encoder": streamDescription]
+        if let cfg = clientConfig {
+            stream["ipadPixelWidth"] = cfg.viewPixelWidth
+            stream["ipadPixelHeight"] = cfg.viewPixelHeight
+            stream["fps"] = cfg.quality.fps
+            stream["codec"] = cfg.quality.codec.rawValue
+            stream["bitrateMbps"] = cfg.quality.bitrateMbps
+            stream["resolutionScale"] = cfg.quality.resolutionScale
+            stream["adaptive"] = cfg.quality.adaptive
+            stream["audio"] = cfg.quality.audio
+        }
+        if let s = streamer { stream["width"] = s.outputWidth; stream["height"] = s.outputHeight }
+        return ["mode": Self.modeName(mode), "modes": CaptureMode.allCases.map(Self.modeName),
+                "secondScreen": second, "stream": stream]
+    }
+
+    private func emitDisplay() {
+        devAPI.emit("display", event: "display", data: displayInfo())
+    }
+
+    private func requireSession() throws {
+        guard server.hasSession else { throw DeveloperAPI.APIError("No iPad connected") }
+    }
+
+    private func patchIPad(_ patch: [String: Any]) throws -> [String: Any] {
+        try requireSession()
+        guard server.sendSettingsPatch(patch) else { throw DeveloperAPI.APIError("Could not send to the iPad") }
+        return ["sent": true]
+    }
+
+    private func buttonJSON(_ b: [String: Any]) throws -> Any {
+        let title = b["title"] as? String ?? ""
+        let key = (b["key"] as? String) ?? "a"
+        let mods = Self.modifierSet(b["modifiers"] as? [String] ?? [])
+        var hold: HoldKey?
+        if let h = (b["hold"] as? String)?.lowercased() {
+            let map: [String: HoldKey] = ["shift": .shift, "option": .option, "alt": .option, "cmd": .command,
+                                          "command": .command, "control": .control, "ctrl": .control, "space": .space]
+            guard let k = map[h] else { throw DeveloperAPI.APIError("Unknown hold key '\(h)'. Use shift, option, cmd, control, space") }
+            hold = k
+        }
+        let btn = ShortcutButton(title: title.isEmpty ? (hold?.symbol ?? key.uppercased()) : title, shortcut: Shortcut(key, mods), hold: hold)
+        return try JSONSerialization.jsonObject(with: JSONEncoder().encode(btn))
+    }
+
+    func handleAPI(_ method: String, _ p: [String: Any]) async throws -> Any {
+        switch method {
+        // Status / Display API
+        case "status.get":
+            return statusInfo()
+        case "display.get":
+            return displayInfo()
+        case "display.setMode":
+            let map: [String: CaptureMode] = ["display": .display, "second-screen": .virtual, "virtual": .virtual,
+                                              "region": .region, "window": .window]
+            guard let name = p["mode"] as? String, let m = map[name] else {
+                throw DeveloperAPI.APIError("mode must be one of display, second-screen, region, window")
+            }
+            if m == .virtual && !Self.secondScreenAvailable { throw DeveloperAPI.APIError("Second screen is not available on this macOS") }
+            mode = m
+            return displayInfo()
+        case "display.setQuality":
+            var q: [String: Any] = [:]
+            for k in ["fps", "bitrateMbps", "resolutionScale", "adaptive", "audio", "codec"] { if let v = p[k] { q[k] = v } }
+            guard !q.isEmpty else { throw DeveloperAPI.APIError("Give at least one of fps, bitrateMbps, resolutionScale, adaptive, audio, codec") }
+            return try patchIPad(["quality": q])
+        case "app.get":
+            return frontAppInfo.map { ["bundleID": $0.bundleID, "name": $0.name] } ?? NSNull()
+
+        // Control API
+        case "control.shortcut":
+            guard let key = p["key"] as? String, !key.isEmpty else { throw DeveloperAPI.APIError("key is required") }
+            guard InputInjector.isTrusted else { throw DeveloperAPI.APIError("Accessibility permission missing") }
+            injector.shortcut(Shortcut(key, Self.modifierSet(p["modifiers"] as? [String] ?? [])))
+            return ["sent": true]
+        case "control.text":
+            guard let t = p["text"] as? String else { throw DeveloperAPI.APIError("text is required") }
+            injector.text(t)
+            return ["sent": true]
+        case "control.getSettings":
+            try requireSession()
+            guard let s = clientSettingsJSON else { throw DeveloperAPI.APIError("The iPad has not reported its settings yet") }
+            return s
+        case "control.patchSettings":
+            var patch: [String: Any] = [:]
+            if let s = p["settings"] as? [String: Any] { patch["settings"] = s }
+            if let q = p["quality"] as? [String: Any] { patch["quality"] = q }
+            guard !patch.isEmpty else { throw DeveloperAPI.APIError("Give settings and/or quality objects") }
+            return try patchIPad(patch)
+        case "control.setPressureCurve":
+            var curve: [String: Any] = [:]
+            if let pts = p["points"] as? [[Double]] {
+                guard pts.count >= 2, pts.allSatisfy({ $0.count == 2 }) else { throw DeveloperAPI.APIError("points: [[x, y], …] with at least 2 points, x and y in 0…1") }
+                curve["points"] = pts.sorted { $0[0] < $1[0] }.map { ["x": min(max($0[0], 0), 1), "y": min(max($0[1], 0), 1)] }
+            }
+            if let g = p["gamma"] as? Double { curve["gamma"] = g; if p["points"] == nil { curve["points"] = [Any]() } }
+            if let m = p["minimum"] as? Double { curve["minimum"] = m }
+            guard !curve.isEmpty else { throw DeveloperAPI.APIError("Give points, gamma and/or minimum") }
+            return try patchIPad(["settings": ["pressure": curve]])
+        case "control.setSmoothing":
+            var st: [String: Any] = [:]
+            if let v = p["stroke"] as? Double { st["positionSmoothing"] = min(max(v, 0), 1) }
+            if let v = p["pressure"] as? Double { st["pressureSmoothing"] = min(max(v, 0), 1) }
+            guard !st.isEmpty else { throw DeveloperAPI.APIError("Give stroke and/or pressure (0…1)") }
+            return try patchIPad(["settings": st])
+        case "control.setAppProfile":
+            guard let id = p["bundleID"] as? String, let buttons = p["buttons"] as? [[String: Any]] else {
+                throw DeveloperAPI.APIError("bundleID and buttons are required")
+            }
+            let json = try buttons.map(buttonJSON)
+            let name = p["name"] as? String ?? id
+            return try patchIPad(["settings": ["appShortcutBars": [id: json], "appNames": [id: name]]])
+        case "control.removeAppProfile":
+            guard let id = p["bundleID"] as? String else { throw DeveloperAPI.APIError("bundleID is required") }
+            return try patchIPad(["removeAppProfiles": [id]])
+        case "control.setDefaultBar":
+            guard let buttons = p["buttons"] as? [[String: Any]] else { throw DeveloperAPI.APIError("buttons is required") }
+            return try patchIPad(["settings": ["shortcutBar": try buttons.map(buttonJSON)]])
+        case "api.info":
+            return ["api": DeveloperAPI.apiVersion, "app": "UniversePen",
+                    "topics": ["input", "gesture", "display", "status", "app"]]
+        default:
+            throw DeveloperAPI.APIError("Unknown method '\(method)'")
+        }
+    }
 
     // MARK: Local control API (URL scheme)
 
@@ -192,7 +408,10 @@ final class HostController: ObservableObject {
     private func observeFrontApp() {
         let send: (NSRunningApplication?) -> Void = { [weak self] app in
             guard let app, let id = app.bundleIdentifier, id != Bundle.main.bundleIdentifier else { return }
-            self?.server.sendAppInfo(AppInfo(bundleID: id, name: app.localizedName ?? id))
+            let info = AppInfo(bundleID: id, name: app.localizedName ?? id)
+            self?.server.sendAppInfo(info)
+            self?.frontAppInfo = info
+            self?.devAPI.emit("app", event: "app", data: ["bundleID": info.bundleID, "name": info.name])
         }
         send(NSWorkspace.shared.frontmostApplication)
         frontAppObserver = NSWorkspace.shared.notificationCenter.addObserver(
@@ -211,12 +430,43 @@ final class HostController: ObservableObject {
         let desc = self.sourceSnapshot
         server.sourceDescription = { desc.value }
         // Pen and scroll go straight from the network queue to CGEvent (no main-thread hop).
-        server.onPen = { injector.handle($0) }
-        server.onScroll = { injector.scroll($0) }
-        server.onShortcut = { s in DispatchQueue.main.async { injector.shortcut(s) } }
+        let api = devAPI
+        server.onPen = { p in
+            injector.handle(p)
+            if api.wants("input") {
+                let sp = injector.screenPoint(x: p.x, y: p.y)
+                api.emit("input", event: "pen", data: [
+                    "phase": Self.penPhaseName(p.phase), "x": p.x, "y": p.y, "screenX": sp.x, "screenY": sp.y,
+                    "pressure": p.pressure, "tiltX": p.tiltX, "tiltY": p.tiltY, "rotation": p.rotation, "timestamp": p.timestamp,
+                ])
+            }
+        }
+        server.onScroll = { e in
+            injector.scroll(e)
+            if api.wants("input") {
+                api.emit("input", event: "scroll", data: ["x": e.x, "y": e.y, "dx": e.dx, "dy": e.dy, "modifiers": Self.modifierNames(e.modifiers)])
+            }
+        }
+        server.onShortcut = { s in
+            DispatchQueue.main.async { injector.shortcut(s) }
+            if api.wants("input") { api.emit("input", event: "shortcut", data: ["key": s.key, "modifiers": Self.modifierNames(s.modifiers)]) }
+        }
         // Keys stay on the network queue (same queue as pen input, keeps their order).
-        server.onKey = { injector.key($0) }
-        server.onMouse = { injector.pointer($0) }
+        server.onKey = { k in
+            injector.key(k)
+            if api.wants("input") { api.emit("input", event: "key", data: ["hidUsage": k.hidUsage, "down": k.down]) }
+        }
+        server.onMouse = { m in
+            injector.pointer(m)
+            if api.wants("input") {
+                let sp = injector.screenPoint(x: m.x, y: m.y)
+                let phase = ["move", "down", "up", "exit"][Int(m.phase.rawValue)]
+                api.emit("input", event: "touch", data: ["phase": phase, "button": m.button == .left ? "left" : "right",
+                                                          "x": m.x, "y": m.y, "screenX": sp.x, "screenY": sp.y])
+            }
+        }
+        server.onGesture = { g in api.emit("gesture", event: "gesture", data: ["name": g.name, "value": g.value]) }
+        server.onClientSettings = { [weak self] o in Task { @MainActor in self?.clientSettingsJSON = o } }
         server.onText = { injector.text($0) }
         server.onRequestKeyframe = { [weak self] in
             Task { @MainActor in self?.streamer?.requestKeyframe() }
@@ -372,7 +622,13 @@ final class HostController: ObservableObject {
         streamer.shouldEncode = { server.videoBacklog < maxBacklog }
         streamer.onEncoded = { format, frame in server.sendVideo(format: format, frame: frame) }
         streamer.onAudio = { server.sendAudio($0) }
-        streamer.onStats = { [weak self] s in Task { @MainActor in self?.stats = s } }
+        streamer.onStats = { [weak self] s in
+            Task { @MainActor in
+                guard let self else { return }
+                self.stats = s
+                if self.devAPI.wants("status") { self.devAPI.emit("status", event: "status", data: self.statusInfo()) }
+            }
+        }
         streamer.onStopped = { [weak self] e in
             Task { @MainActor in
                 self?.lastError = L("Aufnahme gestoppt: %@", e?.localizedDescription ?? L("unbekannt"))
@@ -452,6 +708,7 @@ final class HostController: ObservableObject {
             }
             virtualDisplay = v
             virtualDisplayError = nil
+            emitDisplay()
         }
         let id = virtualDisplay!.displayID
         for _ in 0..<20 {
@@ -466,6 +723,7 @@ final class HostController: ObservableObject {
     private func removeVirtualDisplay() {
         virtualTeardown?.cancel()
         virtualDisplay = nil
+        emitDisplay()
         Task { await refreshSources() }
     }
 

@@ -27,6 +27,9 @@ final class HostServer {
     var onShortcut: ((Shortcut) -> Void)?
     var onKey: ((KeyEvent) -> Void)?
     var onMouse: ((MouseEvent) -> Void)?
+    /// iPad settings snapshot as JSON {settings, quality} (developer API).
+    var onClientSettings: (([String: Any]) -> Void)?
+    var onGesture: ((GestureEvent) -> Void)?
     var onText: ((String) -> Void)?
     var onRequestKeyframe: (() -> Void)?
     var onVideoConnected: (() -> Void)?
@@ -170,6 +173,10 @@ final class HostServer {
             if let s = try? Shortcut(decoding: f.payload) { onShortcut?(s) }
         case .mouse:
             if let m = try? MouseEvent(decoding: f.payload) { onMouse?(m) }
+        case .clientSettings:
+            if let o = try? JSONSerialization.jsonObject(with: f.payload) as? [String: Any] { onClientSettings?(o) }
+        case .gesture:
+            if let g = try? JSONWire.decode(GestureEvent.self, f.payload) { onGesture?(g) }
         case .key:
             if let k = try? KeyEvent(decoding: f.payload) { onKey?(k) }
         case .text:
@@ -189,6 +196,19 @@ final class HostServer {
 
     /// Last front app, also sent to a newly connected iPad.
     private var frontApp: AppInfo?
+
+    /// Whether an iPad session is connected.
+    var hasSession: Bool { queue.sync { control != nil } }
+
+    /// Sends a settings patch {settings?, quality?} to the iPad (developer Control API).
+    func sendSettingsPatch(_ patch: [String: Any]) -> Bool {
+        guard let data = try? JSONSerialization.data(withJSONObject: patch) else { return false }
+        return queue.sync {
+            guard let c = control else { return false }
+            c.send(.settingsPatch, data)
+            return true
+        }
+    }
 
     func sendAppInfo(_ info: AppInfo) {
         queue.async { [self] in

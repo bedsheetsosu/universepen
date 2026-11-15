@@ -60,8 +60,8 @@ final class ClientModel: ObservableObject {
     /// On-screen keyboard shown (hardware keyboards work without it).
     @Published var showKeyboard = false
 
-    @Published var settings: InputSettings { didSet { save(settings, "inputSettings") } }
-    @Published var quality: StreamQuality { didSet { save(quality, "quality"); sendConfig() } }
+    @Published var settings: InputSettings { didSet { save(settings, "inputSettings"); sendSettingsSnapshot() } }
+    @Published var quality: StreamQuality { didSet { save(quality, "quality"); sendConfig(); sendSettingsSnapshot() } }
     @Published var showStatusOverlay: Bool { didSet { UserDefaults.standard.set(showStatusOverlay, forKey: "showStatusOverlay") } }
     /// Äbbl peer-to-peer Wi-Fi (AWDL). Off by default: it costs Wi-Fi latency.
     @Published var peerToPeer: Bool {
@@ -307,10 +307,12 @@ final class ClientModel: ObservableObject {
                 self?.reconnectDeadline = nil
                 self?.phase = .connected(host.name)
                 self?.lastHostID = host.hostID
+                self?.sendSettingsSnapshot()
             }
         }
         s.onHostInfo = { [weak self] info in Task { @MainActor in self?.hostInfo = info } }
         s.onAppInfo = { [weak self] app in Task { @MainActor in self?.frontApp = app } }
+        s.onSettingsPatch = { [weak self] patch in Task { @MainActor in self?.applySettingsPatch(patch) } }
         s.onTiming = { [weak self] t in
             Task { @MainActor in
                 guard let self else { return }
@@ -391,6 +393,26 @@ final class ClientModel: ObservableObject {
         session.send(config: ClientConfig(viewPixelWidth: viewPixelSize.0, viewPixelHeight: viewPixelSize.1, quality: quality,
                                           diagnostics: diagnostics))
     }
+
+    // MARK: Developer API (settings live on the iPad; the Mac reads and patches them)
+
+    private func sendSettingsSnapshot() {
+        session?.send(settings: settings, quality: quality)
+    }
+
+    /// Patch from the Mac's developer API: {settings?, quality?, removeAppProfiles?}.
+    func applySettingsPatch(_ patch: [String: Any]) {
+        var s = settings
+        if let sp = patch["settings"] as? [String: Any], let merged = applyPatch(s, sp) { s = merged }
+        for id in patch["removeAppProfiles"] as? [String] ?? [] {
+            s.appShortcutBars[id] = nil
+            s.appNames[id] = nil
+        }
+        if s != settings { settings = s }
+        if let qp = patch["quality"] as? [String: Any], let q = applyPatch(quality, qp), q != quality { quality = q }
+    }
+
+    func report(_ gesture: GestureEvent) { session?.send(gesture) }
 
     func hold(_ key: HoldKey, down: Bool) {
         session?.send(KeyEvent(hidUsage: key.rawValue, down: down))
