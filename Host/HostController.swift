@@ -166,6 +166,7 @@ final class HostController: ObservableObject {
         wireServer()
         setupDevAPI()
         observeFrontApp()
+        observeDisplayChanges()
         server.peerToPeer = peerToPeer
         server.start(key: hostKey)
         Task { await refreshSources() }
@@ -659,6 +660,7 @@ final class HostController: ObservableObject {
                     return
                 }
                 let local = CGRect(origin: .zero, size: display.frame.size)
+                capturedDisplaySize = display.frame.size
                 let rect: CGRect
                 if mode == .region {
                     let aspect = Double(cfg.viewPixelWidth) / Double(max(cfg.viewPixelHeight, 1))
@@ -697,6 +699,44 @@ final class HostController: ObservableObject {
             lastError = L("Stream konnte nicht starten: %@", error.localizedDescription)
             await streamer.stop()
         }
+    }
+
+    // MARK: Display changes
+
+    private var displayChangeWork: DispatchWorkItem?
+    /// Size (points) of the display the running stream captures.
+    private var capturedDisplaySize: CGSize?
+
+    /// A resolution change ("more space" etc.) changes the captured size in points: restart the
+    /// stream so the picture and the Pencil mapping follow (public CGDisplay API).
+    private func observeDisplayChanges() {
+        let me = Unmanaged.passUnretained(self).toOpaque()
+        CGDisplayRegisterReconfigurationCallback({ id, flags, info in
+            guard let info, !flags.contains(.beginConfigurationFlag), flags.contains(.setModeFlag) else { return }
+            let host = Unmanaged<HostController>.fromOpaque(info).takeUnretainedValue()
+            DispatchQueue.main.async { MainActor.assumeIsolated { host.displayModeChanged(id) } }
+        }, me)
+    }
+
+    private func displayModeChanged(_ id: CGDirectDisplayID) {
+        guard streamer != nil || virtualDisplay != nil else { return }
+        let affected: Bool
+        switch mode {
+        case .virtual: affected = id == virtualDisplay?.displayID
+        case .display, .region: affected = id == selectedDisplay
+        case .window: affected = false
+        }
+        guard affected, CGDisplayBounds(id).size != capturedDisplaySize else { return }
+        if mode == .virtual, let s = virtualDisplay?.currentScale { VirtualDisplay.preferredScale = s }
+        displayChangeWork?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            Task { @MainActor in
+                await self?.refreshSources()
+                self?.restartStream()
+            }
+        }
+        displayChangeWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4, execute: work)
     }
 
     // MARK: Second screen (virtual display, private API)
