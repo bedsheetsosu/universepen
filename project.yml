@@ -61,12 +61,15 @@ targets:
     type: application
     platform: iOS
     sources: [Client]
+    configFiles:
+      Debug: Config/PadApp.xcconfig
+      Release: Config/PadApp.xcconfig
     dependencies:
       - package: TafelKit
     settings:
       base:
         PRODUCT_NAME: Tafel
-        PRODUCT_BUNDLE_IDENTIFIER: local.tafel.pad
+        PRODUCT_BUNDLE_IDENTIFIER: $(PAD_BUNDLE_ID)
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         TARGETED_DEVICE_FAMILY: "2"
         GENERATE_INFOPLIST_FILE: NO
@@ -88,6 +91,9 @@ targets:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationPortraitUpsideDown
         NSLocalNetworkUsageDescription: UniversePen finds your paired Mac on the local network and connects to it directly.
+        # TLS from Apple's Network framework only (OS-provided encryption): exempt from export
+        # documentation. Confirm in App Store Connect (docs/APPSTORE.md).
+        ITSAppUsesNonExemptEncryption: false
         NSPhotoLibraryAddUsageDescription: UniversePen saves screenshots of your Mac to Photos when you ask it to.
         NSBonjourServices: [_tafel._tcp, _tafelpair._tcp]
   PipelineTests:
