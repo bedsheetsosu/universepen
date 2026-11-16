@@ -193,6 +193,11 @@ Bring one Mac panel (layers, colours, brushes …) onto the iPad as a small floa
 - **Fixed pressure:** every stroke at one pressure (5–100 %) for even ink lines.
 - **iPad tools on gestures:** ruler, perspective 1/2/3, ellipse, shape recognition, laser, screenshot and palette can be put on double-tap, squeeze, finger gestures, radial menu items and bar buttons ("iPad tool"), and toggled from Shortcuts ("Toggle iPad Tool").
 
+## Mirror view, break reminder
+
+- **Mirror view** (… menu → Tools, or as an iPad tool on a gesture): flips the picture on the iPad only, to check proportions the way painters look at a drawing in a mirror. The Mac stays as it is; Pencil input and tilt are mirrored back, so strokes land where they should. Works together with the local zoom.
+- **Break reminder** (Settings → General: 30/45/60/90 min): a gentle toast after that much drawing time; five minutes without input count as the break.
+
 ## Shape recognition
 
 iPad → Settings → Pencil → "Shape recognition" (off by default). Hold the Pencil still for half a second at the end of a stroke: if it looks like a line, an open polyline, a triangle, a rectangle (snapped to right angles and to horizontal/vertical within 6°), a pentagon, an ellipse or a circle, UniversePen lifts the pen on the Mac, sends Undo (⌘Z) and draws the clean shape as a new stroke with the stroke's average pressure. The Pencil Pro gives a haptic tick. Works in any Mac app whose Undo removes the last stroke. Not in tablet mode or with the ruler.

@@ -394,9 +394,21 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
 
     /// Screen point → point in the unzoomed picture.
     private func contentPoint(_ p: CGPoint) -> CGPoint {
-        guard zoomScale != 1 || zoomOffset != .zero else { return p }
+        guard zoomScale != 1 || zoomOffset != .zero || mirrored else { return p }
         let c = CGPoint(x: bounds.midX, y: bounds.midY)
-        return CGPoint(x: c.x + (p.x - c.x - zoomOffset.x) / zoomScale, y: c.y + (p.y - c.y - zoomOffset.y) / zoomScale)
+        let m: CGFloat = mirrored ? -1 : 1
+        return CGPoint(x: c.x + m * (p.x - c.x - zoomOffset.x) / zoomScale, y: c.y + (p.y - c.y - zoomOffset.y) / zoomScale)
+    }
+
+    /// The picture is shown mirrored on the iPad only (checking proportions); input is mirrored back.
+    var mirrored = false {
+        didSet {
+            guard mirrored != oldValue else { return }
+            CATransaction.begin()
+            CATransaction.setAnimationDuration(0.3)
+            applyZoom()
+            CATransaction.commit()
+        }
     }
 
     private var localZoomActive: Bool { settings.zoomMethod == .localView && !tabletMode }
@@ -409,7 +421,8 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     }
 
     private func applyZoom() {
-        videoLayer.setAffineTransform(CGAffineTransform(translationX: zoomOffset.x, y: zoomOffset.y).scaledBy(x: zoomScale, y: zoomScale))
+        videoLayer.setAffineTransform(CGAffineTransform(translationX: zoomOffset.x, y: zoomOffset.y)
+            .scaledBy(x: zoomScale * (mirrored ? -1 : 1), y: zoomScale))
     }
 
     private func setZoom(_ scale: CGFloat, _ offset: CGPoint) {
@@ -755,7 +768,8 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
             pressure = smoothP.add(pressure)
             if settings.constantPressure > 0 { pressure = settings.constantPressure }
         }
-        let tilt = settings.tilt.tilt(altitude: Double(t.altitudeAngle), azimuth: Double(t.azimuthAngle(in: self)))
+        var tilt = settings.tilt.tilt(altitude: Double(t.altitudeAngle), azimuth: Double(t.azimuthAngle(in: self)))
+        if mirrored { tilt.x = -tilt.x }
         let roll = settings.sendRoll ? Double(t.rollAngle) * 180 / .pi : 0
         session.send(PenSample(phase: phase, x: Float(n.x), y: Float(n.y), pressure: Float(pressure),
                                tiltX: Float(tilt.x), tiltY: Float(tilt.y), rotation: Float(roll), timestamp: t.timestamp))
@@ -1168,6 +1182,7 @@ struct CanvasRepresentable: UIViewRepresentable {
         v.rulerView.accent = UIColor(Brand.mint)
         v.guideView.accent = UIColor(Brand.mint)
         v.guideKind = guidesAllowed ? model.guide : .none
+        v.mirrored = model.mirrored && !model.tabletModeActive
         if model.settings.zoomMethod != .localView || model.localZoomResets != context.coordinator.zoomResets {
             context.coordinator.zoomResets = model.localZoomResets
             v.resetLocalZoom()

@@ -322,6 +322,12 @@ private struct OverlayMenuPanel: View {
                         close()
                     }
                 }
+                if !model.tabletModeActive {
+                    row(L("Ansicht spiegeln"), icon: "arrow.left.and.right.righttriangle.left.righttriangle.right", checked: model.mirrored) {
+                        model.runTool(.mirror)
+                        close()
+                    }
+                }
                 row(L("Laserpointer am Mac"), icon: "light.beacon.max", checked: model.laserMode) {
                     model.laserMode.toggle()
                     model.show(Toast(text: model.laserMode ? L("Laserpointer an – der Pencil zeichnet nur noch Leuchtspuren") : L("Laserpointer aus"), seconds: 1.8))

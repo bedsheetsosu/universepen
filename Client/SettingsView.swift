@@ -45,6 +45,13 @@ struct SettingsView: View {
                     if model.settings.dimAfterMinutes > 0 {
                         Toggle(L("Nicht abdunkeln, solange sich das Bild ändert"), isOn: $model.settings.dimOnlyWhenStill)
                     }
+                    Picker(L("Pausen-Erinnerung"), selection: $model.settings.breakReminderMinutes) {
+                        Text(L("Nie")).tag(0.0)
+                        Text("30 min").tag(30.0)
+                        Text("45 min").tag(45.0)
+                        Text("60 min").tag(60.0)
+                        Text("90 min").tag(90.0)
+                    }
                     Toggle(L("Latenz dauerhaft anzeigen"), isOn: $model.showStatusOverlay)
                     Toggle(L("Shortcut-Leiste rechts (Linkshänder)"), isOn: $model.settings.shortcutBarOnRight)
                     Button(L("Einrichtung erneut starten")) {

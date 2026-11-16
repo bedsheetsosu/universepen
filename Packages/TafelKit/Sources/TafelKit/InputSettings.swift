@@ -4,7 +4,7 @@ import CoreGraphics
 /// What a Pencil gesture (double tap, squeeze) or a finger tap triggers.
 /// Things that happen on the iPad itself (no Mac shortcut): drawing aids and tools.
 public enum IPadTool: String, Codable, CaseIterable, Sendable {
-    case ruler, perspective1, perspective2, perspective3, ellipse, shapeRecognition, laser, screenshot, palette
+    case ruler, perspective1, perspective2, perspective3, ellipse, shapeRecognition, laser, screenshot, palette, mirror
 
     public var title: String {
         switch self {
@@ -17,6 +17,7 @@ public enum IPadTool: String, Codable, CaseIterable, Sendable {
         case .laser: return L("Laserpointer am Mac")
         case .screenshot: return L("Bildschirmfoto")
         case .palette: return L("Palette vom Mac")
+        case .mirror: return L("Ansicht spiegeln")
         }
     }
 
@@ -32,6 +33,7 @@ public enum IPadTool: String, Codable, CaseIterable, Sendable {
         case .laser: return L("Laser")
         case .screenshot: return L("Foto")
         case .palette: return L("Palette")
+        case .mirror: return L("Spiegeln")
         }
     }
 }
@@ -269,6 +271,8 @@ public struct InputSettings: Codable, Equatable, Sendable {
     public var tabletLockAspect = false
     /// Dim the iPad after this many minutes without input (0 = never). Brightness comes back at once.
     public var dimAfterMinutes: Double = 0
+    /// Remind to take a break after this many minutes of drawing (0 = never).
+    public var breakReminderMinutes: Double = 0
     /// Don't dim while the picture keeps changing (e.g. a video in monitor mode).
     public var dimOnlyWhenStill = true
 
@@ -338,7 +342,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         case fingerMode, fingerPressure, longPressRightClick, palmRadius
         case threeFingerSwipeLeft, threeFingerSwipeRight, threeFingerSwipeUp, threeFingerSwipeDown, fourFingerTap
         case swapISOKeys, trackpadAsMouse, hideIPadPointer, showShortcutBar, shortcutBarOnRight, shortcutBar
-        case appShortcutBars, appNames, radialMenu, appPenProfiles, gameApps, undoScrub, undoScrubStep, instantInk, shapeRecognition, ropeLength, constantPressure, hoverDot, tabletMode, tabletArea, tabletLockAspect, tabletPresets, tipThreshold, tabletKeys, doubleTapToClick, viewOnly, dimAfterMinutes, dimOnlyWhenStill
+        case appShortcutBars, appNames, radialMenu, appPenProfiles, gameApps, undoScrub, undoScrubStep, instantInk, shapeRecognition, ropeLength, constantPressure, hoverDot, tabletMode, tabletArea, tabletLockAspect, tabletPresets, tipThreshold, tabletKeys, doubleTapToClick, viewOnly, dimAfterMinutes, dimOnlyWhenStill, breakReminderMinutes
     }
 
     /// Tolerates settings saved by older versions: missing keys keep their defaults.
@@ -376,6 +380,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         try get(.tipThreshold, &tipThreshold); try get(.tabletKeys, &tabletKeys)
         try get(.doubleTapToClick, &doubleTapToClick); try get(.viewOnly, &viewOnly)
         try get(.dimAfterMinutes, &dimAfterMinutes); try get(.dimOnlyWhenStill, &dimOnlyWhenStill)
+        try get(.breakReminderMinutes, &breakReminderMinutes)
     }
 }
 

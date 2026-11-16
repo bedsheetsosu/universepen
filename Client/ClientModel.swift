@@ -109,10 +109,30 @@ final class ClientModel: ObservableObject {
         if savedBrightness != nil { undim() }
     }
 
+    /// Break reminder: counts connected time with input in the last 5 minutes.
+    private func checkBreak(live: Bool) {
+        let active = live && Date().timeIntervalSince(lastInput) < 300
+        guard active else {
+            // A pause of 5 minutes counts as the break.
+            if drawingSince != nil, Date().timeIntervalSince(lastInput) >= 300 || !live { drawingSince = nil; lastBreakReminder = nil }
+            return
+        }
+        let start = drawingSince ?? Date()
+        drawingSince = start
+        guard settings.breakReminderMinutes > 0 else { return }
+        let every = settings.breakReminderMinutes * 60
+        let since = Date().timeIntervalSince(lastBreakReminder ?? start)
+        guard since >= every else { return }
+        lastBreakReminder = Date()
+        let minutes = Int(Date().timeIntervalSince(start) / 60)
+        show(Toast(text: L("Du zeichnest seit %d Minuten – kurz die Hand lockern und in die Ferne schauen?", minutes), seconds: 6))
+    }
+
     private func checkIdle() {
         // Never sleep while connected (it would drop the session); dim instead if wanted.
         let live = phase.showsCanvas
         UIApplication.shared.isIdleTimerDisabled = live
+        checkBreak(live: live)
         guard live, settings.dimAfterMinutes > 0 else { if savedBrightness != nil { undim() }; return }
         let limit = settings.dimAfterMinutes * 60
         var idle = Date().timeIntervalSince(lastInput) > limit
@@ -139,6 +159,10 @@ final class ClientModel: ObservableObject {
     /// Virtual ruler on the canvas (strokes near it stay straight).
     /// Floating live palette from the Mac (own object: its frames must not redraw the app).
     let palette = PaletteState()
+    /// Picture mirrored on the iPad only.
+    @Published var mirrored = false
+    private var drawingSince: Date?
+    private var lastBreakReminder: Date?
 
     /// The drawing aid on screen (ruler, perspective, ellipse) – one at a time.
     @Published var guide: DrawingGuide = .none
@@ -876,6 +900,9 @@ final class ClientModel: ObservableObject {
             requestScreenshot()
         case .palette:
             if palette.image != nil { removePalette() } else { pickPalette() }
+        case .mirror:
+            mirrored.toggle()
+            show(Toast(text: mirrored ? L("Gespiegelt – nur auf dem iPad, der Mac bleibt wie er ist") : L("%@ aus", t.title), seconds: 1.8))
         }
     }
 
