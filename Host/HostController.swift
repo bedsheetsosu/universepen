@@ -116,6 +116,7 @@ final class HostController: ObservableObject {
             guard mode != oldValue else { return }
             if mode == .virtual && !Self.secondScreenAvailable { mode = oldValue; return }
             UserDefaults.standard.set(mode.rawValue, forKey: "captureMode")
+            updateFollowTimer()
             if oldValue == .virtual { removeVirtualDisplay() }
             restartStream()
             emitDisplay()
@@ -131,8 +132,15 @@ final class HostController: ObservableObject {
     }
     @Published var selectedWindow: CGWindowID = 0 { didSet { if selectedWindow != oldValue, mode == .window { restartStream() } } }
     @Published var regionZoom: Double = 1 { didSet { updateRegionLive() } }
-    @Published var regionAnchorX: Double = 0.5 { didSet { updateRegionLive() } }
-    @Published var regionAnchorY: Double = 0.5 { didSet { updateRegionLive() } }
+    @Published var regionAnchorX: Double = 0.5 { didSet { if !followMoving { updateRegionLive() } } }
+    @Published var regionAnchorY: Double = 0.5 { didSet { if !followMoving { updateRegionLive() } } }
+    /// "Magnifier follows the pen": in the iPad-section mode the section pans when the pen hovers
+    /// near the iPad's edge and jumps to the pointer when it is moved elsewhere (trackpad, mouse).
+    @Published var regionFollow = UserDefaults.standard.bool(forKey: "regionFollow") {
+        didSet { UserDefaults.standard.set(regionFollow, forKey: "regionFollow"); updateFollowTimer() }
+    }
+    private var followTimer: Timer?
+    private var followMoving = false
 
     let hostID: String
     let hostName: String
@@ -190,6 +198,7 @@ final class HostController: ObservableObject {
         observeFrontApp()
         observeDisplayChanges()
         observeSources()
+        updateFollowTimer()
         setupPlugins()
         let sink = timelapseSink
         NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: nil) { _ in
@@ -783,6 +792,8 @@ final class HostController: ObservableObject {
             return try await self.handleAPI(m, p)
         }
         server.onRunPluginAction = { [plugins] id in plugins.runAction(id) }
+        server.onClipboard = { item in MacClipboard.write(item) }
+        server.clipboardProvider = { MacClipboard.read() }
         plugins.startEnabled()
     }
 
@@ -961,6 +972,50 @@ final class HostController: ObservableObject {
             try? await Task.sleep(nanoseconds: 10_000_000_000)
             guard !Task.isCancelled, let self, self.sessionDevice == nil else { return }
             self.removeVirtualDisplay()
+        }
+    }
+
+    private func updateFollowTimer() {
+        followTimer?.invalidate()
+        followTimer = nil
+        guard regionFollow, mode == .region else { return }
+        followTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 30, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.followTick() }
+        }
+    }
+
+    /// One step of "magnifier follows the pen" (30 per second, only in the iPad-section mode).
+    private func followTick() {
+        guard mode == .region, regionZoom < 0.999, !injector.isPenDown,
+              let display = scDisplays[selectedDisplay], let loc = CGEvent(source: nil)?.location else { return }
+        let f = display.frame
+        let r = currentRegionLocal
+        guard f.contains(loc), r.width > 1, r.height > 1 else { return }
+        let p = CGPoint(x: loc.x - f.minX, y: loc.y - f.minY)
+        var dx: CGFloat = 0, dy: CGFloat = 0
+        if !r.insetBy(dx: -2, dy: -2).contains(p) {
+            // Pointer moved somewhere else (trackpad, mouse): centre the section on it.
+            dx = p.x - r.midX; dy = p.y - r.midY
+        } else {
+            // Pen near the edge: pan that way, faster the closer it gets (up to ~half a section per second).
+            let mx = r.width * 0.12, my = r.height * 0.12, step = 0.5 / 30
+            if p.x < r.minX + mx { dx = -r.width * step * (1 - (p.x - r.minX) / mx) }
+            else if p.x > r.maxX - mx { dx = r.width * step * (1 - (r.maxX - p.x) / mx) }
+            if p.y < r.minY + my { dy = -r.height * step * (1 - (p.y - r.minY) / my) }
+            else if p.y > r.maxY - my { dy = r.height * step * (1 - (r.maxY - p.y) / my) }
+        }
+        guard abs(dx) > 0.01 || abs(dy) > 0.01 else { return }
+        let spanX = f.width - r.width, spanY = f.height - r.height
+        followMoving = true
+        if spanX > 0 { regionAnchorX = min(max((r.minX + dx) / spanX, 0), 1) }
+        if spanY > 0 { regionAnchorY = min(max((r.minY + dy) / spanY, 0), 1) }
+        followMoving = false
+        let before = currentRegionLocal
+        updateRegionLive()
+        // A hovering pen stays put on the iPad: move the Mac pointer with the section.
+        if currentRegionLocal != before {
+            let injector = self.injector
+            server.queue.async { injector.rehover() }
         }
     }
 

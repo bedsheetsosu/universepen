@@ -341,26 +341,64 @@ public struct PenProfile: Codable, Equatable, Sendable {
 
 /// Geometry of the radial menu: which item lies under a point.
 public enum RadialMenuLayout {
-    public static let radius: Double = 112
-    /// Inside this distance from the centre nothing is selected (lets you back out).
-    public static let deadZone: Double = 38
-    public static let outerLimit: Double = 190
+    /// Diameter of one round button.
+    public static let buttonSize: Double = 56
+    /// Inside this distance from the Pencil tip nothing is selected (lets you back out).
+    public static let deadZone: Double = 36
+    public static let outerLimit: Double = 200
+    /// Items sit on an arc (not a full ring), like the Pencil Pro squeeze palettes: this far
+    /// apart, and the whole arc never wider than `maxSpan`.
+    static let preferredStep = 38.0 * Double.pi / 180
+    static let maxSpan = 210.0 * Double.pi / 180
+    /// Arc direction pointing up (screen coordinates: y grows downwards).
+    public static let up = -Double.pi / 2
 
-    /// Centre of item `i` of `count`, relative to the menu centre (item 0 at the top, clockwise).
-    public static func offset(of i: Int, count: Int) -> (x: Double, y: Double) {
-        let a = -Double.pi / 2 + Double(i) * 2 * .pi / Double(max(count, 1))
-        return (radius * cos(a), radius * sin(a))
+    /// Angle between neighbouring items.
+    public static func step(count: Int) -> Double {
+        count <= 1 ? 0 : min(preferredStep, maxSpan / Double(count - 1))
     }
 
-    /// Item under the point (dx, dy) from the centre, or nil in the dead zone / far outside.
-    public static func item(dx: Double, dy: Double, count: Int) -> Int? {
+    /// Arc radius: big enough that neighbouring buttons don't touch.
+    public static func radius(count: Int) -> Double {
+        let s = step(count: count)
+        guard s > 0 else { return 92 }
+        return max(92, (buttonSize / 2 + 5) / sin(s / 2))
+    }
+
+    /// Angle (radians, 0 = right, clockwise on screen) of item `i`; item 0 is the left end of the arc.
+    public static func angle(of i: Int, count: Int, facing: Double = up) -> Double {
+        facing + (Double(i) - Double(count - 1) / 2) * step(count: count)
+    }
+
+    /// Centre of item `i` of `count`, relative to the Pencil tip.
+    public static func offset(of i: Int, count: Int, facing: Double = up) -> (x: Double, y: Double) {
+        let a = angle(of: i, count: count, facing: facing)
+        let r = radius(count: count)
+        return (r * cos(a), r * sin(a))
+    }
+
+    /// Item in the direction (dx, dy) from the tip, or nil in the dead zone, far outside or
+    /// clearly beyond the ends of the arc.
+    public static func item(dx: Double, dy: Double, count: Int, facing: Double = up) -> Int? {
         guard count > 0 else { return nil }
         let d = (dx * dx + dy * dy).squareRoot()
         guard d >= deadZone, d <= outerLimit else { return nil }
-        var a = atan2(dy, dx) + .pi / 2          // 0 at the top, clockwise
-        if a < 0 { a += 2 * .pi }
-        let sector = 2 * .pi / Double(count)
-        return Int(((a + sector / 2) / sector).rounded(.down)) % count
+        let rel = remainder(atan2(dy, dx) - facing, 2 * Double.pi)   // −π…π from the arc's middle
+        if count == 1 { return abs(rel) <= preferredStep ? 0 : nil }
+        let pos = rel / step(count: count) + Double(count - 1) / 2
+        guard pos >= -0.75, pos <= Double(count - 1) + 0.75 else { return nil }
+        return min(max(Int(pos.rounded()), 0), count - 1)
+    }
+
+    /// Direction that keeps the arc on screen: up, down near the top edge, sideways near the
+    /// left/right edges (diagonal in the corners).
+    public static func facing(x: Double, y: Double, width: Double, height: Double, count: Int) -> Double {
+        let reach = radius(count: count) + buttonSize / 2 + 12
+        var fx = 0.0, fy = -1.0
+        if y < reach { fy = 1 }
+        if x < reach { fx = 1 } else if x > width - reach { fx = -1 }
+        if fx != 0 && y >= reach && y <= height - reach { fy = 0 }
+        return atan2(fy, fx)
     }
 }
 

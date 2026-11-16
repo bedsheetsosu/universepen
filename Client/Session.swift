@@ -25,6 +25,7 @@ final class Session: @unchecked Sendable {
     var onSourceList: ((SourceList) -> Void)?
     var onPluginActions: (([PluginActionInfo]) -> Void)?
     var onToast: ((Toast) -> Void)?
+    var onClipboard: ((ClipboardItem) -> Void)?
     var onSettingsPatch: (([String: Any]) -> Void)?
     var onConnected: (() -> Void)?
     var onClosed: ((String?) -> Void)?
@@ -187,6 +188,8 @@ final class Session: @unchecked Sendable {
             if let l = try? JSONWire.decode([PluginActionInfo].self, f.payload) { onPluginActions?(l) }
         case .toast:
             if let t = try? JSONWire.decode(Toast.self, f.payload) { onToast?(t) }
+        case .clipboard:
+            if let c = try? ClipboardItem(decoding: f.payload) { onClipboard?(c) }
         case .sourceList:
             if let l = try? JSONWire.decode(SourceList.self, f.payload) { onSourceList?(l) }
         case .hostInfo:
@@ -277,6 +280,8 @@ final class Session: @unchecked Sendable {
         }
     }
     func send(text: String) { control?.send(.text, TextInput(text).encoded()) }
+    func send(clipboard: ClipboardItem) { control?.send(.clipboard, clipboard.encoded()) }
+    func requestClipboard() { control?.send(.requestClipboard, Data()) }
 
     func send(config: ClientConfig) {
         queue.async { [self] in

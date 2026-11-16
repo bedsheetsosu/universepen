@@ -27,6 +27,10 @@ final class HostServer {
     var onRunPluginAction: ((String) -> Void)?
     var onCharKey: ((CharKeyEvent) -> Void)?
     var onPen: ((PenSample) -> Void)?
+    /// Clipboard sent by an iPad (main thread). Only happens when the user taps it on the iPad.
+    var onClipboard: ((ClipboardItem) -> Void)?
+    /// Reads the Mac clipboard for an iPad that asked for it (main thread).
+    var clipboardProvider: (() -> ClipboardItem)?
     /// Pencil samples of extra (tablet) iPads – mapped onto a whole display, not the stream.
     var onExtraPen: ((PenSample) -> Void)?
     /// Names of the extra (tablet) iPads connected.
@@ -242,6 +246,16 @@ final class HostServer {
             if let a = try? JSONWire.decode(RunPluginAction.self, f.payload) { onRunPluginAction?(a.id) }
         case .selectSource:
             if let s = try? JSONWire.decode(SourceSelection.self, f.payload) { onSelectSource?(s) }
+        case .clipboard:
+            if let item = try? ClipboardItem(decoding: f.payload) {
+                DispatchQueue.main.async { [weak self] in self?.onClipboard?(item) }
+            }
+        case .requestClipboard:
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                let item = self.clipboardProvider?() ?? ClipboardItem(kind: .empty)
+                self.queue.async { fc.send(.clipboard, item.encoded()) }
+            }
         default:
             break
         }

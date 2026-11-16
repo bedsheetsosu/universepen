@@ -320,4 +320,14 @@ final class PatchTests: XCTestCase {
         XCTAssertEqual(out.pressure.points.count, 3)
         XCTAssertEqual(out.pressure.minimum, 0.01)   // sibling kept
     }
+
+    func testClipboardItemRoundTrip() throws {
+        let t = ClipboardItem.text("Grüße ✏️")
+        XCTAssertEqual(try ClipboardItem(decoding: t.encoded()).text, "Grüße ✏️")
+        let png = ClipboardItem(kind: .png, data: Data([0x89, 0x50, 0x4E, 0x47]))
+        XCTAssertEqual(try ClipboardItem(decoding: png.encoded()), png)
+        XCTAssertEqual(try ClipboardItem(decoding: ClipboardItem(kind: .empty).encoded()).kind, .empty)
+        XCTAssertThrowsError(try ClipboardItem(decoding: Data([9, 1, 2])))
+        XCTAssertThrowsError(try ClipboardItem(decoding: Data()))
+    }
 }

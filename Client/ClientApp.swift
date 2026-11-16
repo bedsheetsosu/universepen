@@ -49,6 +49,8 @@ struct RootView: View {
                 CanvasRepresentable(model: model)
                     .ignoresSafeArea()
                     .transition(.opacity)
+                ReferenceOverlay(ref: model.reference)
+                    .transition(.opacity)
                 overlay
                     .transition(.opacity)
                 if model.tabletEditing && model.tabletModeActive {
@@ -270,6 +272,13 @@ private struct OverlayMenuPanel: View {
                 row(showStatus ? L("Status ausblenden") : L("Status anzeigen"), icon: "gauge.with.dots.needle.33percent") {
                     toggleStatus(); close()
                 }
+                header(L("Zwischenablage"))
+                row(L("iPad → Mac kopieren"), icon: "doc.on.clipboard") { model.copyClipboardToMac(); close() }
+                row(L("Mac → iPad holen"), icon: "clipboard") { model.fetchClipboardFromMac(); close() }
+                row(L("Referenzbild …"), icon: "photo.on.rectangle", checked: model.reference.image != nil) {
+                    close(); model.reference.pickerShown = true
+                }
+                divider
                 row(model.showKeyboard ? L("Bildschirmtastatur ausblenden") : L("Bildschirmtastatur"), icon: "keyboard") {
                     model.showKeyboard.toggle(); close()
                 }

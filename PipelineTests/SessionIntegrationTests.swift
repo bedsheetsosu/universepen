@@ -124,4 +124,28 @@ final class SessionIntegrationTests: XCTestCase {
         second.close()
         first.close()
     }
+
+    func testClipboardBothWays() throws {
+        let key = HostKey.generate()
+        let server = HostServer()
+        server.advertise = false
+        server.start(key: key)
+        let port = try XCTUnwrap(waitForPort { server.mainPort })
+        let endpoint = NWEndpoint.hostPort(host: "127.0.0.1", port: NWEndpoint.Port(rawValue: port)!)
+
+        let toMac = expectation(description: "iPad clipboard reached the Mac")
+        server.onClipboard = { item in if item.text == "vom iPad ✏️" { toMac.fulfill() } }
+        server.clipboardProvider = { .text("vom Mac 🖥") }
+
+        let pad = Session(endpoint: endpoint, key: key, deviceID: "PAD-C", deviceName: "C", renderer: VideoRenderer())
+        let fromMac = expectation(description: "Mac clipboard reached the iPad")
+        pad.onClipboard = { item in if item.text == "vom Mac 🖥" { fromMac.fulfill() } }
+        pad.onConnected = {
+            pad.send(clipboard: .text("vom iPad ✏️"))
+            pad.requestClipboard()
+        }
+        pad.start()
+        wait(for: [toMac, fromMac], timeout: 10)
+        pad.close()
+    }
 }

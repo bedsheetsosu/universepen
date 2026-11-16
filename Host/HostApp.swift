@@ -342,7 +342,11 @@ struct HostView: View {
             }
             if host.mode == .region {
                 VStack(spacing: 8) {
-                    sliderRow(L("Größe"), value: $host.regionZoom, range: 0.4...1, symbol: "arrow.up.left.and.arrow.down.right")
+                    sliderRow(L("Größe"), value: $host.regionZoom, range: 0.2...1, symbol: "arrow.up.left.and.arrow.down.right")
+                    Toggle(isOn: $host.regionFollow) {
+                        Label(L("Lupe folgt dem Stift"), systemImage: "plus.magnifyingglass")
+                    }
+                    .help(L("Der Ausschnitt wandert mit, wenn der Stift an den Rand des iPads kommt, und springt zum Zeiger, wenn du ihn am Mac woanders hinbewegst."))
                     sliderRow(L("Horizontal"), value: $host.regionAnchorX, range: 0...1, symbol: "arrow.left.and.right")
                     sliderRow(L("Vertikal"), value: $host.regionAnchorY, range: 0...1, symbol: "arrow.up.and.down")
                 }

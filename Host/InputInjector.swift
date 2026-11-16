@@ -14,7 +14,15 @@ import TafelKit
 final class InputInjector {
     private let lock = NSLock()
     private var _region = CGRect(x: 0, y: 0, width: 1, height: 1)
-    private var penDown = false
+    private var _penDown = false
+    private var penDown: Bool {
+        get { lock.withLock { _penDown } }
+        set { lock.withLock { _penDown = newValue } }
+    }
+    /// Pen tip is down (readable from any thread).
+    var isPenDown: Bool { penDown }
+    /// Last hover sample of the main iPad, to move the pointer when the section moves under a still pen.
+    private var hoverSample: PenSample?
     private var inProximity = false
     private var lastPoint = CGPoint.zero
     /// Where the last pointer event we posted put the cursor (for delta fields and jump moves).
@@ -56,6 +64,7 @@ final class InputInjector {
         let p = s.phase == .exit ? lastPoint
             : Geometry.denormalized(CGPoint(x: CGFloat(s.x), y: CGFloat(s.y)), in: area ?? region)
         lastPoint = p
+        if area == nil { hoverSample = s.phase == .hover ? s : (s.phase == .up ? hoverSample : nil) }
         switch s.phase {
         case .enter:
             proximity(true, at: p)
@@ -82,6 +91,12 @@ final class InputInjector {
             if penDown { mouse(.leftMouseUp, s, p, buttons: 0) }
             penDown = false
         }
+    }
+
+    /// Re-posts the last hover position after the streamed section moved (network queue).
+    func rehover() {
+        guard !penDown, inProximity, let s = hoverSample else { return }
+        handle(s)
     }
 
     /// Never leave the button stuck down when the iPad disconnects mid-stroke.

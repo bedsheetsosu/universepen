@@ -132,6 +132,8 @@ final class ClientModel: ObservableObject {
     @Published var demoMode = false
     /// On-screen keyboard shown (hardware keyboards work without it).
     @Published var showKeyboard = false
+    /// Floating reference photo (iPad only, never sent to the Mac).
+    let reference = ReferenceImage()
 
     @Published var settings: InputSettings {
         didSet {
@@ -523,6 +525,7 @@ final class ClientModel: ObservableObject {
         s.onSourceList = { [weak self] l in Task { @MainActor in self?.sourceList = l } }
         s.onPluginActions = { [weak self] l in Task { @MainActor in self?.pluginActions = l } }
         s.onToast = { [weak self] t in Task { @MainActor in self?.show(t) } }
+        s.onClipboard = { [weak self] c in Task { @MainActor in self?.receiveClipboard(c) } }
         s.onSettingsPatch = { [weak self] patch in Task { @MainActor in self?.applySettingsPatch(patch) } }
         s.onTiming = { [weak self] t in
             Task { @MainActor in
@@ -712,6 +715,41 @@ final class ClientModel: ObservableObject {
         let w = DispatchWorkItem { [weak self] in self?.toast = nil }
         toastHide = w
         DispatchQueue.main.asyncAfter(deadline: .now() + t.seconds, execute: w)
+    }
+
+    // MARK: Clipboard (only on request, never automatic)
+
+    /// Sends the iPad clipboard (image or text) to the Mac clipboard.
+    func copyClipboardToMac() {
+        guard let session else { return }
+        let pb = UIPasteboard.general
+        if pb.hasImages, let img = pb.image, let png = img.pngData(), png.count <= ClipboardItem.maxBytes {
+            session.send(clipboard: ClipboardItem(kind: .png, data: png))
+            show(Toast(text: L("Bild in die Mac-Zwischenablage kopiert"), seconds: 1.6))
+        } else if pb.hasStrings, let t = pb.string, !t.isEmpty {
+            session.send(clipboard: .text(t))
+            show(Toast(text: L("Text in die Mac-Zwischenablage kopiert"), seconds: 1.6))
+        } else {
+            show(Toast(text: L("Die iPad-Zwischenablage ist leer"), seconds: 1.6))
+        }
+    }
+
+    /// Asks the Mac for its clipboard; the answer lands in `receiveClipboard`.
+    func fetchClipboardFromMac() { session?.requestClipboard() }
+
+    private func receiveClipboard(_ c: ClipboardItem) {
+        switch c.kind {
+        case .text:
+            guard let t = c.text else { return }
+            UIPasteboard.general.string = t
+            show(Toast(text: L("Text vom Mac – jetzt auf dem iPad einsetzbar"), seconds: 1.8))
+        case .png:
+            guard let img = UIImage(data: c.data) else { return }
+            UIPasteboard.general.image = img
+            show(Toast(text: L("Bild vom Mac – jetzt auf dem iPad einsetzbar"), seconds: 1.8))
+        case .empty:
+            show(Toast(text: L("Die Mac-Zwischenablage ist leer"), seconds: 1.6))
+        }
     }
 
     func runPlugin(_ id: String) { guard !settings.viewOnly else { return }; session?.runPluginAction(id) }

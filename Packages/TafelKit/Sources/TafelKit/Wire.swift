@@ -18,6 +18,8 @@ public enum MessageType: UInt8, Sendable {
     case pluginActions = 0x0B  // host -> client: JSON [PluginActionInfo] (actions plugins offer)
     case runPluginAction = 0x0C // client -> host: JSON {id}
     case toast = 0x0D          // host -> client: JSON Toast (short message shown on the iPad)
+    case clipboard = 0x0E      // both ways: ClipboardItem (only when the user asks, never automatic)
+    case requestClipboard = 0x0F // client -> host: empty, host answers with .clipboard
     // binary input
     case pen = 0x10
     case scroll = 0x11
@@ -301,6 +303,26 @@ public struct RunPluginAction: Codable, Equatable, Sendable {
 }
 
 /// Short message from the Mac (e.g. a plugin) shown on the iPad.
+/// Clipboard contents copied between iPad and Mac on request. Binary: 1 byte kind, then the data
+/// (UTF-8 text or PNG). `.empty` = the other side's clipboard had nothing usable.
+public struct ClipboardItem: Equatable, Sendable {
+    public enum Kind: UInt8, Sendable { case empty = 0, text = 1, png = 2 }
+    public static let maxBytes = 32 * 1024 * 1024
+    public var kind: Kind
+    public var data: Data
+    public init(kind: Kind, data: Data = Data()) { self.kind = kind; self.data = data }
+    public static func text(_ t: String) -> ClipboardItem { ClipboardItem(kind: .text, data: Data(t.utf8)) }
+    public var text: String? { kind == .text ? String(data: data, encoding: .utf8) : nil }
+
+    public func encoded() -> Data { var d = Data([kind.rawValue]); d.append(data); return d }
+    public init(decoding d: Data) throws {
+        guard let first = d.first, let k = Kind(rawValue: first) else { throw WireError.unknownValue("clipboard kind") }
+        guard d.count - 1 <= Self.maxBytes else { throw WireError.tooLarge }
+        kind = k
+        data = Data(d.dropFirst())
+    }
+}
+
 public struct Toast: Codable, Equatable, Sendable {
     public var text: String
     public var seconds: Double
