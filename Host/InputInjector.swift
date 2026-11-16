@@ -106,8 +106,9 @@ final class InputInjector {
     private var clickCount: Int64 = 0
     private var lastClick = (time: Date.distantPast, point: CGPoint.zero, button: MouseEvent.Button.left)
 
-    func pointer(_ m: MouseEvent) {
-        let p = Geometry.denormalized(CGPoint(x: CGFloat(m.x), y: CGFloat(m.y)), in: region)
+    /// `area`: global rect the normalised x/y refer to (the palette window); default the stream.
+    func pointer(_ m: MouseEvent, area: CGRect? = nil) {
+        let p = Geometry.denormalized(CGPoint(x: CGFloat(m.x), y: CGFloat(m.y)), in: area ?? region)
         let type: CGEventType
         let button: CGMouseButton
         switch m.phase {

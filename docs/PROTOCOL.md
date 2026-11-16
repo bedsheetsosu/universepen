@@ -71,6 +71,9 @@ JSON messages use plain `JSONEncoder` key names (camelCase).
 | 0x0F | requestClipboard | C→H | empty; the Mac answers with `clipboard` |
 | 0x16 | requestScreenshot | C→H | empty; the Mac answers with `screenshot` |
 | 0x17 | screenshot | H→C | PNG (JPEG if over 24 MB) of the streamed source at full resolution; empty = failed |
+| 0x18 | paletteFrame | H→C (video connection) | JPEG of the palette area; empty = no palette |
+| 0x19 | paletteMouse | C→H | MouseEvent, x/y 0…1 inside the palette area |
+| 0x1A | paletteCommand | C→H | `u8`: 0 remove (forget the area), 1 pick (user drags out an area on the Mac) |
 | 0x10 | pen | C→H | `u8 phase, f32 x, f32 y, f32 pressure, f32 tiltX, f32 tiltY, f32 rotation°, f64 timestamp` |
 | 0x11 | scroll | C→H | `f32 x, f32 y, f32 dx, f32 dy, u8 modifiers` |
 | 0x12 | mouse | C→H | `u8 phase (0 move, 1 down, 2 up, 3 exit), u8 button (0 left, 1 right), f32 x, f32 y` |

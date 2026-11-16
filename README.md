@@ -177,6 +177,10 @@ UniversePen does not change profiles, restrictions or MDM settings and does not 
 - If the Mac's screen capture stops by itself (display change, window closed) while an iPad is connected, it is restarted (up to 3 times in 30 s). After the Mac or its displays wake up, the capture is started fresh, so the iPad never keeps a frozen picture.
 - Coming back to the iPad app retries a failed connection and asks a live one for a fresh full frame.
 
+## Palette window
+
+Bring one Mac panel (layers, colours, brushes …) onto the iPad as a small floating live window – handy in "iPad region" mode, where the panel itself is outside the streamed area. Choose the area on the Mac (Mac window → Source → "Choose palette for the iPad …", or iPad … menu → "Palette from the Mac …", then drag out a rectangle on the Mac; Esc cancels). On the iPad, drag the window by its bar, resize it at the corner, fold it up, or close it (which forgets the area). Taps and drags on it are clicks and drags at that spot on the Mac. Up to 10 JPEG frames per second at ≤ 900 px, and only when the panel changes; they share the video connection, so pen input is never delayed. The area is remembered on the Mac.
+
 ## Perspective and ellipse guides
 
 … menu → Tools, next to the ruler (one aid at a time, iPad only – nothing is drawn on the Mac):

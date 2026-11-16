@@ -27,6 +27,8 @@ final class Session: @unchecked Sendable {
     var onToast: ((Toast) -> Void)?
     var onClipboard: ((ClipboardItem) -> Void)?
     var onScreenshot: ((Data) -> Void)?
+    /// Palette JPEG (empty = removed), on the network queue.
+    var onPalette: ((Data) -> Void)?
     var onSettingsPatch: (([String: Any]) -> Void)?
     var onConnected: (() -> Void)?
     var onClosed: ((String?) -> Void)?
@@ -233,6 +235,8 @@ final class Session: @unchecked Sendable {
                 frameAges.append(age)
             }
             renderer.handle(frame: frame)
+        case .paletteFrame:
+            onPalette?(f.payload)
         default:
             break
         }
@@ -286,6 +290,8 @@ final class Session: @unchecked Sendable {
     func send(clipboard: ClipboardItem) { control?.send(.clipboard, clipboard.encoded()) }
     func requestClipboard() { control?.send(.requestClipboard, Data()) }
     func requestScreenshot() { control?.send(.requestScreenshot, Data()) }
+    func sendPalette(_ m: MouseEvent) { control?.send(.paletteMouse, m.encoded()) }
+    func sendPalette(_ c: PaletteCommand) { control?.send(.paletteCommand, Data([c.rawValue])) }
 
     func send(config: ClientConfig) {
         queue.async { [self] in

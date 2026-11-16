@@ -341,6 +341,19 @@ struct HostView: View {
                 }
             }
             Text(host.mode.help).font(.caption).foregroundStyle(.secondary)
+            HStack {
+                Button {
+                    host.pickPalette()
+                } label: {
+                    Label(host.paletteArea == nil ? L("Palette fürs iPad wählen …") : L("Palette neu wählen …"), systemImage: "square.on.square.dashed")
+                }
+                if host.paletteArea != nil {
+                    Button(L("Palette entfernen"), role: .destructive) { host.removePalette() }
+                }
+                Spacer()
+            }
+            Text(L("Ein Bereich des Macs (z. B. Ebenen- oder Farbpalette) schwebt live als kleines Fenster auf dem iPad und lässt sich dort antippen."))
+                .font(.caption).foregroundStyle(.secondary)
                 .contentTransition(.opacity)
             if !HostController.secondScreenAvailable {
                 Label(L("„Zweiter Bildschirm“ ist auf diesem macOS nicht verfügbar – die private Schnittstelle hat sich geändert. Details stehen im Log (Konsole, Prozess „UniversePen Host“)."),

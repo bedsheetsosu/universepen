@@ -42,6 +42,8 @@ final class HostServer {
     var onShortcut: ((Shortcut) -> Void)?
     var onKey: ((KeyEvent) -> Void)?
     var onMouse: ((MouseEvent) -> Void)?
+    var onPaletteMouse: ((MouseEvent) -> Void)?
+    var onPaletteCommand: ((PaletteCommand) -> Void)?
     /// iPad settings snapshot as JSON {settings, quality} (developer API).
     var onClientSettings: (([String: Any]) -> Void)?
     var onGesture: ((GestureEvent) -> Void)?
@@ -227,6 +229,12 @@ final class HostServer {
             if let s = try? Shortcut(decoding: f.payload) { onShortcut?(s) }
         case .mouse:
             if let m = try? MouseEvent(decoding: f.payload) { onMouse?(m) }
+        case .paletteMouse:
+            if let m = try? MouseEvent(decoding: f.payload) { onPaletteMouse?(m) }
+        case .paletteCommand:
+            if let b = f.payload.first, let c = PaletteCommand(rawValue: b) {
+                DispatchQueue.main.async { [weak self] in self?.onPaletteCommand?(c) }
+            }
         case .clientSettings:
             if let o = try? JSONSerialization.jsonObject(with: f.payload) as? [String: Any] { onClientSettings?(o) }
         case .gesture:
@@ -337,6 +345,13 @@ final class HostServer {
         guard let v = currentVideo() else { return }
         if let format { v.send(.videoFormat, format.encoded()) }
         v.send(.videoFrame, frame.encoded())
+    }
+
+    /// Thread-safe. Palette pictures share the video connection (never delays pen input);
+    /// skipped while the video is backed up.
+    func sendPalette(_ jpeg: Data) {
+        guard let v = currentVideo(), v.pendingBytes < 4 * 1024 * 1024 else { return }
+        v.send(.paletteFrame, jpeg)
     }
 
     // MARK: Audio

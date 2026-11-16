@@ -169,6 +169,56 @@ final class HostController: ObservableObject {
     private var captureRestarts: [Date] = []
     private var thermalObserver: NSObjectProtocol?
 
+    // MARK: Palette window
+
+    /// Mac area shown as a floating palette on the iPad (global points, top-left origin).
+    @Published private(set) var paletteArea: CGRect? = UserDefaults.standard.string(forKey: "paletteArea").map(NSRectFromString) {
+        didSet {
+            paletteAreaSnapshot.value = paletteArea
+            if let a = paletteArea { UserDefaults.standard.set(NSStringFromRect(a), forKey: "paletteArea") }
+            else { UserDefaults.standard.removeObject(forKey: "paletteArea") }
+        }
+    }
+    private let paletteAreaSnapshot = LockedRect()
+    private let paletteCapture = PaletteCapture()
+    private let palettePicker = PalettePicker()
+
+    func pickPalette() {
+        palettePicker.run { [weak self] rect in
+            guard let self, let rect else { return }
+            self.paletteArea = rect
+            Task { await self.startPaletteIfPossible() }
+        }
+    }
+
+    func removePalette() {
+        paletteArea = nil
+        Task { await stopPalette() }
+    }
+
+    private func startPaletteIfPossible() async {
+        guard let area = paletteArea, server.hasVideo, clientConfig?.tabletMode != true else { await stopPalette(); return }
+        if scDisplays.isEmpty { await refreshSources() }
+        let center = CGPoint(x: area.midX, y: area.midY)
+        guard let display = scDisplays.values.first(where: { $0.frame.contains(center) }) else { await stopPalette(); return }
+        let local = area.offsetBy(dx: -display.frame.minX, dy: -display.frame.minY)
+            .intersection(CGRect(origin: .zero, size: display.frame.size))
+        guard !local.isEmpty else { return }
+        paletteAreaSnapshot.value = local.offsetBy(dx: display.frame.minX, dy: display.frame.minY)
+        let server = self.server
+        paletteCapture.onJPEG = { server.sendPalette($0) }
+        do {
+            try await paletteCapture.start(display: display, localRect: local)
+        } catch {
+            NSLog("Tafel: palette capture failed: %@", error.localizedDescription)
+        }
+    }
+
+    private func stopPalette() async {
+        await paletteCapture.stop()
+        server.sendPalette(Data())
+    }
+
     // MARK: Heat guard
 
     /// Lower frame rate and bitrate while macOS reports the Mac as hot (fanless MacBook Air).
@@ -590,6 +640,17 @@ final class HostController: ObservableObject {
             injector.key(k)
             if api.wants("input") { api.emit("input", event: "key", data: ["hidUsage": k.hidUsage, "down": k.down]) }
         }
+        let paletteArea = paletteAreaSnapshot
+        server.onPaletteMouse = { m in
+            guard let area = paletteArea.value else { return }
+            injector.pointer(m, area: area)
+        }
+        server.onPaletteCommand = { [weak self] c in
+            switch c {
+            case .pick: self?.pickPalette()
+            case .remove: self?.removePalette()
+            }
+        }
         server.onMouse = { m in
             injector.pointer(m)
             if api.wants("input") {
@@ -645,6 +706,7 @@ final class HostController: ObservableObject {
                     self.laserOn.value = false
                     self.laser.clear()
                     self.clientConfig = nil
+                    await self.paletteCapture.stop()
                     self.ipadBattery = nil
                     self.ipadCharging = nil
                     await self.stopStream()
@@ -743,6 +805,7 @@ final class HostController: ObservableObject {
             guard let self, !Task.isCancelled else { return }
             await self.stopStream()
             await self.startStreamIfPossible()
+            await self.startPaletteIfPossible()
         }
     }
 
@@ -1182,6 +1245,15 @@ final class LiveStats: ObservableObject {
 @MainActor
 final class MenuIconState: ObservableObject {
     @Published var connected = false
+}
+
+final class LockedRect: @unchecked Sendable {
+    private let lock = NSLock()
+    private var _value: CGRect?
+    var value: CGRect? {
+        get { lock.withLock { _value } }
+        set { lock.withLock { _value = newValue } }
+    }
 }
 
 final class LockedBool: @unchecked Sendable {

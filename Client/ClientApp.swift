@@ -51,6 +51,10 @@ struct RootView: View {
                     .transition(.opacity)
                 ReferenceOverlay(ref: model.reference)
                     .transition(.opacity)
+                if !model.tabletModeActive {
+                    PaletteOverlay(palette: model.palette, send: { model.palettePointer($0) }, close: { model.removePalette() })
+                        .zIndex(8)
+                }
                 overlay
                     .transition(.opacity)
                 if model.tabletEditing && model.tabletModeActive {
@@ -309,6 +313,12 @@ private struct OverlayMenuPanel: View {
                     row(L("Ellipsen-Schablone"), icon: "oval", checked: model.guide == .ellipse) {
                         withAnimation(Brand.spring) { model.guide = model.guide == .ellipse ? .none : .ellipse }
                         if model.guide == .ellipse { model.show(Toast(text: L("Innen verschieben, mit zwei Fingern drehen und skalieren, Knöpfe ändern die Achsen – Striche am Rand folgen der Ellipse"), seconds: 3)) }
+                        close()
+                    }
+                }
+                if !model.tabletModeActive {
+                    row(L("Palette vom Mac …"), icon: "square.on.square.dashed", checked: model.palette.image != nil) {
+                        if model.palette.image != nil { model.removePalette() } else { model.pickPalette() }
                         close()
                     }
                 }

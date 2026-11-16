@@ -137,6 +137,9 @@ final class ClientModel: ObservableObject {
     /// Floating reference photo (iPad only, never sent to the Mac).
     let reference = ReferenceImage()
     /// Virtual ruler on the canvas (strokes near it stay straight).
+    /// Floating live palette from the Mac (own object: its frames must not redraw the app).
+    let palette = PaletteState()
+
     /// The drawing aid on screen (ruler, perspective, ellipse) – one at a time.
     @Published var guide: DrawingGuide = .none
     var rulerVisible: Bool {
@@ -587,6 +590,9 @@ final class ClientModel: ObservableObject {
         s.onPluginActions = { [weak self] l in Task { @MainActor in self?.pluginActions = l } }
         s.onToast = { [weak self] t in Task { @MainActor in self?.show(t) } }
         s.onClipboard = { [weak self] c in Task { @MainActor in self?.receiveClipboard(c) } }
+        let palette = self.palette
+        palette.image = nil
+        s.onPalette = { palette.receive($0) }
         s.onScreenshot = { [weak self] d in
             Task { @MainActor in
                 guard let self else { return }
@@ -804,6 +810,18 @@ final class ClientModel: ObservableObject {
     }
 
     /// Asks the Mac for a full-resolution picture of what is streamed.
+    func pickPalette() {
+        session?.sendPalette(.pick)
+        show(Toast(text: L("Am Mac den Bereich für die Palette aufziehen (Esc bricht ab)"), seconds: 3))
+    }
+
+    func removePalette() {
+        session?.sendPalette(.remove)
+        palette.image = nil
+    }
+
+    func palettePointer(_ m: MouseEvent) { session?.sendPalette(m) }
+
     func requestScreenshot() {
         guard let session else { return }
         screenshotPending = true

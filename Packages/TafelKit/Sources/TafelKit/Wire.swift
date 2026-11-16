@@ -27,6 +27,9 @@ public enum MessageType: UInt8, Sendable {
     case gesture = 0x13        // client -> host: JSON GestureEvent (informational, for the developer API)
     case requestScreenshot = 0x16 // client -> host: empty, host answers with .screenshot
     case screenshot = 0x17     // host -> client: PNG or JPEG of the streamed source at full resolution (empty = failed)
+    case paletteFrame = 0x18   // host -> client, video connection: JPEG of the palette area (empty = no palette)
+    case paletteMouse = 0x19   // client -> host: MouseEvent, x/y normalised inside the palette area
+    case paletteCommand = 0x1A // client -> host: u8 PaletteCommand
     case shortcut = 0x20
     case key = 0x21            // hardware keyboard key down/up (HID usage)
     case text = 0x22           // on-screen keyboard text (UTF-8)
@@ -388,6 +391,14 @@ public enum JSONWire {
 
 /// Trackpad or mouse on the iPad, acting as the Mac's mouse. Position is absolute (where the
 /// iPad pointer is over the mirrored image), so pointer and picture always line up.
+/// iPad → Mac: what to do with the palette window.
+public enum PaletteCommand: UInt8, Sendable {
+    /// Forget the palette area.
+    case remove = 0
+    /// Let the user drag out a new palette area on the Mac.
+    case pick = 1
+}
+
 public struct MouseEvent: Equatable, Sendable {
     public enum Phase: UInt8, Sendable { case move = 0, down = 1, up = 2, exit = 3 }
     public enum Button: UInt8, Sendable { case left = 0, right = 1 }
