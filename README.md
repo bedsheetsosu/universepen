@@ -187,6 +187,12 @@ Bring one Mac panel (layers, colours, brushes …) onto the iPad as a small floa
 - **Perspective (1, 2 or 3 vanishing points):** drag the round knobs with a finger. Every Pencil stroke picks, after its first 10 pt, the line through its start point towards the vanishing point that best matches its direction (plus verticals with 1–2 points and horizontals with 1 point) and stays on it – like the drawing guides of iPad painting apps, but in any Mac app.
 - **Ellipse template:** drag inside to move it, two fingers turn (snaps to 0/45/90°) and scale it, the two knobs change each axis. Strokes that start on its outline band follow the ellipse.
 
+## Rope stabilizer, fixed pressure, tools on gestures
+
+- **Rope stabilizer** (iPad → Settings → Pencil, 0–60 pt): the stroke hangs on an invisible string behind the Pencil; jitter shorter than the string never reaches the Mac. Steady lines and lettering without the lag of averaging. Not combined with the ruler/perspective/ellipse aids, which are straight already.
+- **Fixed pressure:** every stroke at one pressure (5–100 %) for even ink lines.
+- **iPad tools on gestures:** ruler, perspective 1/2/3, ellipse, shape recognition, laser, screenshot and palette can be put on double-tap, squeeze, finger gestures, radial menu items and bar buttons ("iPad tool"), and toggled from Shortcuts ("Toggle iPad Tool").
+
 ## Shape recognition
 
 iPad → Settings → Pencil → "Shape recognition" (off by default). Hold the Pencil still for half a second at the end of a stroke: if it looks like a line, an open polyline, a triangle, a rectangle (snapped to right angles and to horizontal/vertical within 6°), a pentagon, an ellipse or a circle, UniversePen lifts the pen on the Mac, sends Undo (⌘Z) and draws the clean shape as a new stroke with the stroke's average pressure. The Pencil Pro gives a haptic tick. Works in any Mac app whose Undo removes the last stroke. Not in tablet mode or with the ruler.

@@ -80,6 +80,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     private var shapeHold: DispatchWorkItem?
     /// The stroke was replaced by a clean shape; ignore the rest of it until the Pencil lifts.
     private var shapeSnapped = false
+    private var rope = Rope(length: 0)
     private var rulerPlaced = false
     var rulerVisible = false {
         didSet {
@@ -727,6 +728,15 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
             if phase == .up || phase == .cancel { shapeSnapped = false }
             return
         }
+        // Rope stabilizer (not with straight-line aids, which are steadier already).
+        if settings.ropeLength > 0, !tabletMode, rulerLine == nil, guideLine == nil, !ellipseSnap {
+            switch phase {
+            case .down: rope = Rope(length: settings.ropeLength); loc = rope.start(at: loc)
+            case .move: loc = rope.pull(to: loc)
+            case .up, .cancel: if let p = rope.point { loc = p }; rope.end()
+            default: break
+            }
+        }
         if settings.instantInk, phase == .down || phase == .move {
             let raw = t.maximumPossibleForce > 0 ? Double(t.force / t.maximumPossibleForce) : 0.5
             ink.add(loc, pressure: settings.pressure.map(raw), newStroke: phase == .down)
@@ -743,6 +753,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         if touching {
             n = CGPoint(x: smoothX.add(Double(n.x)), y: smoothY.add(Double(n.y)))
             pressure = smoothP.add(pressure)
+            if settings.constantPressure > 0 { pressure = settings.constantPressure }
         }
         let tilt = settings.tilt.tilt(altitude: Double(t.altitudeAngle), azimuth: Double(t.azimuthAngle(in: self)))
         let roll = settings.sendRoll ? Double(t.rollAngle) * 180 / .pi : 0

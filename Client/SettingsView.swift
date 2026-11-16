@@ -233,6 +233,21 @@ struct SettingsView: View {
             Toggle(L("Doppeltippen zum Klicken (Pencil ohne Hover)"), isOn: $model.settings.doubleTapToClick)
             Toggle(L("Sofort-Tinte (Strich sofort auf dem iPad)"), isOn: $model.settings.instantInk)
             VStack(alignment: .leading, spacing: 2) {
+                Text(model.settings.ropeLength > 0 ? L("Seil-Stabilisator: %d pt", Int(model.settings.ropeLength)) : L("Seil-Stabilisator: aus"))
+                Slider(value: $model.settings.ropeLength, in: 0...60, step: 2)
+                Text(L("Der Strich hängt an einem unsichtbaren Seil hinter dem Pencil – Zittern innerhalb der Seillänge kommt nicht an. Für ruhige Linien und Schrift."))
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Toggle(L("Fester Druck (gleichmäßige Linie)"), isOn: Binding(
+                    get: { model.settings.constantPressure > 0 },
+                    set: { model.settings.constantPressure = $0 ? 0.6 : 0 }))
+                if model.settings.constantPressure > 0 {
+                    Text(L("Druck: %d %%", Int(model.settings.constantPressure * 100)))
+                    Slider(value: $model.settings.constantPressure, in: 0.05...1)
+                }
+            }
+            VStack(alignment: .leading, spacing: 2) {
                 Toggle(L("Formerkennung"), isOn: $model.settings.shapeRecognition)
                 Text(L("Am Strichende den Stift kurz still halten: Linie, Kreis, Ellipse, Dreieck oder Rechteck wird sauber neu gezeichnet (der Strich wird dafür am Mac rückgängig gemacht)."))
                     .font(.caption).foregroundStyle(.secondary)
