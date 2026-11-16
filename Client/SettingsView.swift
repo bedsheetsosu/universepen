@@ -232,6 +232,11 @@ struct SettingsView: View {
             Toggle(L("Neigung Y umkehren"), isOn: $model.settings.tilt.invertY)
             Toggle(L("Doppeltippen zum Klicken (Pencil ohne Hover)"), isOn: $model.settings.doubleTapToClick)
             Toggle(L("Sofort-Tinte (Strich sofort auf dem iPad)"), isOn: $model.settings.instantInk)
+            VStack(alignment: .leading, spacing: 2) {
+                Toggle(L("Formerkennung"), isOn: $model.settings.shapeRecognition)
+                Text(L("Am Strichende den Stift kurz still halten: Linie, Kreis, Ellipse, Dreieck oder Rechteck wird sauber neu gezeichnet (der Strich wird dafür am Mac rückgängig gemacht)."))
+                    .font(.caption).foregroundStyle(.secondary)
+            }
             Toggle(L("Hover-Punkt unter der Stiftspitze"), isOn: $model.settings.hoverDot)
             Toggle(L("Schweben (Hover) senden"), isOn: $model.settings.sendHover)
             Toggle(L("Barrel Roll als Rotation senden"), isOn: $model.settings.sendRoll)

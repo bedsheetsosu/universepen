@@ -345,6 +345,8 @@ enum Translations {
         "Warte auf das iPad …": "Waiting for the iPad …",
         "iPad-Akku: %d %%": "iPad battery: %d %%",
         "Volle Mac-Auflösung senden": "Send full Mac resolution",
+        "Formerkennung": "Shape recognition",
+        "Am Strichende den Stift kurz still halten: Linie, Kreis, Ellipse, Dreieck oder Rechteck wird sauber neu gezeichnet (der Strich wird dafür am Mac rückgängig gemacht).": "Hold the Pencil still at the end of a stroke: a line, circle, ellipse, triangle or rectangle is redrawn cleanly (the stroke is undone on the Mac for that).",
         "Hitzeschutz": "Heat guard",
         "Wird der Mac heiß, sinken Bildrate und Bitrate, bis er wieder kühl ist.": "If the Mac gets hot, frame rate and bitrate go down until it has cooled off.",
         "Mac ist heiß – Stream gedrosselt (30 fps).": "Mac is hot – stream throttled (30 fps).",

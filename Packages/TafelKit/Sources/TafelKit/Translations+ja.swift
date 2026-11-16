@@ -302,6 +302,8 @@ extension Translations {
         "Warte auf das iPad …": "iPad を待っています …",
         "iPad-Akku: %d %%": "iPad のバッテリー：%d %%",
         "Volle Mac-Auflösung senden": "Mac のフル解像度で送信",
+        "Formerkennung": "図形認識",
+        "Am Strichende den Stift kurz still halten: Linie, Kreis, Ellipse, Dreieck oder Rechteck wird sauber neu gezeichnet (der Strich wird dafür am Mac rückgängig gemacht).": "ストロークの終わりで Pencil を少し止めると、線・円・楕円・三角形・長方形がきれいに描き直されます（そのため Mac 側で元のストロークを取り消します）。",
         "Hitzeschutz": "発熱保護",
         "Wird der Mac heiß, sinken Bildrate und Bitrate, bis er wieder kühl ist.": "Mac が熱くなると、冷えるまでフレームレートとビットレートを下げます。",
         "Mac ist heiß – Stream gedrosselt (30 fps).": "Mac が高温です – ストリームを抑制中（30 fps）。",

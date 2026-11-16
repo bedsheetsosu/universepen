@@ -72,6 +72,14 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     private var rulerTouches: [UITouch] = []
     private var rulerGrab: (ruler: Ruler, points: [CGPoint])?
     private var rulerLine: SnapLine?
+    // Shape recognition: the stroke so far (view points), its pressures, and the hold timer.
+    private var shapePoints: [CGPoint] = []
+    private var shapePressures: [Double] = []
+    private var shapeTilt = CGPoint.zero
+    private var shapeAnchor = CGPoint.zero
+    private var shapeHold: DispatchWorkItem?
+    /// The stroke was replaced by a clean shape; ignore the rest of it until the Pencil lifts.
+    private var shapeSnapped = false
     private var rulerPlaced = false
     var rulerVisible = false {
         didSet {
@@ -574,6 +582,10 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         // Tip threshold: below it a touching Pencil stays hover (no click).
         let curved = touchingRaw ? settings.pressure.apply(force: Double(t.force), maximumForce: Double(t.maximumPossibleForce)) : 0
         guard let phase = tipGate.phase(for: rawPhase, pressure: curved, threshold: settings.tipThreshold) else { return }
+        if shapeSnapped {
+            if phase == .up || phase == .cancel { shapeSnapped = false }
+            return
+        }
         if settings.instantInk, phase == .down || phase == .move {
             let raw = t.maximumPossibleForce > 0 ? Double(t.force / t.maximumPossibleForce) : 0.5
             ink.add(loc, pressure: settings.pressure.map(raw), newStroke: phase == .down)
@@ -595,6 +607,67 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         let roll = settings.sendRoll ? Double(t.rollAngle) * 180 / .pi : 0
         session.send(PenSample(phase: phase, x: Float(n.x), y: Float(n.y), pressure: Float(pressure),
                                tiltX: Float(tilt.x), tiltY: Float(tilt.y), rotation: Float(roll), timestamp: t.timestamp))
+        trackShape(loc, phase: phase, pressure: pressure, tilt: CGPoint(x: tilt.x, y: tilt.y))
+    }
+
+    // MARK: Shape recognition
+
+    private func trackShape(_ loc: CGPoint, phase: PenPhase, pressure: Double, tilt: CGPoint) {
+        guard settings.shapeRecognition, !tabletMode, rulerLine == nil else { return }
+        switch phase {
+        case .down:
+            shapePoints = [loc]; shapePressures = [pressure]; shapeTilt = tilt
+            shapeAnchor = loc
+            scheduleShapeHold()
+        case .move:
+            shapePoints.append(loc); shapePressures.append(pressure); shapeTilt = tilt
+            // Only real movement restarts the hold timer (pressure changes alone don't).
+            if hypot(loc.x - shapeAnchor.x, loc.y - shapeAnchor.y) > 3 {
+                shapeAnchor = loc
+                scheduleShapeHold()
+            }
+        default:
+            shapeHold?.cancel(); shapeHold = nil
+            shapePoints = []; shapePressures = []
+        }
+    }
+
+    private func scheduleShapeHold() {
+        shapeHold?.cancel()
+        let work = DispatchWorkItem { [weak self] in self?.snapShape() }
+        shapeHold = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: work)
+    }
+
+    /// The Pencil rested 0.5 s: if the stroke looks like a shape, lift the pen on the Mac, undo
+    /// the hand-drawn stroke and draw the clean shape as a new one with the stroke's average pressure.
+    private func snapShape() {
+        guard pencilTouch != nil, !shapeSnapped, let session, shapePoints.count >= 6,
+              let shape = ShapeRecognizer.recognize(shapePoints), let end = shapePoints.last else { return }
+        shapeSnapped = true
+        let pressure = shapePressures.reduce(0, +) / Double(max(shapePressures.count, 1))
+        let tilt = shapeTilt
+        var time = ProcessInfo.processInfo.systemUptime
+        let e = normalizeInput(end)
+        session.send(PenSample(phase: .up, x: Float(e.x), y: Float(e.y), timestamp: time))
+        onAction?(.undo)
+        ink.clear()
+        if #available(iOS 17.5, *) { UICanvasFeedbackGenerator(view: self).alignmentOccurred(at: end) }
+        let outline = shape.sampled(spacing: 3)
+        // Give the Mac app a moment to undo before the new stroke starts.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { [weak self] in
+            guard let self, let session = self.session, let last = outline.last else { return }
+            for (i, q) in outline.enumerated() {
+                let n = self.normalizeInput(q)
+                time += 0.002
+                session.send(PenSample(phase: i == 0 ? .down : .move, x: Float(n.x), y: Float(n.y), pressure: Float(pressure),
+                                       tiltX: Float(tilt.x), tiltY: Float(tilt.y), timestamp: time))
+                if self.settings.instantInk { self.ink.add(q, pressure: pressure, newStroke: i == 0) }
+            }
+            let n = self.normalizeInput(last)
+            session.send(PenSample(phase: .up, x: Float(n.x), y: Float(n.y), timestamp: time + 0.002))
+        }
+        shapePoints = []; shapePressures = []
     }
 
     // MARK: Hover

@@ -177,6 +177,10 @@ UniversePen does not change profiles, restrictions or MDM settings and does not 
 - If the Mac's screen capture stops by itself (display change, window closed) while an iPad is connected, it is restarted (up to 3 times in 30 s). After the Mac or its displays wake up, the capture is started fresh, so the iPad never keeps a frozen picture.
 - Coming back to the iPad app retries a failed connection and asks a live one for a fresh full frame.
 
+## Shape recognition
+
+iPad → Settings → Pencil → "Shape recognition" (off by default). Hold the Pencil still for half a second at the end of a stroke: if it looks like a line, an open polyline, a triangle, a rectangle (snapped to right angles and to horizontal/vertical within 6°), a pentagon, an ellipse or a circle, UniversePen lifts the pen on the Mac, sends Undo (⌘Z) and draws the clean shape as a new stroke with the stroke's average pressure. The Pencil Pro gives a haptic tick. Works in any Mac app whose Undo removes the last stroke. Not in tablet mode or with the ruler.
+
 ## Heat guard (Mac)
 
 On by default (Mac window → Stream). macOS reports how hot the Mac is (`ProcessInfo.thermalState`). At "serious" UniversePen streams at most 30 fps, ≤ 25 Mbit/s and without full source resolution; at "critical" also ≤ 15 Mbit/s and ≤ 75 % resolution. When the Mac has cooled off, the iPad's own settings apply again. It only ever lowers settings. Made for the fanless MacBook Air.

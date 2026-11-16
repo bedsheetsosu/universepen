@@ -302,6 +302,8 @@ extension Translations {
         "Warte auf das iPad …": "iPad की प्रतीक्षा …",
         "iPad-Akku: %d %%": "iPad बैटरी: %d %%",
         "Volle Mac-Auflösung senden": "Mac का पूरा रिज़ॉल्यूशन भेजें",
+        "Formerkennung": "आकृति पहचान",
+        "Am Strichende den Stift kurz still halten: Linie, Kreis, Ellipse, Dreieck oder Rechteck wird sauber neu gezeichnet (der Strich wird dafür am Mac rückgängig gemacht).": "स्ट्रोक के अंत में Pencil को थोड़ी देर स्थिर रखें: रेखा, वृत्त, दीर्घवृत्त, त्रिभुज या आयत साफ़-सुथरे ढंग से दोबारा बनता है (इसके लिए Mac पर स्ट्रोक पूर्ववत किया जाता है)।",
         "Hitzeschutz": "गर्मी से सुरक्षा",
         "Wird der Mac heiß, sinken Bildrate und Bitrate, bis er wieder kühl ist.": "Mac गर्म होने पर, ठंडा होने तक फ़्रेम दर और बिटरेट कम हो जाते हैं।",
         "Mac ist heiß – Stream gedrosselt (30 fps).": "Mac गर्म है – स्ट्रीम धीमी की गई (30 fps)।",

@@ -205,6 +205,8 @@ public struct InputSettings: Codable, Equatable, Sendable {
 
     /// Draw the stroke on the iPad right away (fades when the Mac's picture catches up).
     public var instantInk = true
+    /// Hold the Pencil still at the end of a stroke → it is redrawn as a clean line, polygon or ellipse.
+    public var shapeRecognition = false
     /// Small ring under the hovering Pencil tip, drawn on the iPad.
     public var hoverDot = true
 
@@ -285,7 +287,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         case fingerMode, fingerPressure, longPressRightClick, palmRadius
         case threeFingerSwipeLeft, threeFingerSwipeRight, threeFingerSwipeUp, threeFingerSwipeDown, fourFingerTap
         case swapISOKeys, trackpadAsMouse, hideIPadPointer, showShortcutBar, shortcutBarOnRight, shortcutBar
-        case appShortcutBars, appNames, radialMenu, appPenProfiles, gameApps, undoScrub, undoScrubStep, instantInk, hoverDot, tabletMode, tabletArea, tabletLockAspect, tabletPresets, tipThreshold, tabletKeys, doubleTapToClick, viewOnly, dimAfterMinutes, dimOnlyWhenStill
+        case appShortcutBars, appNames, radialMenu, appPenProfiles, gameApps, undoScrub, undoScrubStep, instantInk, shapeRecognition, hoverDot, tabletMode, tabletArea, tabletLockAspect, tabletPresets, tipThreshold, tabletKeys, doubleTapToClick, viewOnly, dimAfterMinutes, dimOnlyWhenStill
     }
 
     /// Tolerates settings saved by older versions: missing keys keep their defaults.
@@ -316,6 +318,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         try get(.radialMenu, &radialMenu); try get(.appPenProfiles, &appPenProfiles)
         try get(.gameApps, &gameApps); try get(.undoScrub, &undoScrub); try get(.undoScrubStep, &undoScrubStep)
         try get(.instantInk, &instantInk); try get(.hoverDot, &hoverDot)
+        try get(.shapeRecognition, &shapeRecognition)
         try get(.tabletMode, &tabletMode); try get(.tabletArea, &tabletArea); try get(.tabletLockAspect, &tabletLockAspect)
         try get(.tabletPresets, &tabletPresets)
         try get(.tipThreshold, &tipThreshold); try get(.tabletKeys, &tabletKeys)

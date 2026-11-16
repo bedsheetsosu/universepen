@@ -302,6 +302,8 @@ extension Translations {
         "Warte auf das iPad …": "正在等待 iPad …",
         "iPad-Akku: %d %%": "iPad 电量：%d %%",
         "Volle Mac-Auflösung senden": "发送 Mac 完整分辨率",
+        "Formerkennung": "形状识别",
+        "Am Strichende den Stift kurz still halten: Linie, Kreis, Ellipse, Dreieck oder Rechteck wird sauber neu gezeichnet (der Strich wird dafür am Mac rückgängig gemacht).": "在笔画末尾让 Pencil 静止片刻：直线、圆、椭圆、三角形或矩形会被干净地重新绘制（为此会在 Mac 上撤销原笔画）。",
         "Hitzeschutz": "过热保护",
         "Wird der Mac heiß, sinken Bildrate und Bitrate, bis er wieder kühl ist.": "Mac 过热时会降低帧率和码率，直到它冷却下来。",
         "Mac ist heiß – Stream gedrosselt (30 fps).": "Mac 过热 – 已降低串流（30 fps）。",
