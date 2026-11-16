@@ -23,6 +23,11 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     var onRadialOpen: ((CGPoint) -> Void)?
     var onRadialPick: (() -> Void)?
     var radialOpen = false { didSet { if radialOpen { ink.clear() } } }
+    /// The control centre is open: the next touch on the canvas closes it. A Pencil stroke goes
+    /// on as usual; fingers only close it (a dismissing tap must not click on the Mac).
+    var chromeOpen = false
+    var onChromeDismiss: (() -> Void)?
+    private var dismissingTouches: Set<UITouch> = []
     /// Local instant ink and hover dot above the picture.
     let ink = InkOverlayView()
     /// Undo scrub progress (steps, negative = undo), nil when it ends.
@@ -537,6 +542,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
 
     func gestureRecognizer(_ g: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
         guard touch.type == .direct else { return true }
+        if chromeOpen { return false }
         let p = touch.location(in: self)
         return !(rulerVisible && rulerView.ruler.contains(p)) && !guideHit(p)
     }
@@ -623,6 +629,12 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         // Back to the canvas after a menu or sheet took the keyboard focus (hardware keyboard).
         if keyboardShown != true, !isFirstResponder { becomeFirstResponder() }
         var touches = touches
+        if chromeOpen {
+            onChromeDismiss?()
+            let fingers = touches.filter { $0.type == .direct }
+            dismissingTouches.formUnion(fingers)
+            touches.subtract(fingers)
+        }
         if rulerVisible {
             for t in touches where t.type == .direct && rulerTouches.count < 2 && rulerView.ruler.contains(t.location(in: self)) {
                 if rulerTouches.isEmpty { rulerTapStart = t.timestamp }
@@ -668,6 +680,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        dismissingTouches.subtract(touches)
         releaseRuler(touches)
         releaseGuide(touches)
         fingersEnded(touches)
@@ -676,6 +689,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        dismissingTouches.subtract(touches)
         releaseRuler(touches)
         releaseGuide(touches)
         for t in touches where t === trackedFinger { emitFinger(oneFinger.cancel()) }
@@ -1385,6 +1399,7 @@ struct CanvasRepresentable: UIViewRepresentable {
         let model = self.model
         v.onAction = { [weak model] a in model?.trigger(a) }
         v.onHoldKey = { [weak model] k, down in model?.hold(k, down: down) }
+        v.onChromeDismiss = { [weak model] in withAnimation(Ultra.smooth) { model?.commandOpen = false } }
         v.onGesture = { [weak model] g in model?.report(g) }
         v.onPixelSize = { [weak model] w, h in model?.updateViewPixelSize(width: w, height: h) }
         v.onRadialOpen = { [weak model] p in model?.openRadial(at: p) }
@@ -1415,6 +1430,7 @@ struct CanvasRepresentable: UIViewRepresentable {
             v.ink.lifetime = min(max((t.rttMs / 2 + (t.frameAgeMs ?? 40) + 45) / 1000, 0.06), 0.4)
         }
         v.radialOpen = model.radialCenter != nil
+        v.chromeOpen = model.commandOpen
         let guidesAllowed = !model.tabletModeActive && !model.settings.viewOnly
         v.rulerVisible = model.rulerVisible && guidesAllowed
         v.rulerView.accent = UIColor(Brand.mint)

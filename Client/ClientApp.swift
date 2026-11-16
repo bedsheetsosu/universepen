@@ -35,7 +35,6 @@ struct RootView: View {
     @State private var showCheatSheet = false
     @State private var showWhatsNew = WhatsNewView.shouldShow
     @State private var showStatus = false
-    @State private var menuOpen = false
 
     private var reconnecting: Bool {
         if case .reconnecting = model.phase { return true }
@@ -110,15 +109,7 @@ struct RootView: View {
     }
 
     private func undoButton(_ symbol: String, _ label: String, _ action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: symbol)
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.9))
-                .frame(width: 48, height: 48)
-                .tafelOverlayGlass(Circle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(label)
+        UltraRoundButton(symbol, label: label, size: 50, action: action)
     }
 
     private var overlay: some View {
@@ -151,27 +142,18 @@ struct RootView: View {
                         StatusPill()
                             .transition(.move(edge: .trailing).combined(with: .opacity))
                     }
-                    Button {
-                        withAnimation(Brand.spring) { menuOpen.toggle() }
-                    } label: {
-                        Image(systemName: menuOpen ? "xmark" : "ellipsis")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(.white.opacity(0.85))
-                            .contentTransition(.symbolEffect(.replace))
-                            .accessibilityLabel(menuOpen ? L("Menü schließen") : L("Menü"))
-                            .frame(width: 36, height: 36)
-                            .tafelOverlayGlass(Circle())
-                            .contentShape(Circle())
+                    UltraRoundButton(model.commandOpen ? "xmark" : "square.grid.2x2.fill",
+                                     label: model.commandOpen ? L("Menü schließen") : L("Menü"), size: 40) {
+                        withAnimation(Ultra.smooth) { model.commandOpen.toggle() }
                     }
-                    .buttonStyle(.plain)
                 }
                 if let t = model.toast {
                     Text(t.text)
                         .font(.callout.weight(.semibold))
-                        .padding(.horizontal, 16).padding(.vertical, 10)
-                        .tafelOverlayGlass(Capsule())
+                        .padding(.horizontal, 18).padding(.vertical, 11)
+                        .ultraPanel(Capsule())
                         .allowsHitTesting(false)
-                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .transition(.move(edge: .top).combined(with: .opacity).combined(with: .scale(scale: 0.92)))
                         .id(t.text)
                 }
                 if (model.localZoom > 1.01 || model.localAngle != 0) && model.settings.zoomMethod == .localView {
@@ -181,10 +163,10 @@ struct RootView: View {
                         Label((model.localAngle != 0 ? "\(model.localAngle)° · " : "") + L("%d %% · Zurücksetzen", Int((model.localZoom * 100).rounded())),
                               systemImage: model.localAngle != 0 ? "rotate.right" : "arrow.up.left.and.down.right.magnifyingglass")
                             .font(.callout.weight(.semibold).monospacedDigit())
-                            .padding(.horizontal, 14).padding(.vertical, 8)
-                            .tafelOverlayGlass(Capsule())
+                            .padding(.horizontal, 14).padding(.vertical, 9)
+                            .ultraPanel(Capsule(), shadow: false)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(UltraPress())
                     .transition(.move(edge: .top).combined(with: .opacity))
                 }
                 if let n = model.scrubSteps {
@@ -198,18 +180,15 @@ struct RootView: View {
                 Spacer()
             }
             .padding(10)
-            if menuOpen {
-                // Tap anywhere else closes the menu (and keeps the touch off the Mac).
-                Color.black.opacity(0.001)
-                    .ignoresSafeArea()
-                    .onTapGesture { withAnimation(Brand.spring) { menuOpen = false } }
+            if model.commandOpen {
+                // No backdrop: the next touch on the canvas closes it (see CanvasView.chromeOpen).
                 GeometryReader { g in
                     VStack {
                         HStack {
                             Spacer()
-                            OverlayMenuPanel(
-                                close: { withAnimation(Brand.spring) { menuOpen = false } },
-                                toggleStatus: { showStatus.toggle() }, showStatus: showStatus,
+                            CommandCenter(
+                                close: { withAnimation(Ultra.smooth) { model.commandOpen = false } },
+                                toggleStatus: { withAnimation(Ultra.smooth) { showStatus.toggle() } }, showStatus: showStatus,
                                 openSettings: { showSettings = true },
                                 openCheatSheet: { showCheatSheet = true },
                                 maxHeight: max(g.size.height - 16, 200))
@@ -217,309 +196,15 @@ struct RootView: View {
                         Spacer()
                     }
                 }
-                .padding(.top, 54).padding(.trailing, 10)
-                .transition(.scale(scale: 0.85, anchor: .topTrailing).combined(with: .opacity))
+                .padding(.top, 58).padding(.trailing, 10)
+                .transition(.scale(scale: 0.86, anchor: .topTrailing).combined(with: .opacity))
             }
         }
         .animation(Brand.spring, value: reconnecting)
+        .animation(Ultra.smooth, value: model.commandOpen)
         .animation(Brand.spring, value: model.scrubSteps != nil)
         .animation(Brand.spring, value: model.toast)
         .animation(Brand.spring, value: showStatus || model.showStatusOverlay)
-    }
-}
-
-/// The … menu as an own panel (not a system Menu): a system menu is rebuilt by UIKit while it is
-/// open whenever the app updates, which made it blink and drop the item you were holding.
-private struct OverlayMenuPanel: View {
-    @EnvironmentObject var model: ClientModel
-    let close: () -> Void
-    let toggleStatus: () -> Void
-    let showStatus: Bool
-    let openSettings: () -> Void
-    let openCheatSheet: () -> Void
-    /// Height available on screen for the panel.
-    var maxHeight: CGFloat = 560
-    @State private var windowsOpen = false
-    @State private var contentHeight: CGFloat = 400
-
-    private func modeTitle(_ id: String) -> String {
-        switch id {
-        case "display": return L("Ganzer Bildschirm")
-        case "second-screen": return L("Zweiter Bildschirm")
-        case "region": return L("iPad-Ausschnitt")
-        case "window": return L("Fenster")
-        default: return id
-        }
-    }
-
-    private func icon(_ id: String) -> String {
-        switch id {
-        case "display": return "display"
-        case "second-screen": return "rectangle.on.rectangle"
-        case "region": return "ipad.landscape"
-        default: return "macwindow"
-        }
-    }
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 2) {
-                if let l = model.sourceList {
-                    header(L("Quelle"))
-                    ForEach(l.modes.filter { $0.id != "window" }) { m in
-                        row(modeTitle(m.id), icon: icon(m.id), checked: l.mode == m.id, enabled: m.available) {
-                            model.selectSource(SourceSelection(mode: m.id)); close()
-                        }
-                    }
-                    row(L("Fenster"), icon: "macwindow", checked: l.mode == "window",
-                        trailing: windowsOpen ? "chevron.up" : "chevron.down") {
-                        withAnimation(Brand.spring) { windowsOpen.toggle() }
-                        if windowsOpen { model.selectSource(SourceSelection(refresh: true)) }
-                    }
-                    if windowsOpen {
-                        ForEach(l.windows) { w in
-                            row(w.title, icon: nil, checked: l.mode == "window" && l.selectedWindow == w.id, indent: true) {
-                                model.selectSource(SourceSelection(mode: "window", window: w.id)); close()
-                            }
-                        }
-                        if l.windows.isEmpty {
-                            Text(L("Keine Fenster gefunden")).font(.caption).foregroundStyle(.secondary).padding(.leading, 44).padding(.vertical, 6)
-                        }
-                    }
-                    if l.displays.count > 1 {
-                        header(L("Bildschirm"))
-                        ForEach(l.displays) { d in
-                            row(d.title, icon: "display", checked: l.selectedDisplay == d.id) {
-                                model.selectSource(SourceSelection(display: d.id)); close()
-                            }
-                        }
-                    }
-                    divider
-                }
-                if model.profiles.count > 1 {
-                    header(L("Profil"))
-                    ForEach(model.profiles) { p in
-                        row(p.name, icon: "person.crop.square", checked: model.activeProfileID == p.id) {
-                            if model.activeProfileID != p.id { withAnimation(Brand.spring) { model.switchProfile(p) } }
-                            close()
-                        }
-                    }
-                    divider
-                }
-                row(L("Nur Monitor (keine Eingabe)"), icon: "display", checked: model.settings.viewOnly) {
-                    withAnimation(Brand.spring) { model.settings.viewOnly.toggle() }
-                    model.show(Toast(text: model.settings.viewOnly ? L("Nur Monitor – Eingaben gehen nicht an den Mac") : L("Eingabe wieder an"), seconds: 1.6))
-                    close()
-                }
-                row(L("Tablett-Modus (ohne Bild)"), icon: "rectangle.dashed", checked: model.settings.tabletMode) {
-                    withAnimation(Brand.spring) { model.settings.tabletMode.toggle() }
-                    close()
-                }
-                if model.tabletModeActive {
-                    ForEach(model.allTabletPresets) { p in
-                        row(p.title + (p.appName.map { " · " + $0 } ?? ""), icon: p.appBundleID != nil ? "link" : "rectangle.dashed",
-                            checked: p.matches(model.tabletArea), indent: true) {
-                            model.applyTabletPreset(p); close()
-                        }
-                    }
-                    row(L("Aktiven Bereich anpassen"), icon: "crop", indent: true) {
-                        close()
-                        withAnimation(Brand.spring) { model.tabletEditing = true }
-                    }
-                }
-                if !model.pluginActions.isEmpty {
-                    header(L("Plugins"))
-                    ForEach(model.pluginActions) { a in
-                        row(a.title, icon: a.icon ?? "puzzlepiece.extension") { model.runPlugin(a.id); close() }
-                    }
-                    divider
-                }
-                if let app = model.frontApp {
-                    row(model.gameModeActive ? L("Spielmodus für %@ aus", app.name) : L("Spielmodus für %@", app.name),
-                        icon: "gamecontroller", checked: model.gameModeActive) { model.toggleGameMode(); close() }
-                    row(L("Tablett-Modus automatisch für %@", app.name), icon: "rectangle.dashed",
-                        checked: model.autoTabletForFrontApp) { model.toggleAutoTablet(); close() }
-                }
-                row(L("Finger: %@", model.settings.fingerMode.title), icon: "hand.point.up.left") {
-                    // Cycles off → mouse → pen → pointer.
-                    let all = FingerMode.allCases
-                    model.settings.fingerMode = all[(all.firstIndex(of: model.settings.fingerMode)! + 1) % all.count]
-                }
-                row(L("Nur Monitor (keine Eingabe)"), icon: "eye", checked: model.settings.viewOnly) {
-                    model.settings.viewOnly.toggle(); close()
-                }
-                row(model.orientationLocked ? L("Ausrichtung entsperren") : L("Ausrichtung sperren"),
-                    icon: model.orientationLocked ? "lock.rotation" : "rotate.right", checked: model.orientationLocked) {
-                    model.toggleOrientationLock(); close()
-                }
-                row(showStatus ? L("Status ausblenden") : L("Status anzeigen"), icon: "gauge.with.dots.needle.33percent") {
-                    toggleStatus(); close()
-                }
-                header(L("Werkzeuge"))
-                if !model.recentTools.isEmpty && !model.tabletModeActive {
-                    HStack(spacing: 6) {
-                        ForEach(model.recentTools, id: \.self) { t in
-                            let on = model.isOn(t)
-                            Button {
-                                withAnimation(Brand.spring) { model.runTool(t) }
-                                if t == .screenshot || t == .palette { close() }
-                            } label: {
-                                VStack(spacing: 3) {
-                                    Image(systemName: t.symbol).font(.system(size: 15, weight: .semibold))
-                                    Text(t.shortTitle).font(.caption2).lineLimit(1).minimumScaleFactor(0.7)
-                                }
-                                .frame(maxWidth: .infinity, minHeight: 46)
-                                .foregroundStyle(on ? Brand.slateDeep : .primary)
-                                .background(on ? AnyShapeStyle(Brand.mint) : AnyShapeStyle(Color.white.opacity(0.08)),
-                                            in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel(t.title)
-                            .accessibilityAddTraits(on ? .isSelected : [])
-                        }
-                    }
-                    .padding(.horizontal, 10).padding(.bottom, 4)
-                }
-                if !model.tabletModeActive {
-                    row(L("Lineal"), icon: "ruler", checked: model.rulerVisible) {
-                        withAnimation(Brand.spring) { model.rulerVisible.toggle() }
-                        model.noteRecent(.ruler)
-                        if model.rulerVisible { model.show(Toast(text: L("Lineal mit Fingern verschieben und drehen – Striche daran werden gerade"), seconds: 2.4)) }
-                        close()
-                    }
-                    ForEach([1, 2, 3], id: \.self) { n in
-                        row(n == 1 ? L("Perspektive: 1 Fluchtpunkt") : L("Perspektive: %d Fluchtpunkte", n), icon: "perspective",
-                            checked: model.guide == .perspective(n)) {
-                            withAnimation(Brand.spring) { model.guide = model.guide == .perspective(n) ? .none : .perspective(n) }
-                            model.noteRecent(n == 1 ? .perspective1 : n == 2 ? .perspective2 : .perspective3)
-                            if model.guide != .none { model.show(Toast(text: L("Fluchtpunkte mit dem Finger ziehen – jeder Strich folgt der passenden Fluchtlinie"), seconds: 2.6)) }
-                            close()
-                        }
-                    }
-                    if model.guide != .none && model.guide != .ruler {
-                        row(model.guidesLocked ? L("Schablone entsperren") : L("Schablone sperren"), icon: model.guidesLocked ? "lock.fill" : "lock.open",
-                            checked: model.guidesLocked, indent: true) { model.guidesLocked.toggle(); close() }
-                    }
-                    row(L("Ellipsen-Schablone"), icon: "oval", checked: model.guide == .ellipse) {
-                        withAnimation(Brand.spring) { model.guide = model.guide == .ellipse ? .none : .ellipse }
-                        model.noteRecent(.ellipse)
-                        if model.guide == .ellipse { model.show(Toast(text: L("Innen verschieben, mit zwei Fingern drehen und skalieren, Knöpfe ändern die Achsen – Striche am Rand folgen der Ellipse"), seconds: 3)) }
-                        close()
-                    }
-                }
-                if !model.tabletModeActive {
-                    row(L("Palette vom Mac …"), icon: "square.on.square.dashed", checked: model.palette.image != nil) {
-                        if model.palette.image != nil { model.removePalette() } else { model.pickPalette() }
-                        close()
-                    }
-                }
-                if !model.tabletModeActive {
-                    row(L("Ansicht spiegeln"), icon: "arrow.left.and.right.righttriangle.left.righttriangle.right", checked: model.mirrored) {
-                        model.runTool(.mirror)
-                        close()
-                    }
-                    row(model.grid == .off ? L("Raster") : L("Raster") + ": " + model.grid.title, icon: "grid", checked: model.grid != .off) {
-                        // Cycles off → thirds → quarters → squares → off.
-                        let all = GridStyle.allCases
-                        model.grid = all[(all.firstIndex(of: model.grid)! + 1) % all.count]
-                        model.noteRecent(.grid)
-                    }
-                    row(L("Graustufen-Vorschau"), icon: "circle.lefthalf.filled", checked: model.grayscale) {
-                        model.runTool(.grayscale)
-                        close()
-                    }
-                }
-                row(L("Zeitraffer am Mac starten/stoppen"), icon: "timelapse") {
-                    model.session?.send(HostCommand.toggleTimelapse); close()
-                }
-                row(L("Laserpointer am Mac"), icon: "light.beacon.max", checked: model.laserMode) {
-                    model.laserMode.toggle()
-                    model.noteRecent(.laser)
-                    model.show(Toast(text: model.laserMode ? L("Laserpointer an – der Pencil zeichnet nur noch Leuchtspuren") : L("Laserpointer aus"), seconds: 1.8))
-                    close()
-                }
-                if !model.tabletModeActive {
-                    row(L("Bildschirmfoto"), icon: "camera.viewfinder", enabled: !model.screenshotPending) {
-                        model.requestScreenshot(); close()
-                    }
-                }
-                header(L("Zwischenablage"))
-                row(L("iPad → Mac kopieren"), icon: "doc.on.clipboard") { model.copyClipboardToMac(); close() }
-                row(L("Mac → iPad holen"), icon: "clipboard") { model.fetchClipboardFromMac(); close() }
-                ForEach(Array(model.settings.snippets.enumerated()), id: \.offset) { _, text in
-                    row(text, icon: "text.quote", indent: true) {
-                        model.session?.send(text: text)
-                        model.show(Toast(text: L("Am Mac getippt"), seconds: 1.2))
-                        close()
-                    }
-                }
-                row(L("Referenzbild …"), icon: "photo.on.rectangle", checked: model.reference.image != nil) {
-                    close(); model.reference.pickerShown = true
-                }
-                divider
-                row(model.showKeyboard ? L("Bildschirmtastatur ausblenden") : L("Bildschirmtastatur"), icon: "keyboard") {
-                    model.showKeyboard.toggle(); close()
-                }
-                row(L("Gesten & Kürzel"), icon: "hand.draw") { close(); openCheatSheet() }
-                row(L("Einstellungen …"), icon: "gearshape") { close(); openSettings() }
-                divider
-                row(L("Trennen"), icon: "xmark.circle", destructive: true) { close(); model.disconnect() }
-            }
-            .padding(8)
-            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentHeight = $0 }
-        }
-        .scrollBounceBehavior(.basedOnSize)
-        .scrollIndicators(.visible)
-        .frame(width: 300)
-        // As tall as the content, but never taller than the screen allows: the rest scrolls.
-        .frame(height: min(max(contentHeight, 1), maxHeight))
-        .tafelOverlayGlass(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .shadow(color: .black.opacity(0.35), radius: 18, y: 8)
-    }
-
-    private var divider: some View {
-        Rectangle().fill(.white.opacity(0.1)).frame(height: 1).padding(.vertical, 6).padding(.horizontal, 8)
-    }
-
-    private func header(_ t: String) -> some View {
-        Text(t.uppercased()).font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
-            .padding(.horizontal, 12).padding(.top, 6).padding(.bottom, 2)
-    }
-
-    private func row(_ title: String, icon: String?, checked: Bool = false, enabled: Bool = true, indent: Bool = false,
-                     destructive: Bool = false, trailing: String? = nil, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack(spacing: 12) {
-                Group {
-                    if let icon { Image(systemName: icon) } else { Color.clear }
-                }
-                .frame(width: 22)
-                .foregroundStyle(destructive ? Color.red : checked ? Brand.mint : .secondary)
-                .accessibilityHidden(true)
-                Text(title).lineLimit(2).multilineTextAlignment(.leading)
-                    .foregroundStyle(destructive ? Color.red : .primary)
-                Spacer(minLength: 4)
-                if checked { Image(systemName: "checkmark").font(.footnote.weight(.bold)).foregroundStyle(Brand.mint) }
-                if let trailing { Image(systemName: trailing).font(.footnote).foregroundStyle(.secondary) }
-            }
-            .accessibilityElement(children: .combine)
-            .accessibilityAddTraits(checked ? .isSelected : [])
-            .font(.callout)
-            .padding(.vertical, 9).padding(.horizontal, 12)
-            .padding(.leading, indent ? 22 : 0)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(MenuRowStyle())
-        .disabled(!enabled)
-        .opacity(enabled ? 1 : 0.4)
-    }
-}
-
-private struct MenuRowStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .background(.white.opacity(configuration.isPressed ? 0.12 : 0), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }
 

@@ -165,6 +165,8 @@ final class ClientModel: ObservableObject {
     /// Virtual ruler on the canvas (strokes near it stay straight).
     /// Floating live palette from the Mac (own object: its frames must not redraw the app).
     let palette = PaletteState()
+    /// The control centre (tiles panel) is open.
+    @Published var commandOpen = false
     /// Picture mirrored on the iPad only.
     @Published var mirrored = false
     /// Picture shown in grey on the iPad only (checking light and dark values).
@@ -393,6 +395,9 @@ final class ClientModel: ObservableObject {
         backToCableTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.checkBackToCable() }
         }
+        // UI check from the Mac: `-debugOpenCommandCenter YES` as a launch argument opens the
+        // control centre right away (screenshots are taken with devicectl; nothing can tap remotely).
+        commandOpen = UserDefaults.standard.bool(forKey: "debugOpenCommandCenter")
     }
 
     // MARK: Battery (shown in the Mac menu bar)
@@ -754,6 +759,7 @@ final class ClientModel: ObservableObject {
             sessionStart = nil
         }
         slowWarned = false
+        commandOpen = false
         let s = session
         session = nil
         s?.close()
