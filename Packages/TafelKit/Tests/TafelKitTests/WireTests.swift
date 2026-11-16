@@ -357,4 +357,13 @@ final class PatchTests: XCTestCase {
         let low = StreamQuality(bitrateMbps: 10, fps: 30, resolutionScale: 0.5, fullSource: false)
         XCTAssertEqual(low.cooled(level: 2), low)
     }
+
+    func testPausedRestartsTheStream() {
+        let a = ClientConfig(viewPixelWidth: 10, viewPixelHeight: 10, quality: StreamQuality())
+        var b = a
+        b.paused = true
+        XCTAssertFalse(a.sameStream(as: b))
+        b.paused = false
+        XCTAssertTrue(a.sameStream(as: b))
+    }
 }

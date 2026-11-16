@@ -258,7 +258,7 @@ final class HostController: ObservableObject {
     }
 
     private func startPaletteIfPossible() async {
-        guard let area = paletteArea, server.hasVideo, clientConfig?.tabletMode != true else { await stopPalette(); return }
+        guard let area = paletteArea, server.hasVideo, clientConfig?.tabletMode != true, clientConfig?.paused != true else { await stopPalette(); return }
         if scDisplays.isEmpty { await refreshSources() }
         let center = CGPoint(x: area.midX, y: area.midY)
         guard let display = scDisplays.values.first(where: { $0.frame.contains(center) }) else { await stopPalette(); return }
@@ -940,6 +940,8 @@ final class HostController: ObservableObject {
             startTabletMode()
             return
         }
+        // The iPad is dimmed: nobody looks at the picture, so the Mac does not capture or encode.
+        if cfg.paused == true { return }
         let streamer = ScreenStreamer()
         let server = self.server
         let injector = self.injector

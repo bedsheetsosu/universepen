@@ -143,6 +143,7 @@ final class ClientModel: ObservableObject {
         if idle, savedBrightness == nil, let s = screen {
             savedBrightness = s.brightness
             s.brightness = min(s.brightness, 0.04)
+            sendConfig()   // the Mac pauses the capture while dimmed
         } else if !idle, savedBrightness != nil {
             undim()
         }
@@ -150,7 +151,9 @@ final class ClientModel: ObservableObject {
 
     private func undim() {
         if let b = savedBrightness { screen?.brightness = b }
+        let was = savedBrightness != nil
         savedBrightness = nil
+        if was { sendConfig() }
     }
 
     /// Demo mode: everything runs on the iPad, no Mac (for showing UniversePen).
@@ -771,7 +774,8 @@ final class ClientModel: ObservableObject {
         let b = battery
         session.send(config: ClientConfig(viewPixelWidth: viewPixelSize.0, viewPixelHeight: viewPixelSize.1, quality: effectiveQuality,
                                           diagnostics: diagnostics, batteryLevel: b.level, batteryCharging: b.charging,
-                                          tabletMode: tabletModeActive, laser: laserMode && !settings.viewOnly))
+                                          tabletMode: tabletModeActive, laser: laserMode && !settings.viewOnly,
+                                          paused: savedBrightness != nil))
     }
 
     // MARK: Developer API (settings live on the iPad; the Mac reads and patches them)

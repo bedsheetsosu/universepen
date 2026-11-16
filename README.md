@@ -231,6 +231,8 @@ System-wide, from any app: **⌃⌥⌘T** switches the iPad into or out of table
 
 On by default (Mac window → Stream). macOS reports how hot the Mac is (`ProcessInfo.thermalState`). At "serious" UniversePen streams at most 30 fps, ≤ 25 Mbit/s and without full source resolution; at "critical" also ≤ 15 Mbit/s and ≤ 75 % resolution. When the Mac has cooled off, the iPad's own settings apply again. It only ever lowers settings. Made for the fanless MacBook Air.
 
+While the iPad is dimmed (Settings → "Dim after"), the Mac stops capturing and encoding altogether and starts again the moment you touch the iPad.
+
 ## Gestures & shortcuts page
 
 iPad … menu → "Gestures & shortcuts": one page with what double-tap, squeeze, every finger gesture and the Mac hot keys do right now (for the app in front on the Mac).

@@ -229,9 +229,13 @@ public struct ClientConfig: Codable, Equatable, Sendable {
     public var tabletMode: Bool?
     /// Laser pointer: the Pencil draws fading marks over the Mac screen instead of clicking.
     public var laser: Bool?
+    /// The iPad is dimmed (nobody looks): the Mac stops capturing until it is not.
+    public var paused: Bool?
 
     public init(viewPixelWidth: Int, viewPixelHeight: Int, quality: StreamQuality, diagnostics: String? = nil,
-                batteryLevel: Double? = nil, batteryCharging: Bool? = nil, tabletMode: Bool? = nil, laser: Bool? = nil) {
+                batteryLevel: Double? = nil, batteryCharging: Bool? = nil, tabletMode: Bool? = nil, laser: Bool? = nil,
+                paused: Bool? = nil) {
+        self.paused = paused
         self.tabletMode = tabletMode
         self.laser = laser
         self.viewPixelWidth = viewPixelWidth
@@ -246,7 +250,7 @@ public struct ClientConfig: Codable, Equatable, Sendable {
     public func sameStream(as other: ClientConfig?) -> Bool {
         guard let other else { return false }
         return viewPixelWidth == other.viewPixelWidth && viewPixelHeight == other.viewPixelHeight && quality == other.quality
-            && (tabletMode ?? false) == (other.tabletMode ?? false)
+            && (tabletMode ?? false) == (other.tabletMode ?? false) && (paused ?? false) == (other.paused ?? false)
     }
 }
 
