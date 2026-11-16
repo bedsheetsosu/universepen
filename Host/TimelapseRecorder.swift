@@ -66,7 +66,7 @@ final class TimelapseRecorder: @unchecked Sendable {
             AVVideoCompressionPropertiesKey: [AVVideoAverageBitRateKey: max(w * h * 4, 4_000_000)],
             AVVideoColorPropertiesKey: [
                 AVVideoColorPrimariesKey: AVVideoColorPrimaries_P3_D65,
-                AVVideoTransferFunctionKey: AVVideoTransferFunction_ITU_R_709_2,
+                AVVideoTransferFunctionKey: AVVideoTransferFunction_IEC_sRGB,
                 AVVideoYCbCrMatrixKey: AVVideoYCbCrMatrix_ITU_R_709_2,
             ],
         ]

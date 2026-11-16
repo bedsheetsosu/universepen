@@ -50,6 +50,9 @@ final class ScreenStreamer: NSObject, SCStreamOutput, SCStreamDelegate {
     /// What is captured right now (for full-resolution screenshots).
     private var currentFilter: SCContentFilter?
     private var currentSourceRect: CGRect?
+    /// 10-bit 4:2:0 straight from ScreenCaptureKit for Main10 (no conversion), else 8-bit full range
+    /// (all 256 steps instead of 220).
+    private var pixelFormat: OSType = kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
 
     func start(filter: SCContentFilter, sourceRect: CGRect?, width: Int, height: Int, quality: StreamQuality) async throws {
         currentFilter = filter
@@ -69,7 +72,8 @@ final class ScreenStreamer: NSObject, SCStreamOutput, SCStreamDelegate {
         adaptive = quality.adaptive
         outputWidth = width
         outputHeight = height
-        encoderDescription = "\(quality.codec.rawValue.uppercased()) \(width)×\(height) · "
+        pixelFormat = enc.tenBit ? kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange : kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
+        encoderDescription = "\(quality.codec.rawValue.uppercased()) \(width)×\(height) · " + (enc.tenBit ? "10 bit · " : "8 bit · ")
             + (enc.isHardware ? "Hardware" : "Software") + (enc.usesLowLatencyRC ? " · Low-Latency-RC" : "")
 
         let cfg = SCStreamConfiguration()
@@ -81,7 +85,7 @@ final class ScreenStreamer: NSObject, SCStreamOutput, SCStreamDelegate {
         // and upscale it, which looks blurry on the iPad).
         cfg.captureResolution = .best
         cfg.minimumFrameInterval = CMTime(value: 1, timescale: CMTimeScale(max(quality.fps, 1)))
-        cfg.pixelFormat = kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
+        cfg.pixelFormat = pixelFormat
         cfg.colorSpaceName = CGColorSpace.displayP3
         cfg.colorMatrix = CGDisplayStream.yCbCrMatrix_ITU_R_709_2
         cfg.queueDepth = 3
@@ -110,7 +114,7 @@ final class ScreenStreamer: NSObject, SCStreamOutput, SCStreamDelegate {
         // and upscale it, which looks blurry on the iPad).
         cfg.captureResolution = .best
         cfg.minimumFrameInterval = CMTime(value: 1, timescale: CMTimeScale(max(fps, 1)))
-        cfg.pixelFormat = kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
+        cfg.pixelFormat = pixelFormat
         cfg.colorSpaceName = CGColorSpace.displayP3
         cfg.colorMatrix = CGDisplayStream.yCbCrMatrix_ITU_R_709_2
         cfg.queueDepth = 3

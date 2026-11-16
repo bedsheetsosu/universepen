@@ -302,6 +302,7 @@ extension Translations {
         "Warte auf das iPad …": "iPad를 기다리는 중 …",
         "iPad-Akku: %d %%": "iPad 배터리: %d %%",
         "Volle Mac-Auflösung senden": "Mac 전체 해상도로 전송",
+        "10-Bit-Farbe (keine Farbstufen)": "10비트 색상(색 띠 없음)",
         "„Volle Mac-Auflösung“: Der Mac schickt alle Pixel unverkleinert (z. B. beim zweiten Bildschirm mit mehr Platz), das iPad verkleinert beim Anzeigen. Kann schärfer sein, braucht aber mehr Bitrate.": "'Mac 전체 해상도': Mac이 모든 픽셀을 축소하지 않고 보내며(예: 공간을 넓힌 두 번째 화면) iPad가 표시할 때 축소합니다. 더 선명할 수 있지만 더 높은 비트레이트가 필요합니다.",
         "Spielmodus": "게임 모드",
         "Spielmodus (z. B. für osu!): Solange die App am Mac vorne ist, gelten 60 fps, volle Auflösung, mindestens 60 Mbit/s, keine automatische Bitrate und keine Glättung. Mehr als 60 Hz kann das iPad-Display nicht zeigen.": "게임 모드(예: osu!): 앱이 Mac에서 앞에 있는 동안 60fps, 전체 해상도, 최소 60Mbit/s, 자동 비트레이트 없음, 보정 없음. iPad 디스플레이는 60Hz를 넘게 표시할 수 없습니다.",

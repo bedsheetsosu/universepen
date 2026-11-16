@@ -19,6 +19,7 @@ final class VideoEncoder {
     let height: Int
     private(set) var usesLowLatencyRC = false
     private(set) var isHardware = false
+    let tenBit: Bool
 
     /// Called on VideoToolbox's callback thread. `format` is non-nil whenever parameter sets changed.
     var onOutput: ((VideoFormat?, VideoFrame) -> Void)?
@@ -32,6 +33,7 @@ final class VideoEncoder {
         self.codec = codec
         self.width = width
         self.height = height
+        self.tenBit = quality.usesTenBit
 
         let codecType = codec == .h264 ? kCMVideoCodecType_H264 : kCMVideoCodecType_HEVC
         var s: VTCompressionSession?
@@ -62,13 +64,15 @@ final class VideoEncoder {
         // Emit every frame before accepting the next one: no look-ahead buffering in the encoder.
         set(kVTCompressionPropertyKey_MaxFrameDelayCount, NSNumber(value: 0))
         set(kVTCompressionPropertyKey_ProfileLevel,
-            codec == .h264 ? kVTProfileLevel_H264_High_AutoLevel : kVTProfileLevel_HEVC_Main_AutoLevel)
+            codec == .h264 ? kVTProfileLevel_H264_High_AutoLevel
+                : (tenBit ? kVTProfileLevel_HEVC_Main10_AutoLevel : kVTProfileLevel_HEVC_Main_AutoLevel))
         set(kVTCompressionPropertyKey_AverageBitRate, NSNumber(value: Int(quality.bitrateMbps * 1_000_000)))
         set(kVTCompressionPropertyKey_ExpectedFrameRate, NSNumber(value: quality.fps))
         set(kVTCompressionPropertyKey_MaxKeyFrameIntervalDuration, NSNumber(value: 5))
-        // Colour: the capture is Display P3; tag the stream so the iPad shows the same colours.
+        // Colour: the capture is Display P3 with the sRGB tone curve (what macOS draws in);
+        // tag the stream exactly like that so the iPad shows the same colours and shadows.
         set(kVTCompressionPropertyKey_ColorPrimaries, kCVImageBufferColorPrimaries_P3_D65)
-        set(kVTCompressionPropertyKey_TransferFunction, kCVImageBufferTransferFunction_ITU_R_709_2)
+        set(kVTCompressionPropertyKey_TransferFunction, kCVImageBufferTransferFunction_sRGB)
         set(kVTCompressionPropertyKey_YCbCrMatrix, kCVImageBufferYCbCrMatrix_ITU_R_709_2)
         // Allow short bursts (e.g. scrolling) up to 2x average within one second.
         let limit = [NSNumber(value: Int(quality.bitrateMbps * 2_000_000 / 8)), NSNumber(value: 1)] as CFArray
@@ -139,7 +143,7 @@ final class VideoEncoder {
         var format: VideoFormat?
         if isKey, let desc = CMSampleBufferGetFormatDescription(sbuf) {
             let sets = Self.parameterSets(desc, codec: codec)
-            let f = VideoFormat(codec: codec, width: width, height: height, parameterSets: sets, displayP3: true)
+            let f = VideoFormat(codec: codec, width: width, height: height, parameterSets: sets, displayP3: true, sRGBTransfer: true)
             // Sent with every keyframe so a client that missed one can always resync.
             format = f
             lock.withLock { lastFormat = f }

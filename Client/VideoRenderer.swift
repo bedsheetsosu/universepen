@@ -123,14 +123,15 @@ final class VideoRenderer: @unchecked Sendable {
                 parameterSetSizes: sizes, nalUnitHeaderLength: 4, extensions: nil, formatDescriptionOut: &desc)
         }
         guard status == noErr, let desc else { return nil }
-        return f.displayP3 ? withP3(desc) : desc
+        return f.displayP3 ? withP3(desc, sRGB: f.sRGBTransfer) : desc
     }
 
     /// Same description plus Display P3 colour tags, so the display layer colour-manages it.
-    static func withP3(_ desc: CMVideoFormatDescription) -> CMVideoFormatDescription {
+    static func withP3(_ desc: CMVideoFormatDescription, sRGB: Bool) -> CMVideoFormatDescription {
         var ext = (CMFormatDescriptionGetExtensions(desc) as? [CFString: Any]) ?? [:]
         ext[kCMFormatDescriptionExtension_ColorPrimaries] = kCMFormatDescriptionColorPrimaries_P3_D65
-        ext[kCMFormatDescriptionExtension_TransferFunction] = kCMFormatDescriptionTransferFunction_ITU_R_709_2
+        ext[kCMFormatDescriptionExtension_TransferFunction] = sRGB ? kCMFormatDescriptionTransferFunction_sRGB
+                                                                   : kCMFormatDescriptionTransferFunction_ITU_R_709_2
         ext[kCMFormatDescriptionExtension_YCbCrMatrix] = kCMFormatDescriptionYCbCrMatrix_ITU_R_709_2
         let dims = CMVideoFormatDescriptionGetDimensions(desc)
         var out: CMVideoFormatDescription?

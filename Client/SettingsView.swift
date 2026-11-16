@@ -126,6 +126,13 @@ struct SettingsView: View {
                 Text("50 %").tag(0.5)
             }
             Toggle(L("Volle Mac-Auflösung senden"), isOn: $model.quality.fullSource)
+            // 10-bit needs HEVC; switching it on picks HEVC.
+            Toggle(L("10-Bit-Farbe (keine Farbstufen)"), isOn: Binding(
+                get: { model.quality.usesTenBit },
+                set: { on in
+                    model.quality.tenBit = on
+                    if on { model.quality.codec = .hevc }
+                }))
             VStack(alignment: .leading) {
                 Text(L("Bitrate: %d Mbit/s", Int(model.quality.bitrateMbps)))
                 Slider(value: $model.quality.bitrateMbps, in: 5...100, step: 5)

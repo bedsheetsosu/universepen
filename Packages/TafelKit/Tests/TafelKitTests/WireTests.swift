@@ -26,6 +26,12 @@ final class WireTests: XCTestCase {
     func testVideoRoundTrip() throws {
         let f = VideoFormat(codec: .hevc, width: 2360, height: 1640, parameterSets: [Data([1, 2]), Data([3]), Data([4, 5, 6])])
         XCTAssertEqual(try VideoFormat(decoding: f.encoded()), f)
+        let c = VideoFormat(codec: .hevc, width: 10, height: 10, parameterSets: [Data([1])], displayP3: true, sRGBTransfer: true)
+        XCTAssertEqual(try VideoFormat(decoding: c.encoded()), c)
+        // A pre-0.8 host sends no transfer flag: BT.709 as before.
+        var old = c.encoded(); old.removeLast()
+        XCTAssertFalse(try VideoFormat(decoding: old).sRGBTransfer)
+        XCTAssertTrue(try VideoFormat(decoding: old).displayP3)
         let v = VideoFrame(isKeyframe: true, captureTime: 99.5, data: Data(repeating: 7, count: 1000))
         XCTAssertEqual(try VideoFrame(decoding: v.encoded()), v)
     }
@@ -329,5 +335,14 @@ final class PatchTests: XCTestCase {
         XCTAssertEqual(try ClipboardItem(decoding: ClipboardItem(kind: .empty).encoded()).kind, .empty)
         XCTAssertThrowsError(try ClipboardItem(decoding: Data([9, 1, 2])))
         XCTAssertThrowsError(try ClipboardItem(decoding: Data()))
+    }
+
+    func testTenBitOnlyWithHEVC() throws {
+        XCTAssertTrue(StreamQuality(codec: .hevc).usesTenBit)
+        XCTAssertFalse(StreamQuality(codec: .h264).usesTenBit)
+        XCTAssertFalse(StreamQuality(codec: .hevc, tenBit: false).usesTenBit)
+        // Settings saved before 0.8 have no tenBit key.
+        let old = try JSONDecoder().decode(StreamQuality.self, from: Data(#"{"codec":"hevc"}"#.utf8))
+        XCTAssertTrue(old.usesTenBit)
     }
 }

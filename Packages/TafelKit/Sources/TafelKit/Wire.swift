@@ -145,10 +145,14 @@ public struct StreamQuality: Codable, Equatable, Sendable {
     /// Send the captured pixels unscaled (e.g. 2952×2052 for a "more space" second
     /// screen) and let the iPad scale them down when showing them. More bitrate and encoder load.
     public var fullSource: Bool
+    /// 10 bits per channel (HEVC Main10) instead of 8: four times as many colour steps, no banding
+    /// in soft gradients. Only with HEVC; H.264 always stays 8-bit.
+    public var tenBit: Bool
 
     public init(codec: VideoCodec = .h264, bitrateMbps: Double = 30, fps: Int = 60, resolutionScale: Double = 1.0, audio: Bool = true,
-                adaptive: Bool = true, fullSource: Bool = true) {
+                adaptive: Bool = true, fullSource: Bool = true, tenBit: Bool = true) {
         self.fullSource = fullSource
+        self.tenBit = tenBit
         self.codec = codec
         self.bitrateMbps = bitrateMbps
         self.fps = fps
@@ -157,7 +161,7 @@ public struct StreamQuality: Codable, Equatable, Sendable {
         self.adaptive = adaptive
     }
 
-    private enum CodingKeys: String, CodingKey { case codec, bitrateMbps, fps, resolutionScale, audio, adaptive, fullSource }
+    private enum CodingKeys: String, CodingKey { case codec, bitrateMbps, fps, resolutionScale, audio, adaptive, fullSource, tenBit }
 
     /// Tolerates settings saved by older versions (missing keys get defaults).
     public init(from decoder: Decoder) throws {
@@ -170,7 +174,11 @@ public struct StreamQuality: Codable, Equatable, Sendable {
         audio = try c.decodeIfPresent(Bool.self, forKey: .audio) ?? d.audio
         adaptive = try c.decodeIfPresent(Bool.self, forKey: .adaptive) ?? d.adaptive
         fullSource = try c.decodeIfPresent(Bool.self, forKey: .fullSource) ?? d.fullSource
+        tenBit = try c.decodeIfPresent(Bool.self, forKey: .tenBit) ?? d.tenBit
     }
+
+    /// What the encoder really uses: 10-bit only exists for HEVC here.
+    public var usesTenBit: Bool { tenBit && codec == .hevc }
 }
 
 public extension StreamQuality {
@@ -568,10 +576,14 @@ public struct VideoFormat: Equatable, Sendable {
     public var parameterSets: [Data]
     /// Picture is in Display P3 (wide colour). Lets the iPad colour-manage it correctly.
     public var displayP3: Bool
+    /// Tone curve is sRGB (what macOS captures), not BT.709. False for hosts before 0.8,
+    /// which tagged BT.709 and so showed slightly lifted shadows on the iPad.
+    public var sRGBTransfer: Bool
 
-    public init(codec: VideoCodec, width: Int, height: Int, parameterSets: [Data], displayP3: Bool = false) {
+    public init(codec: VideoCodec, width: Int, height: Int, parameterSets: [Data], displayP3: Bool = false, sRGBTransfer: Bool = false) {
         self.codec = codec; self.width = width; self.height = height; self.parameterSets = parameterSets
         self.displayP3 = displayP3
+        self.sRGBTransfer = sRGBTransfer
     }
 
     public func encoded() -> Data {
@@ -581,6 +593,7 @@ public struct VideoFormat: Equatable, Sendable {
         w.u8(UInt8(parameterSets.count))
         for p in parameterSets { w.blob(p) }
         w.bool(displayP3)
+        w.bool(sRGBTransfer)
         return w.data
     }
 
@@ -597,6 +610,7 @@ public struct VideoFormat: Equatable, Sendable {
         for _ in 0..<n { sets.append(try r.blob()) }
         parameterSets = sets
         displayP3 = r.remaining > 0 ? try r.bool() : false   // absent in older hosts
+        sRGBTransfer = r.remaining > 0 ? try r.bool() : false
     }
 }
 

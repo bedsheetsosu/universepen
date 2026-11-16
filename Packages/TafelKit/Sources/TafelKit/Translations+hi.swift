@@ -302,6 +302,7 @@ extension Translations {
         "Warte auf das iPad …": "iPad की प्रतीक्षा …",
         "iPad-Akku: %d %%": "iPad बैटरी: %d %%",
         "Volle Mac-Auflösung senden": "Mac का पूरा रिज़ॉल्यूशन भेजें",
+        "10-Bit-Farbe (keine Farbstufen)": "10-बिट रंग (बिना रंग-पट्टियों के)",
         "„Volle Mac-Auflösung“: Der Mac schickt alle Pixel unverkleinert (z. B. beim zweiten Bildschirm mit mehr Platz), das iPad verkleinert beim Anzeigen. Kann schärfer sein, braucht aber mehr Bitrate.": "“Mac का पूरा रिज़ॉल्यूशन”: Mac सभी पिक्सेल बिना छोटा किए भेजता है (जैसे ज़्यादा जगह वाली दूसरी स्क्रीन) और iPad दिखाते समय उन्हें छोटा करता है। ज़्यादा शार्प हो सकता है, लेकिन ज़्यादा बिटरेट चाहिए।",
         "Spielmodus": "गेम मोड",
         "Spielmodus (z. B. für osu!): Solange die App am Mac vorne ist, gelten 60 fps, volle Auflösung, mindestens 60 Mbit/s, keine automatische Bitrate und keine Glättung. Mehr als 60 Hz kann das iPad-Display nicht zeigen.": "गेम मोड (जैसे osu! के लिए): जब तक ऐप Mac पर सामने है: 60 fps, पूरा रिज़ॉल्यूशन, कम से कम 60 Mbit/s, कोई ऑटोमैटिक बिटरेट नहीं और कोई स्मूदिंग नहीं। iPad डिस्प्ले 60 Hz से ज़्यादा नहीं दिखा सकता।",
