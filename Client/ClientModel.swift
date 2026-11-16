@@ -637,6 +637,7 @@ final class ClientModel: ObservableObject {
         s.onConnected = { [weak self] in
             Task { @MainActor in
                 self?.reconnectDeadline = nil
+                if self?.sessionStart == nil { self?.sessionStart = Date(); Session.strokesSent.reset() }
                 self?.phase = .connected(host.name)
                 self?.lastHostID = host.hostID
                 self?.sendSettingsSnapshot()
@@ -703,6 +704,7 @@ final class ClientModel: ObservableObject {
             reconnectDeadline = nil
             renderer.reset()
             videoSize = .zero
+            sessionStart = nil
             phase = .failed(reason ?? L("Verbindung verloren."))
             return
         }
@@ -715,7 +717,18 @@ final class ClientModel: ObservableObject {
         }
     }
 
+    /// Start of the current sitting (survives reconnects), for the summary on disconnect.
+    private var sessionStart: Date?
+
     func disconnect() {
+        if let start = sessionStart {
+            let minutes = Int(Date().timeIntervalSince(start) / 60)
+            let strokes = Session.strokesSent.value
+            if minutes >= 1 || strokes > 0 {
+                show(Toast(text: L("Sitzung: %d min · %d Striche", minutes, strokes), seconds: 3))
+            }
+            sessionStart = nil
+        }
         let s = session
         session = nil
         s?.close()

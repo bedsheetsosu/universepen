@@ -302,6 +302,7 @@ extension Translations {
         "Warte auf das iPad …": "iPad를 기다리는 중 …",
         "iPad-Akku: %d %%": "iPad 배터리: %d %%",
         "Volle Mac-Auflösung senden": "Mac 전체 해상도로 전송",
+        "Sitzung: %d min · %d Striche": "세션: %d분 · 획 %d개",
         "Bild zu groß für die Zwischenablage": "이미지가 너무 커서 클립보드에 넣을 수 없음",
         "Auf den Mac kopieren": "Mac에 복사",
         "Hover-Punkt: %d pt": "호버 점: %d pt",

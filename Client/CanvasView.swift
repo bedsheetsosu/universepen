@@ -76,6 +76,8 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     private var rulerTouches: [UITouch] = []
     private var rulerGrab: (ruler: Ruler, points: [CGPoint])?
     private var rulerLine: SnapLine?
+    private var rulerStart: CGPoint?
+    private var measureClear: DispatchWorkItem?
     // Shape recognition: the stroke so far (view points), its pressures, and the hold timer.
     private var shapePoints: [CGPoint] = []
     private var shapePressures: [Double] = []
@@ -773,7 +775,18 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         // Ruler: a stroke that starts near an edge stays on that edge's line.
         var loc = t.preciseLocation(in: self)
         if rawPhase == .down { rulerLine = rulerVisible ? rulerView.ruler.snapLine(for: loc) : nil }
-        if let line = rulerLine { loc = line.project(loc) }
+        if let line = rulerLine {
+            loc = line.project(loc)
+            // Measure the stroke along the ruler (shown in its label, kept a moment after lifting).
+            if rawPhase == .down { rulerStart = loc; measureClear?.cancel() }
+            if let s = rulerStart { rulerView.measuredMM = hypot(loc.x - s.x, loc.y - s.y) * RulerView.mmPerPoint }
+            if rawPhase == .up || rawPhase == .cancel {
+                rulerStart = nil
+                let w = DispatchWorkItem { [weak self] in self?.rulerView.measuredMM = nil }
+                measureClear = w
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: w)
+            }
+        }
         // Perspective: the stroke picks its vanishing line after 10 pt; ellipse: strokes that
         // start on the outline band stay on it.
         if rawPhase == .down {

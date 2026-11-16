@@ -205,6 +205,7 @@ Bring one Mac panel (layers, colours, brushes …) onto the iPad as a small floa
 - **Speed pressure** (Settings → Pencil, 0–100 %): faster strokes get lighter, slow ones stay full – like an ink nib.
 - **Composition grid** (… menu → Tools, tap again to cycle): thirds, quarters or squares (2–32 across, Settings → General) over the picture on the iPad only; it zooms, turns and mirrors with the picture.
 - **Reference picture:** its bar now also flips it horizontally and shows it in grey; both are remembered.
+- **Session summary:** disconnecting shows how long you drew and how many strokes went to the Mac.
 - **Break reminder** (Settings → General: 30/45/60/90 min): a gentle toast after that much drawing time; five minutes without input count as the break.
 
 ## Shape recognition
@@ -283,7 +284,7 @@ The iPad app offers actions in the Shortcuts app: **Connect to Mac** (optionally
 - **Clipboard:** … menu → "Copy iPad → Mac" / "Get Mac → iPad" copies text or an image between the two clipboards over the encrypted connection. Only when you tap it, never in the background.
 - **Reference picture:** … menu → "Reference picture …" floats a photo from your library over the picture, on the iPad only (it never goes to the Mac). Drag to move, pinch to scale, slider for transparency; lock it and the Pencil and fingers pass straight through to the Mac, e.g. for tracing.
 - **Magnifier follows the pen:** in the "iPad section" mode (Mac window → size slider, now down to 20 %), switch on "Magnifier follows the pen": the zoomed section pans when the pen hovers near the iPad's edge and jumps to the pointer when you move it elsewhere with the trackpad or mouse. It never moves while the tip is down.
-- **Ruler:** … menu → "Ruler" lays a ruler over the picture. Move it with one finger, turn it with two (snaps to 0°, 45°, 90° …). Pencil strokes that start on or near it stay on its edge – straight lines in any Mac app.
+- **Ruler:** … menu → "Ruler" lays a ruler over the picture. Move it with one finger, turn it with two (snaps to 0°, 45°, 90° …). Pencil strokes that start on or near it stay on its edge (its label shows the stroke's length in cm on the glass) – straight lines in any Mac app.
 - **Laser pointer:** … menu → "Laser pointer on the Mac": the Pencil draws glowing red marks over the Mac screen that fade after about two seconds, and a red dot follows it. Nothing is clicked or drawn in the app; the marks are a click-through window, so they also show in screen sharing.
 - **Screenshot:** … menu → "Screenshot" takes a picture of exactly what is streamed, at the Mac's full resolution (not the stream size). Drag to crop, then save it to Photos or share it.
 - **Local zoom:** iPad → Settings → Zoom → "Only on the iPad": pinching enlarges the picture on the iPad only (up to 800 %), two fingers move it, and Pencil strokes still land in the right place on the Mac. The pill at the top shows the zoom; tap it to reset.

@@ -302,6 +302,7 @@ extension Translations {
         "Warte auf das iPad …": "正在等待 iPad …",
         "iPad-Akku: %d %%": "iPad 电量：%d %%",
         "Volle Mac-Auflösung senden": "发送 Mac 完整分辨率",
+        "Sitzung: %d min · %d Striche": "本次：%d 分钟 · %d 笔",
         "Bild zu groß für die Zwischenablage": "图片太大，无法放入剪贴板",
         "Auf den Mac kopieren": "复制到 Mac",
         "Hover-Punkt: %d pt": "悬停圆点：%d pt",

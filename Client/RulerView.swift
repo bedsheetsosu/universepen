@@ -8,6 +8,10 @@ final class RulerView: UIView {
     var accent: UIColor = .systemTeal { didSet { setNeedsDisplay() } }
     /// Edge the hovering Pencil would snap to (-1 / 1), drawn in the accent colour.
     var highlightSide: Int? { didSet { if highlightSide != oldValue { setNeedsDisplay() } } }
+    /// Length of the stroke along the ruler, in mm on the glass (shown next to the angle).
+    var measuredMM: Double? { didSet { if measuredMM != oldValue { setNeedsDisplay() } } }
+    /// Points → millimetres on an 11" iPad Air (264 ppi, 2 px per point).
+    static let mmPerPoint = 2.0 / 264.0 * 25.4
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -56,7 +60,7 @@ final class RulerView: UIView {
         }
 
         // Angle label.
-        let label = "\(ruler.degrees)°" as NSString
+        let label = (measuredMM.map { String(format: "%d° · %.1f cm", ruler.degrees, $0 / 10) } ?? "\(ruler.degrees)°") as NSString
         let attrs: [NSAttributedString.Key: Any] = [
             .font: UIFont.monospacedDigitSystemFont(ofSize: 17, weight: .semibold),
             .foregroundColor: accent,

@@ -302,6 +302,7 @@ extension Translations {
         "Warte auf das iPad …": "iPad を待っています …",
         "iPad-Akku: %d %%": "iPad のバッテリー：%d %%",
         "Volle Mac-Auflösung senden": "Mac のフル解像度で送信",
+        "Sitzung: %d min · %d Striche": "セッション：%d 分 · %d ストローク",
         "Bild zu groß für die Zwischenablage": "画像が大きすぎてクリップボードに入りません",
         "Auf den Mac kopieren": "Mac にコピー",
         "Hover-Punkt: %d pt": "ホバー点：%d pt",

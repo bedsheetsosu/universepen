@@ -302,6 +302,7 @@ extension Translations {
         "Warte auf das iPad …": "iPad की प्रतीक्षा …",
         "iPad-Akku: %d %%": "iPad बैटरी: %d %%",
         "Volle Mac-Auflösung senden": "Mac का पूरा रिज़ॉल्यूशन भेजें",
+        "Sitzung: %d min · %d Striche": "सत्र: %d मिनट · %d स्ट्रोक",
         "Bild zu groß für die Zwischenablage": "तस्वीर क्लिपबोर्ड के लिए बहुत बड़ी है",
         "Auf den Mac kopieren": "Mac पर कॉपी करें",
         "Hover-Punkt: %d pt": "होवर बिंदु: %d pt",

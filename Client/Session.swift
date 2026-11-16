@@ -266,7 +266,13 @@ final class Session: @unchecked Sendable {
 
     // MARK: Sending (any thread)
 
-    func send(_ pen: PenSample) { control?.send(.pen, pen.encoded()) }
+    func send(_ pen: PenSample) {
+        if pen.phase == .down { Session.strokesSent.add() }
+        control?.send(.pen, pen.encoded())
+    }
+
+    /// Pencil strokes sent since the counter was reset (session summary).
+    static let strokesSent = StrokeCounter()
     func send(_ scroll: ScrollEvent) { control?.send(.scroll, scroll.encoded()) }
     func send(_ shortcut: Shortcut) { control?.send(.shortcut, shortcut.encoded()) }
     func send(_ key: KeyEvent) { control?.send(.key, key.encoded()) }
@@ -375,4 +381,12 @@ enum PairingError: LocalizedError {
         case .badCode: return L("Der Code hat 12 Zeichen (z. B. ABCD-EFGH-JKMN).")
         }
     }
+}
+
+final class StrokeCounter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var n = 0
+    func add() { lock.withLock { n += 1 } }
+    func reset() { lock.withLock { n = 0 } }
+    var value: Int { lock.withLock { n } }
 }
