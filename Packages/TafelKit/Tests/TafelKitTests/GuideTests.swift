@@ -70,4 +70,10 @@ final class GuideTests: XCTestCase {
         let r = CGRect(x: 0, y: 0, width: 400, height: 200)
         XCTAssertEqual(GridStyle.squares.lines(in: r, cells: 4).count, 3 + 1)
     }
+
+    func testEllipseSnapsToCircle() {
+        var e = EllipseGuide(center: .zero, rx: 100, ry: 60)
+        e.drag(handle: 1, to: CGPoint(x: 0, y: -97))
+        XCTAssertEqual(e.ry, 100, accuracy: 0.001)
+    }
 }

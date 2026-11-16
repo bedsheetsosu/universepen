@@ -622,6 +622,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         var touches = touches
         if rulerVisible {
             for t in touches where t.type == .direct && rulerTouches.count < 2 && rulerView.ruler.contains(t.location(in: self)) {
+                if rulerTouches.isEmpty { rulerTapStart = t.timestamp }
                 rulerTouches.append(t)
                 touches.remove(t)
             }
@@ -680,7 +681,28 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         endPencil(touches, phase: .cancel)
     }
 
+    /// Double-tap on the ruler: back to 0°, or to 90° when it is already level.
+    private var lastRulerTap: TimeInterval = 0
+
+    private func checkRulerDoubleTap(_ touches: Set<UITouch>) {
+        for t in touches where rulerTouches.contains(t) && rulerTouches.count == 1 {
+            let quick = t.timestamp - (rulerTapStart ?? t.timestamp) < 0.25
+            let still = rulerGrab.map { hypot(t.location(in: self).x - $0.points[0].x, t.location(in: self).y - $0.points[0].y) < 8 } ?? false
+            guard quick, still else { lastRulerTap = 0; continue }
+            if t.timestamp - lastRulerTap < 0.4 {
+                var r = rulerView.ruler
+                r.angle = abs(r.angle.truncatingRemainder(dividingBy: .pi)) < 0.001 ? .pi / 2 : 0
+                rulerView.ruler = r
+                lastRulerTap = 0
+            } else {
+                lastRulerTap = t.timestamp
+            }
+        }
+    }
+    private var rulerTapStart: TimeInterval?
+
     private func releaseRuler(_ touches: Set<UITouch>) {
+        checkRulerDoubleTap(touches)
         let before = rulerTouches.count
         rulerTouches.removeAll { touches.contains($0) }
         if rulerTouches.count != before { snapshotRuler() }

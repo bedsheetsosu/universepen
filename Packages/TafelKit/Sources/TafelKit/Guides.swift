@@ -141,6 +141,8 @@ public struct EllipseGuide: Equatable, Sendable {
     public mutating func drag(handle i: Int, to p: CGPoint) {
         let q = local(p)
         if i == 0 { rx = max(abs(q.x), 20) } else { ry = max(abs(q.y), 20) }
+        // Close to round: snap to an exact circle.
+        if abs(rx - ry) < 6 { if i == 0 { rx = ry } else { ry = rx } }
     }
 }
 
