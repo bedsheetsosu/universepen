@@ -112,6 +112,31 @@ public struct PressureCurve: Codable, Equatable, Sendable {
         points = try c.decodeIfPresent([CurvePoint].self, forKey: .points) ?? []
     }
 
+    /// Ready-made curves for the editor (the minimum stays as it is).
+    public enum Preset: String, CaseIterable, Sendable {
+        case soft, linear, firm, sCurve
+
+        public var title: String {
+            switch self {
+            case .soft: return L("Weich")
+            case .linear: return L("Linear")
+            case .firm: return L("Fest")
+            case .sCurve: return L("S-Kurve")
+            }
+        }
+
+        public var points: [CurvePoint] {
+            switch self {
+            case .soft: return [CurvePoint(0, 0), CurvePoint(0.25, 0.45), CurvePoint(0.5, 0.7), CurvePoint(0.75, 0.88), CurvePoint(1, 1)]
+            case .linear: return [CurvePoint(0, 0), CurvePoint(0.25, 0.25), CurvePoint(0.5, 0.5), CurvePoint(0.75, 0.75), CurvePoint(1, 1)]
+            case .firm: return [CurvePoint(0, 0), CurvePoint(0.25, 0.08), CurvePoint(0.5, 0.25), CurvePoint(0.75, 0.55), CurvePoint(1, 1)]
+            case .sCurve: return [CurvePoint(0, 0), CurvePoint(0.25, 0.12), CurvePoint(0.5, 0.5), CurvePoint(0.75, 0.88), CurvePoint(1, 1)]
+            }
+        }
+    }
+
+    public mutating func apply(_ preset: Preset) { points = preset.points }
+
     /// Five editable points that reproduce the current gamma curve (start of the editor).
     public func editablePoints() -> [CurvePoint] {
         if points.count >= 2 { return points }

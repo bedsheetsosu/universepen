@@ -302,6 +302,8 @@ extension Translations {
         "Warte auf das iPad …": "iPad की प्रतीक्षा …",
         "iPad-Akku: %d %%": "iPad बैटरी: %d %%",
         "Volle Mac-Auflösung senden": "Mac का पूरा रिज़ॉल्यूशन भेजें",
+        "Linear": "रैखिक",
+        "S-Kurve": "S-वक्र",
         "Tastenkürzel: ⌃⌥⌘T Tablett-Modus · ⌃⌥⌘P Palette wählen · ⌃⌥⌘I vorderstes Fenster aufs iPad": "शॉर्टकट: ⌃⌥⌘T टैबलेट मोड · ⌃⌥⌘P पैलेट चुनें · ⌃⌥⌘I सबसे आगे की विंडो iPad पर",
         "Vorderstes Fenster aufs iPad": "सबसे आगे की विंडो iPad पर",
         "Raster": "ग्रिड",

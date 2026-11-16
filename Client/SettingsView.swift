@@ -204,6 +204,14 @@ struct SettingsView: View {
                         Section {
                             PressureCurveEditor(curve: pen.pressure)
                                 .listRowBackground(Color.clear)
+                            HStack {
+                                ForEach(PressureCurve.Preset.allCases, id: \.self) { p in
+                                    Button(p.title) { withAnimation(Brand.spring) { pen.wrappedValue.pressure.apply(p) } }
+                                        .buttonStyle(.bordered)
+                                        .tint(pen.wrappedValue.pressure.points == p.points ? Brand.mint : .secondary)
+                                        .frame(maxWidth: .infinity)
+                                }
+                            }
                         } footer: {
                             Text(L("Punkte mit dem Finger ziehen. Unten mit dem Pencil drücken, um zu sehen, wo dein Druck auf der Kurve landet."))
                         }

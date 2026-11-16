@@ -302,6 +302,8 @@ extension Translations {
         "Warte auf das iPad …": "iPad를 기다리는 중 …",
         "iPad-Akku: %d %%": "iPad 배터리: %d %%",
         "Volle Mac-Auflösung senden": "Mac 전체 해상도로 전송",
+        "Linear": "선형",
+        "S-Kurve": "S자 곡선",
         "Tastenkürzel: ⌃⌥⌘T Tablett-Modus · ⌃⌥⌘P Palette wählen · ⌃⌥⌘I vorderstes Fenster aufs iPad": "단축키: ⌃⌥⌘T 태블릿 모드 · ⌃⌥⌘P 팔레트 선택 · ⌃⌥⌘I 맨 앞 창을 iPad로",
         "Vorderstes Fenster aufs iPad": "맨 앞 창을 iPad로",
         "Raster": "격자",

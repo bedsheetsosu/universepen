@@ -192,6 +192,7 @@ Bring one Mac panel (layers, colours, brushes …) onto the iPad as a small floa
 ## Rope stabilizer, fixed pressure, tools on gestures
 
 - **Rope stabilizer** (iPad → Settings → Pencil, 0–60 pt): the stroke hangs on an invisible string behind the Pencil; jitter shorter than the string never reaches the Mac. Steady lines and lettering without the lag of averaging. Not combined with the ruler/perspective/ellipse aids, which are straight already.
+- **Pressure curve presets:** Soft, Linear, Firm and S-curve buttons under the curve editor (then fine-tune the points).
 - **Fixed pressure:** every stroke at one pressure (5–100 %) for even ink lines.
 - **iPad tools on gestures:** ruler, perspective 1/2/3, ellipse, shape recognition, laser, screenshot and palette can be put on double-tap, squeeze, finger gestures, radial menu items and bar buttons ("iPad tool"), and toggled from Shortcuts ("Toggle iPad Tool").
 

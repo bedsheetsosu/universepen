@@ -26,4 +26,18 @@ final class RulerTests: XCTestCase {
         XCTAssertEqual(Ruler.snapped(40 * .pi / 180), 40 * .pi / 180, accuracy: 1e-9)
         XCTAssertEqual(Ruler(center: .zero, angle: -.pi / 2).degrees, 90)
     }
+
+    func testPressurePresetsAreMonotone() {
+        for p in PressureCurve.Preset.allCases {
+            var c = PressureCurve()
+            c.apply(p)
+            var last = -1.0
+            for i in 0...20 {
+                let v = c.map(Double(i) / 20)
+                XCTAssertGreaterThanOrEqual(v, last - 1e-9, "\(p)")
+                last = v
+            }
+            XCTAssertEqual(c.map(1), 1, accuracy: 1e-9)
+        }
+    }
 }
