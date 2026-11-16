@@ -16,3 +16,14 @@
 "Not connected to a Mac." = "किसी Mac से कनेक्ट नहीं है।";
 "Mac Screenshot" = "Mac स्क्रीनशॉट";
 "Disconnect" = "डिस्कनेक्ट";
+"Tool" = "टूल";
+"Ruler" = "रूलर";
+"Perspective (1 point)" = "परिप्रेक्ष्य (1 बिंदु)";
+"Perspective (2 points)" = "परिप्रेक्ष्य (2 बिंदु)";
+"Perspective (3 points)" = "परिप्रेक्ष्य (3 बिंदु)";
+"Ellipse template" = "दीर्घवृत्त टेम्पलेट";
+"Shape recognition" = "आकृति पहचान";
+"Laser pointer" = "लेज़र पॉइंटर";
+"Palette from the Mac" = "Mac से पैलेट";
+"Toggle iPad Tool" = "iPad टूल टॉगल करें";
+"Shows or hides a drawing aid, or switches a tool on or off." = "ड्रॉइंग सहायता दिखाता या छिपाता है, या किसी टूल को चालू/बंद करता है।";

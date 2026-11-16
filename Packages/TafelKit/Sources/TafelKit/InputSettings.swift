@@ -2,8 +2,44 @@ import Foundation
 import CoreGraphics
 
 /// What a Pencil gesture (double tap, squeeze) or a finger tap triggers.
+/// Things that happen on the iPad itself (no Mac shortcut): drawing aids and tools.
+public enum IPadTool: String, Codable, CaseIterable, Sendable {
+    case ruler, perspective1, perspective2, perspective3, ellipse, shapeRecognition, laser, screenshot, palette
+
+    public var title: String {
+        switch self {
+        case .ruler: return L("Lineal")
+        case .perspective1: return L("Perspektive: 1 Fluchtpunkt")
+        case .perspective2: return L("Perspektive: %d Fluchtpunkte", 2)
+        case .perspective3: return L("Perspektive: %d Fluchtpunkte", 3)
+        case .ellipse: return L("Ellipsen-Schablone")
+        case .shapeRecognition: return L("Formerkennung")
+        case .laser: return L("Laserpointer am Mac")
+        case .screenshot: return L("Bildschirmfoto")
+        case .palette: return L("Palette vom Mac")
+        }
+    }
+
+    /// Short label for radial menu buttons.
+    public var shortTitle: String {
+        switch self {
+        case .ruler: return L("Lineal")
+        case .perspective1: return "1P"
+        case .perspective2: return "2P"
+        case .perspective3: return "3P"
+        case .ellipse: return L("Ellipse")
+        case .shapeRecognition: return L("Formen")
+        case .laser: return L("Laser")
+        case .screenshot: return L("Foto")
+        case .palette: return L("Palette")
+        }
+    }
+}
+
 public enum PencilAction: Codable, Hashable, Sendable {
     case none
+    /// An iPad tool (ruler, perspective, laser …), toggled on the iPad.
+    case tool(IPadTool)
     case shortcut(Shortcut)
     /// Opens the radial menu at the Pencil tip (Pencil Pro squeeze / double tap).
     case radialMenu
@@ -33,6 +69,7 @@ public enum PencilAction: Codable, Hashable, Sendable {
         case .shortcut(let s): return s.display
         case .radialMenu: return L("Radialmenü")
         case .plugin(let id): return "⚙︎ " + (id.split(separator: "/").last.map(String.init) ?? id)
+        case .tool(let t): return t.title
         }
     }
 }
@@ -114,8 +151,17 @@ public struct ShortcutButton: Codable, Hashable, Identifiable, Sendable {
     public var hold: HoldKey?
     /// If set, the button runs this Mac plugin action ("pluginID/actionID") instead of the shortcut.
     public var pluginAction: String?
-    public init(id: UUID = UUID(), title: String, shortcut: Shortcut, hold: HoldKey? = nil, pluginAction: String? = nil) {
-        self.id = id; self.title = title; self.shortcut = shortcut; self.hold = hold; self.pluginAction = pluginAction
+    /// If set, the button toggles this iPad tool instead.
+    public var tool: IPadTool?
+    public init(id: UUID = UUID(), title: String, shortcut: Shortcut, hold: HoldKey? = nil, pluginAction: String? = nil, tool: IPadTool? = nil) {
+        self.id = id; self.title = title; self.shortcut = shortcut; self.hold = hold; self.pluginAction = pluginAction; self.tool = tool
+    }
+
+    /// What the button does, for lists.
+    public var actionDisplay: String {
+        if let tool { return tool.title }
+        if let hold { return L("Halten: %@", hold.symbol) }
+        return shortcut.display
     }
 }
 

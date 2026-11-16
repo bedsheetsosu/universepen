@@ -16,3 +16,14 @@
 "Not connected to a Mac." = "Nicht mit einem Mac verbunden.";
 "Mac Screenshot" = "Mac-Bildschirmfoto";
 "Disconnect" = "Trennen";
+"Tool" = "Werkzeug";
+"Ruler" = "Lineal";
+"Perspective (1 point)" = "Perspektive (1 Fluchtpunkt)";
+"Perspective (2 points)" = "Perspektive (2 Fluchtpunkte)";
+"Perspective (3 points)" = "Perspektive (3 Fluchtpunkte)";
+"Ellipse template" = "Ellipsen-Schablone";
+"Shape recognition" = "Formerkennung";
+"Laser pointer" = "Laserpointer";
+"Palette from the Mac" = "Palette vom Mac";
+"Toggle iPad Tool" = "iPad-Werkzeug umschalten";
+"Shows or hides a drawing aid, or switches a tool on or off." = "Blendet eine Zeichenhilfe ein oder aus oder schaltet ein Werkzeug um.";

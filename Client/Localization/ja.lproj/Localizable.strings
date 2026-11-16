@@ -16,3 +16,14 @@
 "Not connected to a Mac." = "Mac に接続されていません。";
 "Mac Screenshot" = "Mac のスクリーンショット";
 "Disconnect" = "接続解除";
+"Tool" = "ツール";
+"Ruler" = "定規";
+"Perspective (1 point)" = "パース（1点）";
+"Perspective (2 points)" = "パース（2点）";
+"Perspective (3 points)" = "パース（3点）";
+"Ellipse template" = "楕円テンプレート";
+"Shape recognition" = "図形認識";
+"Laser pointer" = "レーザーポインタ";
+"Palette from the Mac" = "Mac のパレット";
+"Toggle iPad Tool" = "iPad ツールを切り替え";
+"Shows or hides a drawing aid, or switches a tool on or off." = "描画補助の表示／非表示や、ツールのオン／オフを切り替えます。";

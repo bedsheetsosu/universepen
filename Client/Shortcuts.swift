@@ -116,6 +116,31 @@ struct MacScreenshotIntent: AppIntent {
     }
 }
 
+enum ToolChoice: String, AppEnum {
+    case ruler, perspective1, perspective2, perspective3, ellipse, shapeRecognition, laser, palette
+    static let typeDisplayRepresentation: TypeDisplayRepresentation = "Tool"
+    static let caseDisplayRepresentations: [ToolChoice: DisplayRepresentation] = [
+        .ruler: "Ruler", .perspective1: "Perspective (1 point)", .perspective2: "Perspective (2 points)",
+        .perspective3: "Perspective (3 points)", .ellipse: "Ellipse template", .shapeRecognition: "Shape recognition",
+        .laser: "Laser pointer", .palette: "Palette from the Mac",
+    ]
+    var tool: IPadTool { IPadTool(rawValue: rawValue) ?? .ruler }
+}
+
+struct ToggleToolIntent: AppIntent {
+    static let title: LocalizedStringResource = "Toggle iPad Tool"
+    static let description = IntentDescription("Shows or hides a drawing aid, or switches a tool on or off.")
+    static let openAppWhenRun = true
+
+    @Parameter(title: "Tool", default: .ruler) var tool: ToolChoice
+
+    @MainActor
+    func perform() async throws -> some IntentResult {
+        ClientModel.shared.runTool(tool.tool)
+        return .result()
+    }
+}
+
 struct UniversePenShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(intent: ConnectToMacIntent(), phrases: [
@@ -131,6 +156,9 @@ struct UniversePenShortcuts: AppShortcutsProvider {
         AppShortcut(intent: MacScreenshotIntent(), phrases: [
             "Take a Mac screenshot with \(.applicationName)",
         ], shortTitle: "Mac Screenshot", systemImageName: "camera.viewfinder")
+        AppShortcut(intent: ToggleToolIntent(), phrases: [
+            "Toggle a tool in \(.applicationName)",
+        ], shortTitle: "Toggle iPad Tool", systemImageName: "ruler")
         AppShortcut(intent: DisconnectIntent(), phrases: [
             "Disconnect \(.applicationName)",
         ], shortTitle: "Disconnect", systemImageName: "xmark.circle")

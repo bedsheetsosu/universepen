@@ -4,3 +4,4 @@
 "Toggle the laser pointer in ${applicationName}" = "${applicationName} のレーザーポインタを切り替え";
 "Take a Mac screenshot with ${applicationName}" = "${applicationName} で Mac のスクリーンショットを撮る";
 "Disconnect ${applicationName}" = "${applicationName} の接続を解除";
+"Toggle a tool in ${applicationName}" = "${applicationName} のツールを切り替え";

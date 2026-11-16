@@ -16,3 +16,14 @@
 "Not connected to a Mac." = "未连接到 Mac。";
 "Mac Screenshot" = "Mac 截图";
 "Disconnect" = "断开连接";
+"Tool" = "工具";
+"Ruler" = "直尺";
+"Perspective (1 point)" = "透视（1 点）";
+"Perspective (2 points)" = "透视（2 点）";
+"Perspective (3 points)" = "透视（3 点）";
+"Ellipse template" = "椭圆模板";
+"Shape recognition" = "形状识别";
+"Laser pointer" = "激光笔";
+"Palette from the Mac" = "来自 Mac 的面板";
+"Toggle iPad Tool" = "切换 iPad 工具";
+"Shows or hides a drawing aid, or switches a tool on or off." = "显示或隐藏绘图辅助，或打开/关闭某个工具。";

@@ -16,3 +16,14 @@
 "Not connected to a Mac." = "No hay conexión con un Mac.";
 "Mac Screenshot" = "Captura del Mac";
 "Disconnect" = "Desconectar";
+"Tool" = "Herramienta";
+"Ruler" = "Regla";
+"Perspective (1 point)" = "Perspectiva (1 punto)";
+"Perspective (2 points)" = "Perspectiva (2 puntos)";
+"Perspective (3 points)" = "Perspectiva (3 puntos)";
+"Ellipse template" = "Plantilla de elipse";
+"Shape recognition" = "Reconocimiento de formas";
+"Laser pointer" = "Puntero láser";
+"Palette from the Mac" = "Paleta del Mac";
+"Toggle iPad Tool" = "Alternar herramienta del iPad";
+"Shows or hides a drawing aid, or switches a tool on or off." = "Muestra u oculta una ayuda de dibujo, o activa o desactiva una herramienta.";

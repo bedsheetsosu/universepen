@@ -4,3 +4,4 @@
 "Toggle the laser pointer in ${applicationName}" = "切换 ${applicationName} 的激光笔";
 "Take a Mac screenshot with ${applicationName}" = "用 ${applicationName} 拍摄 Mac 截图";
 "Disconnect ${applicationName}" = "断开 ${applicationName}";
+"Toggle a tool in ${applicationName}" = "切换 ${applicationName} 中的工具";

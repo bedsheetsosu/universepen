@@ -381,7 +381,7 @@ struct SettingsView: View {
                 NavigationLink {
                     ShortcutButtonEditor(button: $b)
                 } label: {
-                    LabeledContent(b.title, value: b.shortcut.display)
+                    LabeledContent(b.title, value: b.actionDisplay)
                 }
             }
             .onDelete { idx in
@@ -494,7 +494,7 @@ struct SettingsView: View {
                     NavigationLink {
                         ShortcutButtonEditor(button: $b)
                     } label: {
-                        LabeledContent(b.title, value: b.hold.map { L("Halten: %@", $0.symbol) } ?? b.shortcut.display)
+                        LabeledContent(b.title, value: b.actionDisplay)
                     }
                 }
                 .onDelete { bar.wrappedValue.remove(atOffsets: $0) }
@@ -575,9 +575,11 @@ struct ActionPicker: View {
     private var choice: Binding<String> {
         Binding(get: {
             if case .plugin(let id) = action { return "plugin:" + id }
+            if case .tool(let t) = action { return "tool:" + t.rawValue }
             return preset.wrappedValue.rawValue
         }, set: { v in
             if v.hasPrefix("plugin:") { action = .plugin(String(v.dropFirst(7))) }
+            else if v.hasPrefix("tool:"), let t = IPadTool(rawValue: String(v.dropFirst(5))) { action = .tool(t) }
             else if let p = Preset(rawValue: v) { preset.wrappedValue = p }
         })
     }
@@ -585,6 +587,8 @@ struct ActionPicker: View {
     var body: some View {
         Picker(title, selection: choice) {
             ForEach(Preset.allCases) { Text($0.label).tag($0.rawValue) }
+            Divider()
+            ForEach(IPadTool.allCases, id: \.self) { t in Text("✎ " + t.title).tag("tool:" + t.rawValue) }
             if !model.pluginActions.isEmpty || isPlugin {
                 Divider()
                 ForEach(model.pluginActions) { a in Text("⚙︎ " + a.title).tag("plugin:" + a.id) }
@@ -593,7 +597,7 @@ struct ActionPicker: View {
                 }
             }
         }
-        if !isPlugin, preset.wrappedValue == .custom, let s = action.shortcut {
+        if !isPlugin, !isTool, preset.wrappedValue == .custom, let s = action.shortcut {
             ShortcutEditor(shortcut: Binding(get: { s }, set: { action = .shortcut($0) }))
                 .padding(.leading, 16)
         }
@@ -602,6 +606,7 @@ struct ActionPicker: View {
 
 extension ActionPicker {
     var isPlugin: Bool { if case .plugin = action { return true } else { return false } }
+    var isTool: Bool { if case .tool = action { return true } else { return false } }
 }
 
 struct ShortcutEditor: View {
@@ -650,17 +655,27 @@ struct ShortcutButtonEditor: View {
     var body: some View {
         Form {
             TextField(L("Titel"), text: $button.title)
-            Picker(L("Art"), selection: Binding(get: { button.pluginAction != nil ? 2 : button.hold == nil ? 0 : 1 },
+            Picker(L("Art"), selection: Binding(get: { button.tool != nil ? 3 : button.pluginAction != nil ? 2 : button.hold == nil ? 0 : 1 },
                                                 set: { v in
                                                     button.hold = v == 1 ? (button.hold ?? .shift) : nil
                                                     button.pluginAction = v == 2 ? (button.pluginAction ?? model.pluginActions.first?.id ?? "") : nil
+                                                    button.tool = v == 3 ? (button.tool ?? .ruler) : nil
                                                 })) {
                 Text(L("Shortcut senden")).tag(0)
                 Text(L("Taste halten")).tag(1)
                 Text(L("Plugin-Aktion")).tag(2)
+                Text(L("iPad-Werkzeug")).tag(3)
             }
             .pickerStyle(.segmented)
-            if button.pluginAction != nil {
+            if button.tool != nil {
+                Picker(L("Werkzeug"), selection: Binding(get: { button.tool ?? .ruler }, set: { t in
+                    // Keep a custom title; replace the default one.
+                    if button.title == L("Neu") || IPadTool.allCases.contains(where: { $0.shortTitle == button.title }) { button.title = t.shortTitle }
+                    button.tool = t
+                })) {
+                    ForEach(IPadTool.allCases, id: \.self) { Text($0.title).tag($0) }
+                }
+            } else if button.pluginAction != nil {
                 Picker(L("Aktion"), selection: Binding(get: { button.pluginAction ?? "" }, set: { button.pluginAction = $0 })) {
                     ForEach(model.pluginActions) { a in Text(a.title).tag(a.id) }
                     if let id = button.pluginAction, !model.pluginActions.contains(where: { $0.id == id }) {

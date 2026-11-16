@@ -851,13 +851,39 @@ final class ClientModel: ObservableObject {
     /// Runs a bar / radial menu button: its plugin action, or its shortcut.
     func run(_ b: ShortcutButton) {
         guard !settings.viewOnly else { return }
-        if let p = b.pluginAction { runPlugin(p) } else { session?.send(b.shortcut) }
+        if let t = b.tool { runTool(t) } else if let p = b.pluginAction { runPlugin(p) } else { session?.send(b.shortcut) }
+    }
+
+    /// Toggles an iPad tool (from a Pencil gesture, the radial menu, a bar button or a Shortcut).
+    func runTool(_ t: IPadTool) {
+        func toggleGuide(_ g: DrawingGuide) {
+            guide = guide == g ? .none : g
+            show(Toast(text: guide == .none ? L("%@ aus", t.title) : t.title, seconds: 1.2))
+        }
+        switch t {
+        case .ruler: toggleGuide(.ruler)
+        case .perspective1: toggleGuide(.perspective(1))
+        case .perspective2: toggleGuide(.perspective(2))
+        case .perspective3: toggleGuide(.perspective(3))
+        case .ellipse: toggleGuide(.ellipse)
+        case .shapeRecognition:
+            settings.shapeRecognition.toggle()
+            show(Toast(text: settings.shapeRecognition ? L("Formerkennung an – am Strichende kurz halten") : L("%@ aus", t.title), seconds: 1.6))
+        case .laser:
+            laserMode.toggle()
+            show(Toast(text: laserMode ? L("Laserpointer an – der Pencil zeichnet nur noch Leuchtspuren") : L("Laserpointer aus"), seconds: 1.6))
+        case .screenshot:
+            requestScreenshot()
+        case .palette:
+            if palette.image != nil { removePalette() } else { pickPalette() }
+        }
     }
 
     func trigger(_ action: PencilAction) {
         guard !settings.viewOnly else { return }
         if action == .radialMenu { return }   // opened by the canvas, which knows the Pencil position
         if case .plugin(let id) = action { runPlugin(id); return }
+        if case .tool(let t) = action { runTool(t); return }
         guard let s = action.shortcut else { return }
         session?.send(s)
     }

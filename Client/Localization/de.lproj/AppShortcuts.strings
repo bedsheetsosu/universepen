@@ -4,3 +4,4 @@
 "Toggle the laser pointer in ${applicationName}" = "Laserpointer in ${applicationName} umschalten";
 "Take a Mac screenshot with ${applicationName}" = "Mac-Bildschirmfoto mit ${applicationName} aufnehmen";
 "Disconnect ${applicationName}" = "${applicationName} trennen";
+"Toggle a tool in ${applicationName}" = "Werkzeug in ${applicationName} umschalten";

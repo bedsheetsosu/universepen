@@ -16,3 +16,14 @@
 "Not connected to a Mac." = "Mac에 연결되어 있지 않습니다.";
 "Mac Screenshot" = "Mac 스크린샷";
 "Disconnect" = "연결 해제";
+"Tool" = "도구";
+"Ruler" = "자";
+"Perspective (1 point)" = "원근(1점)";
+"Perspective (2 points)" = "원근(2점)";
+"Perspective (3 points)" = "원근(3점)";
+"Ellipse template" = "타원 템플릿";
+"Shape recognition" = "도형 인식";
+"Laser pointer" = "레이저 포인터";
+"Palette from the Mac" = "Mac의 팔레트";
+"Toggle iPad Tool" = "iPad 도구 전환";
+"Shows or hides a drawing aid, or switches a tool on or off." = "그리기 보조를 표시하거나 숨기고, 도구를 켜거나 끕니다.";
