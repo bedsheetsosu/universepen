@@ -22,6 +22,8 @@ final class InkOverlayView: UIView {
     private var hover: CGPoint?
     /// Diameter of the hover ring.
     var hoverSize: CGFloat = 10
+    /// Tilt of the hovering Pencil (direction × amount 0…1), drawn as a short line from the dot.
+    var hoverTilt: CGVector?
     private var link: CADisplayLink?
     private var dirty = CGRect.null
 
@@ -44,7 +46,7 @@ final class InkOverlayView: UIView {
     }
 
     func setHover(_ p: CGPoint?) {
-        let r = hoverSize / 2 + 4
+        let r = hoverSize / 2 + 4 + (hoverTilt == nil ? 0 : 30)
         if let h = hover { mark(h, radius: r) }
         hover = p
         if let p { mark(p, radius: r) }
@@ -113,6 +115,14 @@ final class InkOverlayView: UIView {
             ctx.setStrokeColor(color.withAlphaComponent(0.95).cgColor)
             ctx.setLineWidth(1.5)
             ctx.strokeEllipse(in: r)
+            if let t = hoverTilt, hypot(t.dx, t.dy) > 0.05 {
+                // The tip leans away from where the Pencil's body points.
+                let end = CGPoint(x: h.x - t.dx * 30, y: h.y - t.dy * 30)
+                ctx.move(to: h); ctx.addLine(to: end)
+                ctx.setStrokeColor(color.withAlphaComponent(0.8).cgColor)
+                ctx.setLineWidth(2)
+                ctx.strokePath()
+            }
         }
     }
 }

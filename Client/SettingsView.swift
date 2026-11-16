@@ -320,6 +320,7 @@ struct SettingsView: View {
             Toggle(L("Undo/Redo-Knöpfe am Rand"), isOn: $model.settings.undoButtons)
             Toggle(L("Hover-Punkt unter der Stiftspitze"), isOn: $model.settings.hoverDot)
             if model.settings.hoverDot {
+                Toggle(L("Neigung am Hover-Punkt zeigen"), isOn: $model.settings.hoverTilt)
                 Stepper(L("Hover-Punkt: %d pt", Int(model.settings.hoverDotSize)), value: $model.settings.hoverDotSize, in: 4...40, step: 2)
             }
             Toggle(L("Eigene Farbe für Sofort-Tinte"), isOn: Binding(

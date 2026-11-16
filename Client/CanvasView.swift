@@ -1040,6 +1040,10 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         // end – otherwise single-finger input stays blocked ("Pencil is hovering").
         if radialOpen { if gone { hovering = false }; return }
         if viewOnly { hovering = false; ink.setHover(nil); return }
+        ink.hoverTilt = settings.hoverTilt && !gone
+            ? CGVector(dx: cos(g.azimuthAngle(in: self)) * (1 - g.altitudeAngle / (.pi / 2)),
+                       dy: sin(g.azimuthAngle(in: self)) * (1 - g.altitudeAngle / (.pi / 2)))
+            : nil
         ink.setHover(settings.hoverDot && !gone && pencilTouch == nil ? g.location(in: self) : nil)
         guard settings.sendHover, let session else { return }
         let n = normalizeInput(g.location(in: self))

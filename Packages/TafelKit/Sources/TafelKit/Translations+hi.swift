@@ -302,6 +302,8 @@ extension Translations {
         "Warte auf das iPad …": "iPad की प्रतीक्षा …",
         "iPad-Akku: %d %%": "iPad बैटरी: %d %%",
         "Volle Mac-Auflösung senden": "Mac का पूरा रिज़ॉल्यूशन भेजें",
+        "Neigung am Hover-Punkt zeigen": "होवर बिंदु पर झुकाव दिखाएँ",
+        "Ton beim Verbinden und Trennen": "कनेक्ट और डिस्कनेक्ट पर आवाज़",
         "Finger: %@": "उंगलियाँ: %@",
         "Am Mac getippt": "Mac पर टाइप किया गया",
         "Neuer Textbaustein": "नया स्निपेट",

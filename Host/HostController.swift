@@ -184,6 +184,11 @@ final class HostController: ObservableObject {
     private var captureRestarts: [Date] = []
     private var thermalObserver: NSObjectProtocol?
 
+    /// A short system sound when an iPad connects or goes away.
+    @Published var connectSound = UserDefaults.standard.bool(forKey: "connectSound") {
+        didSet { UserDefaults.standard.set(connectSound, forKey: "connectSound") }
+    }
+
     // MARK: Open at login
 
     @Published private(set) var openAtLogin = SMAppService.mainApp.status == .enabled
@@ -788,6 +793,9 @@ final class HostController: ObservableObject {
             if name == nil { injector.releaseAll(); DispatchQueue.main.async { injector.releaseCharKeys() } }
             Task { @MainActor in
                 guard let self else { return }
+                if self.connectSound, (name != nil) != (self.sessionDevice != nil) {
+                    NSSound(named: name != nil ? "Glass" : "Bottle")?.play()
+                }
                 self.sessionDevice = name
                 self.updateAwake(sessionActive: name != nil)
                 self.sessionLink = link

@@ -302,6 +302,8 @@ extension Translations {
         "Warte auf das iPad …": "iPad를 기다리는 중 …",
         "iPad-Akku: %d %%": "iPad 배터리: %d %%",
         "Volle Mac-Auflösung senden": "Mac 전체 해상도로 전송",
+        "Neigung am Hover-Punkt zeigen": "호버 점에 기울기 표시",
+        "Ton beim Verbinden und Trennen": "연결 및 해제 시 소리",
         "Finger: %@": "손가락: %@",
         "Am Mac getippt": "Mac에 입력됨",
         "Neuer Textbaustein": "새 텍스트 조각",

@@ -222,6 +222,8 @@ iPad → Settings → Pencil → "Shape recognition" (off by default). Hold the 
 
 ## Small things
 
+- **Hover tilt** (Settings → Pencil, with the hover dot): a short line from the dot shows which way and how far the Pencil leans – useful before a tilt-shaded stroke.
+- **Connect sound** (Mac window → Stream): a short system sound when an iPad connects or goes away.
 - **Open at login** (Mac window → Stream), via the system's login items (the app should be in Applications).
 - **View only** and the **finger mode** (tap to cycle off / mouse / pen / pointer) are also in the iPad … menu; palette and heat guard are also in the Mac menu bar menu.
 - **Text snippets** (Settings → Text snippets): saved texts in the … menu under Clipboard; one tap types them on the Mac.

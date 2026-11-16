@@ -495,6 +495,7 @@ struct HostView: View {
             }
             Text(L("Zeigt, welche Druck-, Neigungs- und Rotationswerte eine Mac-App wirklich empfängt."))
                 .font(.caption).foregroundStyle(.secondary)
+            Toggle(L("Ton beim Verbinden und Trennen"), isOn: $host.connectSound)
             Toggle(L("Beim Anmelden öffnen"), isOn: Binding(get: { host.openAtLogin }, set: { host.setOpenAtLogin($0) }))
             Toggle(isOn: $host.heatGuard) {
                 VStack(alignment: .leading, spacing: 2) {

@@ -302,6 +302,8 @@ extension Translations {
         "Warte auf das iPad …": "iPad を待っています …",
         "iPad-Akku: %d %%": "iPad のバッテリー：%d %%",
         "Volle Mac-Auflösung senden": "Mac のフル解像度で送信",
+        "Neigung am Hover-Punkt zeigen": "ホバー点に傾きを表示",
+        "Ton beim Verbinden und Trennen": "接続・切断時にサウンド",
         "Finger: %@": "指：%@",
         "Am Mac getippt": "Mac で入力しました",
         "Neuer Textbaustein": "新しい定型文",
