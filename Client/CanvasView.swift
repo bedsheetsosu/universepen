@@ -150,8 +150,8 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     /// Fingers on a vanishing point, an ellipse knob or inside the ellipse belong to the aid.
     private func guideHit(_ p: CGPoint) -> Bool {
         switch guideKind {
-        case .perspective: return perspective?.handle(at: p) != nil
-        case .ellipse: return ellipseGuide.map { $0.handle(at: p) != nil || $0.containsBody(p) } ?? false
+        case .perspective: return !guidesLocked && perspective?.handle(at: p) != nil
+        case .ellipse: return !guidesLocked && (ellipseGuide.map { $0.handle(at: p) != nil || $0.containsBody(p) } ?? false)
         default: return false
         }
     }
@@ -161,11 +161,11 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
             let p = t.location(in: self)
             switch guideKind {
             case .perspective:
-                if guideTouches.isEmpty, let i = perspective?.handle(at: p) {
+                if !guidesLocked, guideTouches.isEmpty, let i = perspective?.handle(at: p) {
                     guideTouches = [t]; guideGrab = .vanishingPoint(i); touches.remove(t)
                 }
             case .ellipse:
-                guard let e = ellipseGuide else { continue }
+                guard !guidesLocked, let e = ellipseGuide else { continue }
                 if guideTouches.isEmpty, let i = e.handle(at: p) {
                     guideTouches = [t]; guideGrab = .axis(i); touches.remove(t)
                 } else if guideTouches.count < 2, e.containsBody(p) || !guideTouches.isEmpty && e.handle(at: p) == nil {
@@ -566,6 +566,9 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     var gridCells = 8 { didSet { if gridCells != oldValue { updateGrid() } } }
     /// Strokes that start near a grid line follow it.
     var gridSnap = false
+    /// Vanishing points and the ellipse cannot be moved (no accidental drags while drawing).
+    var guidesLocked = false
+    var gridOpacity: CGFloat = 0.45 { didSet { if gridOpacity != oldValue { gridLayer.strokeColor = UIColor.white.withAlphaComponent(gridOpacity).cgColor } } }
     /// The grid line (picture coordinates) the current stroke follows.
     private var gridLine: SnapLine?
 
@@ -1417,6 +1420,8 @@ struct CanvasRepresentable: UIViewRepresentable {
         v.grid = model.tabletModeActive ? .off : model.grid
         v.gridCells = model.gridCells
         v.gridSnap = model.gridSnap
+        v.guidesLocked = model.guidesLocked
+        v.gridOpacity = CGFloat(model.gridOpacity)
         if model.settings.zoomMethod != .localView || model.localZoomResets != context.coordinator.zoomResets {
             context.coordinator.zoomResets = model.localZoomResets
             v.resetLocalZoom()

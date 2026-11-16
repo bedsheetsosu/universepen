@@ -391,6 +391,10 @@ private struct OverlayMenuPanel: View {
                             close()
                         }
                     }
+                    if model.guide != .none && model.guide != .ruler {
+                        row(model.guidesLocked ? L("Schablone entsperren") : L("Schablone sperren"), icon: model.guidesLocked ? "lock.fill" : "lock.open",
+                            checked: model.guidesLocked, indent: true) { model.guidesLocked.toggle(); close() }
+                    }
                     row(L("Ellipsen-Schablone"), icon: "oval", checked: model.guide == .ellipse) {
                         withAnimation(Brand.spring) { model.guide = model.guide == .ellipse ? .none : .ellipse }
                         model.noteRecent(.ellipse)

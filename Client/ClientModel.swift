@@ -190,6 +190,10 @@ final class ClientModel: ObservableObject {
     @Published var gridSnap: Bool = UserDefaults.standard.bool(forKey: "gridSnap") {
         didSet { UserDefaults.standard.set(gridSnap, forKey: "gridSnap") }
     }
+    @Published var guidesLocked = false
+    @Published var gridOpacity: Double = UserDefaults.standard.object(forKey: "gridOpacity") as? Double ?? 0.45 {
+        didSet { UserDefaults.standard.set(gridOpacity, forKey: "gridOpacity") }
+    }
     @Published var gridCells: Int = UserDefaults.standard.object(forKey: "gridCells") as? Int ?? 8 {
         didSet { UserDefaults.standard.set(gridCells, forKey: "gridCells") }
     }

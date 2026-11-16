@@ -47,6 +47,10 @@ struct SettingsView: View {
                     }
                     Stepper(L("Raster-Quadrate: %d", model.gridCells), value: $model.gridCells, in: 2...32)
                     Toggle(L("Striche am Raster einrasten"), isOn: $model.gridSnap)
+                    VStack(alignment: .leading) {
+                        Text(L("Raster-Deckkraft: %d %%", Int(model.gridOpacity * 100)))
+                        Slider(value: $model.gridOpacity, in: 0.1...1)
+                    }
                     Picker(L("Pausen-Erinnerung"), selection: $model.settings.breakReminderMinutes) {
                         Text(L("Nie")).tag(0.0)
                         Text("30 min").tag(30.0)
