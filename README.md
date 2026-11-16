@@ -201,6 +201,7 @@ Bring one Mac panel (layers, colours, brushes …) onto the iPad as a small floa
 - **Grayscale preview** (… menu → Tools): the picture in grey on the iPad only, to check light and dark values while painting in colour.
 - **Speed pressure** (Settings → Pencil, 0–100 %): faster strokes get lighter, slow ones stay full – like an ink nib.
 - **Composition grid** (… menu → Tools, tap again to cycle): thirds, quarters or squares over the picture on the iPad only; it zooms, turns and mirrors with the picture.
+- **Reference picture:** its bar now also flips it horizontally and shows it in grey; both are remembered.
 - **Break reminder** (Settings → General: 30/45/60/90 min): a gentle toast after that much drawing time; five minutes without input count as the break.
 
 ## Shape recognition

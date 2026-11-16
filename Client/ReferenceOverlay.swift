@@ -15,6 +15,8 @@ final class ReferenceImage: ObservableObject {
     @Published var width: CGFloat = 0.3 { didSet { saveLayout() } }
     @Published var opacity: Double = 0.85 { didSet { saveLayout() } }
     @Published var locked = false { didSet { saveLayout() } }
+    @Published var flipped = false { didSet { saveLayout() } }
+    @Published var gray = false { didSet { saveLayout() } }
     @Published var pickerShown = false
 
     private static let layoutKey = "referenceLayout"
@@ -31,6 +33,8 @@ final class ReferenceImage: ObservableObject {
             width = d["w"] as? Double ?? 0.3
             opacity = d["o"] as? Double ?? 0.85
             locked = d["l"] as? Bool ?? false
+            flipped = d["f"] as? Bool ?? false
+            gray = d["g"] as? Bool ?? false
         }
         if let data = try? Data(contentsOf: Self.fileURL) { image = UIImage(data: data) }
         loading = false
@@ -50,7 +54,7 @@ final class ReferenceImage: ObservableObject {
 
     private func saveLayout() {
         guard !loading else { return }
-        UserDefaults.standard.set(["x": center.x, "y": center.y, "w": width, "o": opacity, "l": locked], forKey: Self.layoutKey)
+        UserDefaults.standard.set(["x": center.x, "y": center.y, "w": width, "o": opacity, "l": locked, "f": flipped, "g": gray], forKey: Self.layoutKey)
     }
 
     private static func downscaled(_ img: UIImage, maxSide: CGFloat) -> UIImage {
@@ -80,6 +84,8 @@ struct ReferenceOverlay: View {
                     Image(uiImage: img)
                         .resizable()
                         .frame(width: w, height: h)
+                        .scaleEffect(x: ref.flipped ? -1 : 1, y: 1)
+                        .grayscale(ref.gray ? 1 : 0)
                         .opacity(ref.opacity)
                         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                         .overlay {
@@ -133,6 +139,16 @@ struct ReferenceOverlay: View {
         HStack(spacing: 12) {
             Image(systemName: "circle.lefthalf.filled").foregroundStyle(.secondary)
             Slider(value: $ref.opacity, in: 0.15...1).frame(width: 130).tint(Brand.mint)
+            Button { withAnimation(Brand.spring) { ref.flipped.toggle() } } label: {
+                Image(systemName: "arrow.left.and.right.righttriangle.left.righttriangle.right")
+                    .foregroundStyle(ref.flipped ? Brand.mint : .primary)
+            }
+            .accessibilityLabel(L("Ansicht spiegeln"))
+            Button { ref.gray.toggle() } label: {
+                Image(systemName: "circle.lefthalf.filled.inverse")
+                    .foregroundStyle(ref.gray ? Brand.mint : .primary)
+            }
+            .accessibilityLabel(L("Graustufen-Vorschau"))
             Button { ref.pickerShown = true } label: { Image(systemName: "photo.badge.arrow.down") }
                 .accessibilityLabel(L("Anderes Bild"))
             Button(role: .destructive) { withAnimation(Brand.spring) { ref.clear() } } label: { Image(systemName: "trash") }
