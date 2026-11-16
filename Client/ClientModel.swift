@@ -161,6 +161,8 @@ final class ClientModel: ObservableObject {
     let palette = PaletteState()
     /// Picture mirrored on the iPad only.
     @Published var mirrored = false
+    /// Picture shown in grey on the iPad only (checking light and dark values).
+    @Published var grayscale = false
     private var drawingSince: Date?
     private var lastBreakReminder: Date?
 
@@ -902,6 +904,9 @@ final class ClientModel: ObservableObject {
             requestScreenshot()
         case .palette:
             if palette.image != nil { removePalette() } else { pickPalette() }
+        case .grayscale:
+            grayscale.toggle()
+            show(Toast(text: grayscale ? L("Graustufen – nur auf dem iPad, zum Prüfen der Helligkeitswerte") : L("%@ aus", t.title), seconds: 1.8))
         case .mirror:
             mirrored.toggle()
             show(Toast(text: mirrored ? L("Gespiegelt – nur auf dem iPad, der Mac bleibt wie er ist") : L("%@ aus", t.title), seconds: 1.8))

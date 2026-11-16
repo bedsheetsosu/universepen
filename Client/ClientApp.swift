@@ -47,6 +47,7 @@ struct RootView: View {
                         .transition(.opacity)
                 }
                 CanvasRepresentable(model: model)
+                    .grayscale(model.grayscale && !model.tabletModeActive ? 1 : 0)
                     .ignoresSafeArea()
                     .transition(.opacity)
                 ReferenceOverlay(ref: model.reference)
@@ -326,6 +327,10 @@ private struct OverlayMenuPanel: View {
                 if !model.tabletModeActive {
                     row(L("Ansicht spiegeln"), icon: "arrow.left.and.right.righttriangle.left.righttriangle.right", checked: model.mirrored) {
                         model.runTool(.mirror)
+                        close()
+                    }
+                    row(L("Graustufen-Vorschau"), icon: "circle.lefthalf.filled", checked: model.grayscale) {
+                        model.runTool(.grayscale)
                         close()
                     }
                 }

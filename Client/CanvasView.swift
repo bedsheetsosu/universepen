@@ -85,6 +85,8 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     /// The stroke was replaced by a clean shape; ignore the rest of it until the Pencil lifts.
     private var shapeSnapped = false
     private var rope = Rope(length: 0)
+    private var lastSpeedSample: (point: CGPoint, time: TimeInterval)?
+    private var smoothSpeed: Double = 0
     private var rulerPlaced = false
     var rulerVisible = false {
         didSet {
@@ -807,6 +809,15 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
             n = CGPoint(x: smoothX.add(Double(n.x)), y: smoothY.add(Double(n.y)))
             pressure = smoothP.add(pressure)
             if settings.constantPressure > 0 { pressure = settings.constantPressure }
+            if settings.speedPressure > 0 {
+                if phase == .down { lastSpeedSample = nil; smoothSpeed = 0 }
+                if let last = lastSpeedSample, t.timestamp > last.time {
+                    let v = hypot(loc.x - last.point.x, loc.y - last.point.y) / (t.timestamp - last.time)
+                    smoothSpeed += (Double(v) - smoothSpeed) * 0.25
+                }
+                lastSpeedSample = (loc, t.timestamp)
+                pressure = SpeedPressure.apply(pressure, speed: smoothSpeed, amount: settings.speedPressure)
+            }
         }
         var tilt = settings.tilt.tilt(altitude: Double(t.altitudeAngle), azimuth: Double(t.azimuthAngle(in: self)))
         let tiltIn = contentTilt(Double(tilt.x), Double(tilt.y))

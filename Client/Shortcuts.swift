@@ -117,12 +117,12 @@ struct MacScreenshotIntent: AppIntent {
 }
 
 enum ToolChoice: String, AppEnum {
-    case ruler, perspective1, perspective2, perspective3, ellipse, shapeRecognition, laser, palette, mirror
+    case ruler, perspective1, perspective2, perspective3, ellipse, shapeRecognition, laser, palette, mirror, grayscale
     static let typeDisplayRepresentation: TypeDisplayRepresentation = "Tool"
     static let caseDisplayRepresentations: [ToolChoice: DisplayRepresentation] = [
         .ruler: "Ruler", .perspective1: "Perspective (1 point)", .perspective2: "Perspective (2 points)",
         .perspective3: "Perspective (3 points)", .ellipse: "Ellipse template", .shapeRecognition: "Shape recognition",
-        .laser: "Laser pointer", .palette: "Palette from the Mac", .mirror: "Mirror view",
+        .laser: "Laser pointer", .palette: "Palette from the Mac", .mirror: "Mirror view", .grayscale: "Grayscale preview",
     ]
     var tool: IPadTool { IPadTool(rawValue: rawValue) ?? .ruler }
 }

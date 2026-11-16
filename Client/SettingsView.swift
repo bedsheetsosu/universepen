@@ -246,6 +246,12 @@ struct SettingsView: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
             VStack(alignment: .leading, spacing: 2) {
+                Text(model.settings.speedPressure > 0 ? L("Tempo-Druck: %d %%", Int(model.settings.speedPressure * 100)) : L("Tempo-Druck: aus"))
+                Slider(value: $model.settings.speedPressure, in: 0...1, step: 0.05)
+                Text(L("Schnelle Striche werden dünner, langsame bleiben satt – wie eine Tuschefeder."))
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            VStack(alignment: .leading, spacing: 2) {
                 Toggle(L("Fester Druck (gleichmäßige Linie)"), isOn: Binding(
                     get: { model.settings.constantPressure > 0 },
                     set: { model.settings.constantPressure = $0 ? 0.6 : 0 }))
