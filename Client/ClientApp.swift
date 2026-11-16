@@ -31,7 +31,8 @@ struct RootView: View {
     @ObservedObject var theme = Theme.shared
     @EnvironmentObject var model: ClientModel
     @ObservedObject private var l10n = L10n.shared
-    @State private var showSettings = false
+    /// `-debugOpenSettings YES` opens the settings at launch (for screenshots).
+    @State private var showSettings = UserDefaults.standard.bool(forKey: "debugOpenSettings")
     @State private var showCheatSheet = false
     @State private var showWhatsNew = WhatsNewView.shouldShow
     @State private var showStatus = false
@@ -97,6 +98,7 @@ struct RootView: View {
         .id(l10n.language)   // re-render every text when the language changes
         .sheet(isPresented: $showSettings) {
             SettingsView().environmentObject(model)
+                .presentationSizing(.page)
                 .presentationBackground { ThemeBackground() }
         }
         .sheet(isPresented: $showWhatsNew, onDismiss: WhatsNewView.markSeen) {

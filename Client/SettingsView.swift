@@ -7,81 +7,244 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject private var l10n = L10n.shared
 
+    /// The areas of the settings (sidebar entries).
+    enum Page: String, CaseIterable, Identifiable {
+        case general, look, connection, image, pencil, fingers, tablet, bar, radial, keyboard, profiles
+        var id: String { rawValue }
+
+        var title: String {
+            switch self {
+            case .general: return L("Allgemein")
+            case .look: return L("Aussehen")
+            case .connection: return L("Verbindung")
+            case .image: return L("Bild")
+            case .pencil: return L("Stift")
+            case .fingers: return L("Finger & Multi-Touch")
+            case .tablet: return L("Tablett-Modus")
+            case .bar: return L("Shortcuts")
+            case .radial: return L("Radialmenü")
+            case .keyboard: return L("Tastatur & Trackpad")
+            case .profiles: return L("Profile")
+            }
+        }
+
+        var symbol: String {
+            switch self {
+            case .general: return "gearshape"
+            case .look: return "paintpalette"
+            case .connection: return "cable.connector"
+            case .image: return "display"
+            case .pencil: return "applepencil.and.scribble"
+            case .fingers: return "hand.point.up.left"
+            case .tablet: return "rectangle.dashed"
+            case .bar: return "rectangle.grid.1x2"
+            case .radial: return "circle.grid.cross"
+            case .keyboard: return "keyboard"
+            case .profiles: return "person.crop.square"
+            }
+        }
+
+        /// What the page contains, in the current language (for the search).
+        var keywords: [String] {
+            switch self {
+            case .general: return [L("Nur Monitor (keine Eingabe)"), L("Abdunkeln nach"), L("Pausen-Erinnerung"), L("Raster"),
+                                   L("Latenz dauerhaft anzeigen"), L("Demo"), L("Einrichtung erneut starten")]
+            case .look: return [L("Sprache"), L("Farben")]
+            case .connection: return [L("Neu verbinden"), L("Trennen")]
+            case .image: return [L("Bildrate"), L("Auflösung"), L("Volle Mac-Auflösung senden"), L("10-Bit-Farbe (keine Farbstufen)"), L("Spielmodus")]
+            case .pencil: return [L("Druckkurve"), L("Doppeltippen"), L("Squeeze"), L("Squeeze halten"), L("Formerkennung"),
+                                  L("Sofort-Tinte (Strich sofort auf dem iPad)"), L("Hover-Punkt unter der Stiftspitze"),
+                                  L("Seil-Stabilisator"), L("Tempo-Druck"), L("Fester Druck"), L("Druck-Anzeige beim Zeichnen"),
+                                  L("Undo/Redo-Knöpfe am Rand")]
+            case .fingers: return [L("Zwei-Finger-Tipp"), L("Drei-Finger-Tipp"), L("Vier-Finger-Tipp"), L("Zoomen (Pinch)"),
+                                   L("Undo-Wischen (zwei Finger halten, dann ziehen)")]
+            case .tablet: return []
+            case .bar: return []
+            case .radial: return []
+            case .keyboard: return [L("Textbausteine"), L("Trackpad / Maus steuert den Mac")]
+            case .profiles: return []
+            }
+        }
+    }
+
+    @AppStorage("settingsPage") private var pageRaw = Page.general.rawValue
+    @State private var query = ""
+    @Namespace private var sidebarSpace
+
+    private var page: Page { Page(rawValue: pageRaw) ?? .general }
+
+    /// Pages matching the search, each with the first setting that matched (nil = its title did).
+    private var results: [(page: Page, hit: String?)] {
+        let q = query.trimmingCharacters(in: .whitespaces)
+        guard !q.isEmpty else { return Page.allCases.map { ($0, nil) } }
+        func matches(_ t: String) -> Bool { t.range(of: q, options: [.caseInsensitive, .diacriticInsensitive]) != nil }
+        return Page.allCases.compactMap { p in
+            if matches(p.title) { return (p, nil) }
+            if let k = p.keywords.first(where: matches) { return (p, k) }
+            return nil
+        }
+    }
+
     var body: some View {
-        NavigationStack {
-            Form {
-                profilesSection
-                Section {
-                    LanguageChoice()
-                        .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets())
-                } header: {
-                    Text(L("Sprache"))
-                }
-                Section {
-                    ThemeChoice()
-                } header: {
-                    Text(L("Farben"))
-                } footer: {
-                    Text(L("Akzentfarbe aus den Vorschlägen oder frei im Farbrad. „Fließender Hintergrund“ lässt die Farben langsam verlaufen und wandern (nur hinter Menüs und Einrichtung, nie über dem Mac-Bild)."))
-                }
-                connectionSection
-                imageSection
-                pencilSection
-                tabletSection
-                gestureSection
-                shortcutSection
-                radialSection
-                keyboardSection
-                snippetSection
-                Section {
-                    Toggle(L("Nur Monitor (keine Eingabe)"), isOn: $model.settings.viewOnly)
-                    Picker(L("Abdunkeln nach"), selection: $model.settings.dimAfterMinutes) {
-                        Text(L("Nie")).tag(0.0)
-                        Text("1 min").tag(1.0)
-                        Text("2 min").tag(2.0)
-                        Text("5 min").tag(5.0)
-                        Text("10 min").tag(10.0)
-                    }
-                    if model.settings.dimAfterMinutes > 0 {
-                        Toggle(L("Nicht abdunkeln, solange sich das Bild ändert"), isOn: $model.settings.dimOnlyWhenStill)
-                    }
-                    Stepper(L("Raster-Quadrate: %d", model.gridCells), value: $model.gridCells, in: 2...32)
-                    Toggle(L("Striche am Raster einrasten"), isOn: $model.gridSnap)
-                    VStack(alignment: .leading) {
-                        Text(L("Raster-Deckkraft: %d %%", Int(model.gridOpacity * 100)))
-                        Slider(value: $model.gridOpacity, in: 0.1...1)
-                    }
-                    Picker(L("Pausen-Erinnerung"), selection: $model.settings.breakReminderMinutes) {
-                        Text(L("Nie")).tag(0.0)
-                        Text("30 min").tag(30.0)
-                        Text("45 min").tag(45.0)
-                        Text("60 min").tag(60.0)
-                        Text("90 min").tag(90.0)
-                    }
-                    Toggle(L("Latenz dauerhaft anzeigen"), isOn: $model.showStatusOverlay)
-                    Toggle(L("Shortcut-Leiste rechts (Linkshänder)"), isOn: $model.settings.shortcutBarOnRight)
-                    Button(L("Einrichtung erneut starten")) {
-                        dismiss()
-                        model.onboardingDone = false
-                    }
-                }
-                Section {
-                    Button {
-                        dismiss()
-                        model.demoMode = true
-                    } label: {
-                        Label(L("Demo-Modus starten"), systemImage: "sparkles")
-                    }
-                } header: {
-                    Text(L("Demo"))
-                } footer: {
-                    Text(L("Läuft nur auf dem iPad, ohne Mac: Zeichnen mit Druck und Neigung, Zeiger, Klicks und der Tablett-Modus mit Zielübung – zum Zeigen und Ausprobieren. Die Verbindung zum Mac bleibt dabei bestehen."))
+        HStack(spacing: 0) {
+            sidebar
+                .frame(width: 252)
+            Rectangle().fill(.white.opacity(0.08)).frame(width: 1).ignoresSafeArea()
+            NavigationStack {
+                Form { pageContent(page).listRowBackground(Color.white.opacity(0.07)) }
+                    .scrollContentBackground(.hidden)
+                    .navigationTitle(page.title)
+                    .toolbar { Button(L("Fertig")) { dismiss() }.fontWeight(.semibold) }
+            }
+            .id(page)   // a fresh stack per area (no half-open sub-page from another one)
+        }
+        .tint(Brand.mint)
+    }
+
+    private var sidebar: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(L("Einstellungen"))
+                .font(.title2.weight(.bold))
+                .padding(.horizontal, 8).padding(.top, 22)
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
+                TextField(L("Suchen"), text: $query)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                if !query.isEmpty {
+                    Button { query = "" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary) }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(L("Löschen"))
                 }
             }
-            .themedForm()
-            .navigationTitle(L("Einstellungen"))
-            .toolbar { Button(L("Fertig")) { dismiss() } }
+            .font(.callout)
+            .padding(.horizontal, 12)
+            .frame(height: 38)
+            .background(.white.opacity(0.08), in: Capsule())
+            ScrollView {
+                VStack(spacing: 2) {
+                    ForEach(results, id: \.page) { r in sidebarRow(r.page, hit: r.hit) }
+                    if results.isEmpty {
+                        Text(L("Nichts gefunden")).font(.callout).foregroundStyle(.secondary).padding(.top, 24)
+                    }
+                }
+            }
+            .scrollBounceBehavior(.basedOnSize)
+        }
+        .padding(.horizontal, 12)
+        .animation(Ultra.snappy, value: query)
+    }
+
+    private func sidebarRow(_ p: Page, hit: String?) -> some View {
+        let on = p == page
+        return Button {
+            withAnimation(Ultra.snappy) { pageRaw = p.rawValue }
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: p.symbol)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(on ? Brand.slateDeep : Color.white.opacity(0.85))
+                    .frame(width: 30, height: 30)
+                    .background {
+                        if on { Ultra.shape(9).fill(Ultra.accentFill) } else { Ultra.shape(9).fill(.white.opacity(0.09)) }
+                    }
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(p.title).font(.callout.weight(on ? .semibold : .regular)).lineLimit(1).minimumScaleFactor(0.8)
+                    if let hit { Text(hit).font(.caption).foregroundStyle(.secondary).lineLimit(1) }
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 8).padding(.vertical, 7)
+            .background {
+                if on { Ultra.shape(14).fill(.white.opacity(0.11)).matchedGeometryEffect(id: "page", in: sidebarSpace) }
+            }
+            .contentShape(Ultra.shape(14))
+        }
+        .buttonStyle(UltraPress(scale: 0.97))
+        .accessibilityAddTraits(on ? .isSelected : [])
+    }
+
+    @ViewBuilder private func pageContent(_ p: Page) -> some View {
+        switch p {
+        case .general:
+            generalSection
+            demoSection
+        case .look:
+            Section {
+                LanguageChoice()
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
+            } header: {
+                Text(L("Sprache"))
+            }
+            Section {
+                ThemeChoice()
+            } header: {
+                Text(L("Farben"))
+            } footer: {
+                Text(L("Akzentfarbe aus den Vorschlägen oder frei im Farbrad. „Fließender Hintergrund“ lässt die Farben langsam verlaufen und wandern (nur hinter Menüs und Einrichtung, nie über dem Mac-Bild)."))
+            }
+        case .connection: connectionSection
+        case .image: imageSection
+        case .pencil: pencilSection
+        case .fingers: gestureSection
+        case .tablet: tabletSection
+        case .bar: shortcutSection
+        case .radial: radialSection
+        case .keyboard:
+            keyboardSection
+            snippetSection
+        case .profiles: profilesSection
+        }
+    }
+
+    private var generalSection: some View {
+        Section {
+            Toggle(L("Nur Monitor (keine Eingabe)"), isOn: $model.settings.viewOnly)
+            Picker(L("Abdunkeln nach"), selection: $model.settings.dimAfterMinutes) {
+                Text(L("Nie")).tag(0.0)
+                Text("1 min").tag(1.0)
+                Text("2 min").tag(2.0)
+                Text("5 min").tag(5.0)
+                Text("10 min").tag(10.0)
+            }
+            if model.settings.dimAfterMinutes > 0 {
+                Toggle(L("Nicht abdunkeln, solange sich das Bild ändert"), isOn: $model.settings.dimOnlyWhenStill)
+            }
+            Stepper(L("Raster-Quadrate: %d", model.gridCells), value: $model.gridCells, in: 2...32)
+            Toggle(L("Striche am Raster einrasten"), isOn: $model.gridSnap)
+            VStack(alignment: .leading) {
+                Text(L("Raster-Deckkraft: %d %%", Int(model.gridOpacity * 100)))
+                Slider(value: $model.gridOpacity, in: 0.1...1)
+            }
+            Picker(L("Pausen-Erinnerung"), selection: $model.settings.breakReminderMinutes) {
+                Text(L("Nie")).tag(0.0)
+                Text("30 min").tag(30.0)
+                Text("45 min").tag(45.0)
+                Text("60 min").tag(60.0)
+                Text("90 min").tag(90.0)
+            }
+            Toggle(L("Latenz dauerhaft anzeigen"), isOn: $model.showStatusOverlay)
+            Toggle(L("Shortcut-Leiste rechts (Linkshänder)"), isOn: $model.settings.shortcutBarOnRight)
+            Button(L("Einrichtung erneut starten")) {
+                dismiss()
+                model.onboardingDone = false
+            }
+        }
+    }
+
+    private var demoSection: some View {
+        Section {
+            Button {
+                dismiss()
+                model.demoMode = true
+            } label: {
+                Label(L("Demo-Modus starten"), systemImage: "sparkles")
+            }
+        } header: {
+            Text(L("Demo"))
+        } footer: {
+            Text(L("Läuft nur auf dem iPad, ohne Mac: Zeichnen mit Druck und Neigung, Zeiger, Klicks und der Tablett-Modus mit Zielübung – zum Zeigen und Ausprobieren. Die Verbindung zum Mac bleibt dabei bestehen."))
         }
     }
 
