@@ -867,9 +867,12 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
             if hypot(loc.x - start.x, loc.y - start.y) < PerspectiveGuide.decideDistance { return }
             guideLine = perspective?.snapLine(start: start, toward: loc)
             guideView.activeLine = guideLine
+            if guideLine != nil { snapFeedback(at: loc) }
         }
         if let line = guideLine { loc = line.project(loc) }
         if rawPhase == .down { gridLine = rulerLine == nil && perspectiveStart == nil && !ellipseSnap ? nearestGridLine(to: loc) : nil }
+        // Pencil Pro tick when a stroke locks onto an aid.
+        if rawPhase == .down, rulerLine != nil || ellipseSnap || gridLine != nil { snapFeedback(at: loc) }
         if let g = gridLine { loc = screenPoint(g.project(contentPoint(loc))) }
         if ellipseSnap, let e = ellipseGuide { loc = e.project(loc) }
         defer {
@@ -945,6 +948,10 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     }
 
     func hidePressureMeter() { meterTrack.isHidden = true }
+
+    private func snapFeedback(at p: CGPoint) {
+        if #available(iOS 17.5, *) { UICanvasFeedbackGenerator(view: self).alignmentOccurred(at: p) }
+    }
 
     private func showPressure(_ p: Double) {
         CATransaction.begin()

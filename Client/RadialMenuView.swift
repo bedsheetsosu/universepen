@@ -112,11 +112,20 @@ private struct RadialButton: View {
     let on: Bool
 
     var body: some View {
-        Text(item.title)
-            .font(.system(size: 12, weight: .semibold))
-            .lineLimit(2)
-            .minimumScaleFactor(0.55)
-            .multilineTextAlignment(.center)
+        Group {
+            if let tool = item.tool {
+                VStack(spacing: 1) {
+                    Image(systemName: tool.symbol).font(.system(size: 17, weight: .semibold))
+                    Text(item.title).font(.system(size: 9, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.6)
+                }
+            } else {
+                Text(item.title)
+                    .font(.system(size: 12, weight: .semibold))
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.55)
+                    .multilineTextAlignment(.center)
+            }
+        }
             .padding(6)
             .foregroundStyle(on ? Brand.slateDeep : .primary)
             .frame(width: RadialMenuLayout.buttonSize, height: RadialMenuLayout.buttonSize)
