@@ -48,8 +48,8 @@ public extension View {
     func tafelOverlayGlass<S: Shape>(_ shape: S) -> some View {
         self
             .background(.ultraThinMaterial, in: shape)
-            .background(Color.black.opacity(0.35), in: shape)
-            .overlay(shape.stroke(.white.opacity(0.12), lineWidth: 1))
+            .background(Color.black.opacity(0.42), in: shape)
+            .overlay(shape.stroke(Ultra.edgeLight, lineWidth: 1))
             .environment(\.colorScheme, .dark)
     }
 
@@ -58,8 +58,7 @@ public extension View {
         self
             .padding(padding)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.white.opacity(0.055), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(.white.opacity(0.08)))
+            .ultraGlass(Ultra.shape(Ultra.cardRadius))
     }
 }
 
@@ -151,10 +150,7 @@ public struct LanguageChoice: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
                     .foregroundStyle(on ? Brand.slateDeep : .primary)
-                    .background(on ? AnyShapeStyle(Brand.mint) : AnyShapeStyle(Color.white.opacity(0.06)),
-                                in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .strokeBorder(.white.opacity(on ? 0 : 0.08)))
+                    .ultraChoice(Ultra.shape(18), on: on)
                     .scaleEffect(on ? 1.03 : 1)
                 }
                 .buttonStyle(.plain)

@@ -98,6 +98,18 @@ public struct UltraGlassGroup<Content: View>: View {
     }
 }
 
+public extension View {
+    /// Something you can choose: interactive glass, filled with the accent and glowing when chosen.
+    func ultraChoice<S: InsettableShape>(_ shape: S, on: Bool) -> some View {
+        self
+            .background { shape.fill(Ultra.accentFill).opacity(on ? 1 : 0) }
+            .overlay(shape.strokeBorder(.white.opacity(on ? 0.35 : 0), lineWidth: 1))
+            .ultraGlass(shape, interactive: true)
+            .shadow(color: Brand.mint.opacity(on ? 0.45 : 0), radius: 12, y: 3)
+            .contentShape(shape)
+    }
+}
+
 // MARK: - Controls
 
 /// Press feedback shared by every UltraUI control: it gives a little and lights up.

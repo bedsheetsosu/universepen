@@ -8,7 +8,8 @@ struct OnboardingView: View {
     /// Redraw when the colours change.
     @ObservedObject var theme = Theme.shared
     @EnvironmentObject var model: ClientModel
-    @State private var step = 0
+    /// `-debugOnboardingStep N` starts on page N (for screenshots).
+    @State private var step = UserDefaults.standard.integer(forKey: "debugOnboardingStep")
     @State private var forward = true
 
     enum Use: Hashable { case drawing, tablet, both }
@@ -49,7 +50,8 @@ struct OnboardingView: View {
                 footer
             }
         }
-        .animation(.spring(response: 0.5, dampingFraction: 0.86), value: step)
+        .animation(Ultra.smooth, value: step)
+        .sensoryFeedback(.selection, trigger: step)
     }
 
     @ViewBuilder private func page(_ p: Page) -> some View {
@@ -71,28 +73,41 @@ struct OnboardingView: View {
 
     private var footer: some View {
         HStack {
-            Button(L("Zurück")) { go(-1) }
-                .opacity(step == 0 ? 0 : 1)
-                .disabled(step == 0)
+            Button { go(-1) } label: {
+                Label(L("Zurück"), systemImage: "chevron.left")
+                    .font(.callout.weight(.semibold))
+                    .padding(.horizontal, 18).padding(.vertical, 11)
+                    .ultraGlass(Capsule(), interactive: true)
+                    .contentShape(Capsule())
+            }
+            .buttonStyle(UltraPress())
+            .opacity(step == 0 ? 0 : 1)
+            .disabled(step == 0)
             Spacer()
             HStack(spacing: 8) {
                 ForEach(0..<pages.count, id: \.self) { i in
                     Capsule()
-                        .fill(i == step ? Brand.mint : .white.opacity(0.2))
-                        .frame(width: i == step ? 22 : 8, height: 8)
+                        .fill(i == step ? AnyShapeStyle(Ultra.accentFill) : AnyShapeStyle(Color.white.opacity(i < step ? 0.45 : 0.2)))
+                        .frame(width: i == step ? 26 : 8, height: 8)
                 }
             }
             Spacer()
             Button {
                 if step == pages.count - 1 { finish() } else { go(1) }
             } label: {
-                Text(step == pages.count - 1 ? L("Los geht’s") : L("Weiter"))
-                    .fontWeight(.semibold)
-                    .foregroundStyle(Brand.slateDeep)
-                    .padding(.horizontal, 22).padding(.vertical, 11)
-                    .background(Brand.mint, in: Capsule())
+                HStack(spacing: 8) {
+                    Text(step == pages.count - 1 ? L("Los geht’s") : L("Weiter"))
+                    Image(systemName: step == pages.count - 1 ? "checkmark" : "arrow.right")
+                        .contentTransition(.symbolEffect(.replace))
+                }
+                .font(.callout.weight(.bold))
+                .foregroundStyle(Brand.slateDeep)
+                .padding(.horizontal, 22).padding(.vertical, 12)
+                .background(Ultra.accentFill, in: Capsule())
+                .overlay(Capsule().strokeBorder(.white.opacity(0.35), lineWidth: 1))
+                .shadow(color: Brand.mint.opacity(0.5), radius: 14, y: 3)
             }
-            .buttonStyle(PressScale())
+            .buttonStyle(UltraPress())
         }
         .frame(maxWidth: 680)
         .padding(.horizontal, 28)
@@ -346,6 +361,12 @@ struct OnboardingView: View {
 
     /// Applies the tablet choices and creates profiles when both uses were chosen.
     private func finish() {
+        // Opened from the Mac for a UI check (launch arguments): never rewrite settings or
+        // profiles of a device that is already set up.
+        if ProcessInfo.processInfo.arguments.contains("-debugOnboardingStep") {
+            model.onboardingDone = true
+            return
+        }
         func tabletVersion(of base: InputSettings) -> InputSettings {
             var t = base
             t.tabletMode = true
@@ -442,20 +463,27 @@ private struct PageScaffold<Content: View>: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 Image(systemName: symbol)
-                    .font(.system(size: 40, weight: .semibold))
-                    .foregroundStyle(Brand.mint)
+                    .font(.system(size: 30, weight: .semibold))
+                    .foregroundStyle(Brand.slateDeep)
                     .symbolEffect(.bounce, value: shown)
+                    .frame(width: 68, height: 68)
+                    .background(Ultra.accentFill, in: Ultra.shape(20))
+                    .overlay(Ultra.shape(20).strokeBorder(.white.opacity(0.4), lineWidth: 1))
+                    .shadow(color: Brand.mint.opacity(0.5), radius: 18, y: 5)
+                    .scaleEffect(shown ? 1 : 0.6)
                     .padding(.top, 56)
-                Text(title).font(.system(size: 34, weight: .bold, design: .rounded))
+                Text(title).font(.system(size: 36, weight: .bold, design: .rounded))
                 Text(subtitle).font(.title3).foregroundStyle(.secondary)
                     .padding(.bottom, 8)
                 content
+                    .opacity(shown ? 1 : 0)
+                    .offset(y: shown ? 0 : 16)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.bottom, 24)
         }
         .scrollIndicators(.hidden)
-        .onAppear { shown = true }
+        .onAppear { withAnimation(Ultra.bouncy.delay(0.12)) { shown = true } }
     }
 }
 
@@ -507,12 +535,9 @@ private struct ChoiceRow<Value: Hashable>: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                         .foregroundStyle(on ? Brand.slateDeep : .primary)
-                        .background(on ? AnyShapeStyle(Brand.mint) : AnyShapeStyle(Color.white.opacity(0.06)),
-                                    in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .strokeBorder(.white.opacity(on ? 0 : 0.08)))
+                        .ultraChoice(Ultra.shape(18), on: on)
                     }
-                    .buttonStyle(PressScale())
+                    .buttonStyle(UltraPress())
                 }
             }
         }
@@ -548,11 +573,9 @@ private struct BigChoice: View {
             .padding(18)
             .frame(maxWidth: .infinity, alignment: .leading)
             .foregroundStyle(on ? Brand.slateDeep : .primary)
-            .background(on ? AnyShapeStyle(Brand.mint) : AnyShapeStyle(Color.white.opacity(0.06)),
-                        in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(.white.opacity(on ? 0 : 0.08)))
+            .ultraChoice(Ultra.shape(Ultra.cardRadius), on: on)
         }
-        .buttonStyle(PressScale())
+        .buttonStyle(UltraPress(scale: 0.97))
     }
 }
 
@@ -609,9 +632,9 @@ private struct ActionChoice: View {
                                 .font(.callout.weight(.medium))
                                 .padding(.horizontal, 16).padding(.vertical, 10)
                                 .foregroundStyle(on ? Brand.slateDeep : .primary)
-                                .background(on ? AnyShapeStyle(Brand.mint) : AnyShapeStyle(Color.white.opacity(0.06)), in: Capsule())
+                                .ultraChoice(Capsule(), on: on)
                         }
-                        .buttonStyle(PressScale())
+                        .buttonStyle(UltraPress())
                     }
                 }
             }
