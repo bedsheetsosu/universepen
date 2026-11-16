@@ -282,6 +282,17 @@ struct SettingsView: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
             Toggle(L("Hover-Punkt unter der Stiftspitze"), isOn: $model.settings.hoverDot)
+            if model.settings.hoverDot {
+                Stepper(L("Hover-Punkt: %d pt", Int(model.settings.hoverDotSize)), value: $model.settings.hoverDotSize, in: 4...40, step: 2)
+            }
+            Toggle(L("Eigene Farbe für Sofort-Tinte"), isOn: Binding(
+                get: { !model.settings.inkColor.isEmpty },
+                set: { model.settings.inkColor = $0 ? "FF3B30" : "" }))
+            if !model.settings.inkColor.isEmpty {
+                ColorPicker(L("Tinten-Farbe"), selection: Binding(
+                    get: { Theme.color(model.settings.inkColor) },
+                    set: { if let h = Theme.hex(of: $0) { model.settings.inkColor = h } }), supportsOpacity: false)
+            }
             Toggle(L("Schweben (Hover) senden"), isOn: $model.settings.sendHover)
             Toggle(L("Barrel Roll als Rotation senden"), isOn: $model.settings.sendRoll)
         } header: {

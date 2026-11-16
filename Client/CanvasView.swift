@@ -1278,7 +1278,8 @@ struct CanvasRepresentable: UIViewRepresentable {
         v.keys.config = model.settings.tabletKeys
         v.keys.accent = UIColor(Brand.mint)
         v.keys.isHidden = !model.tabletModeActive || !model.settings.tabletKeys.enabled || model.settings.viewOnly
-        v.ink.color = UIColor(Brand.mint)
+        v.ink.color = model.settings.inkColor.isEmpty ? UIColor(Brand.mint) : UIColor(Theme.color(model.settings.inkColor))
+        v.ink.hoverSize = CGFloat(model.settings.hoverDotSize)
         // Visible for about as long as the Mac's own stroke takes to appear in the picture:
         // pen event to the Mac (½ RTT) + drawing + capture/encode/network (frame age) + decode/display.
         if let t = model.timing {

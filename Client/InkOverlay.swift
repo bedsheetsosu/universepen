@@ -20,6 +20,8 @@ final class InkOverlayView: UIView {
 
     private var points: [Point] = []
     private var hover: CGPoint?
+    /// Diameter of the hover ring.
+    var hoverSize: CGFloat = 10
     private var link: CADisplayLink?
     private var dirty = CGRect.null
 
@@ -42,9 +44,10 @@ final class InkOverlayView: UIView {
     }
 
     func setHover(_ p: CGPoint?) {
-        if let h = hover { mark(h, radius: 12) }
+        let r = hoverSize / 2 + 4
+        if let h = hover { mark(h, radius: r) }
         hover = p
-        if let p { mark(p, radius: 12) }
+        if let p { mark(p, radius: r) }
         flush()
     }
 
@@ -103,7 +106,7 @@ final class InkOverlayView: UIView {
             ctx.strokePath()
         }
         if let h = hover {
-            let r = CGRect(x: h.x - 5, y: h.y - 5, width: 10, height: 10)
+            let r = CGRect(x: h.x - hoverSize / 2, y: h.y - hoverSize / 2, width: hoverSize, height: hoverSize)
             ctx.setStrokeColor(UIColor.black.withAlphaComponent(0.55).cgColor)
             ctx.setLineWidth(3)
             ctx.strokeEllipse(in: r)

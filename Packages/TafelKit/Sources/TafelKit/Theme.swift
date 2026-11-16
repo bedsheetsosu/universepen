@@ -106,7 +106,7 @@ public final class Theme: ObservableObject, @unchecked Sendable {
         return Color(red: r, green: g, blue: b)
     }
 
-    static func hex(of color: Color) -> String? {
+    public static func hex(of color: Color) -> String? {
         #if canImport(UIKit)
         let c = UIColor(color)
         #else
