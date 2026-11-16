@@ -62,6 +62,11 @@ struct RootView: View {
                     RadialMenuView(center: c)
                         .zIndex(10)
                 }
+                if let img = model.screenshot {
+                    ScreenshotView(image: img)
+                        .transition(.opacity.combined(with: .scale(scale: 0.97)))
+                        .zIndex(15)
+                }
             } else {
                 ConnectView()
                     .transition(.opacity.combined(with: .scale(scale: 1.03)))
@@ -73,6 +78,7 @@ struct RootView: View {
         .sensoryFeedback(.pathComplete, trigger: model.radialCenter == nil) { old, new in !old && new }
         .animation(.easeInOut(duration: 0.45), value: model.onboardingDone)
         .animation(Brand.spring, value: model.demoMode)
+        .animation(Brand.spring, value: model.screenshot != nil)
         .id(l10n.language)   // re-render every text when the language changes
         .sheet(isPresented: $showSettings) {
             SettingsView().environmentObject(model)
@@ -119,6 +125,18 @@ struct RootView: View {
                         .allowsHitTesting(false)
                         .transition(.move(edge: .top).combined(with: .opacity))
                         .id(t.text)
+                }
+                if model.localZoom > 1.01 && model.settings.zoomMethod == .localView {
+                    Button {
+                        model.localZoomResets += 1
+                    } label: {
+                        Label(L("%d %% · Zurücksetzen", Int((model.localZoom * 100).rounded())), systemImage: "arrow.up.left.and.down.right.magnifyingglass")
+                            .font(.callout.weight(.semibold).monospacedDigit())
+                            .padding(.horizontal, 14).padding(.vertical, 8)
+                            .tafelOverlayGlass(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .transition(.move(edge: .top).combined(with: .opacity))
                 }
                 if let n = model.scrubSteps {
                     ScrubPill(steps: n)
@@ -271,6 +289,24 @@ private struct OverlayMenuPanel: View {
                 }
                 row(showStatus ? L("Status ausblenden") : L("Status anzeigen"), icon: "gauge.with.dots.needle.33percent") {
                     toggleStatus(); close()
+                }
+                header(L("Werkzeuge"))
+                if !model.tabletModeActive {
+                    row(L("Lineal"), icon: "ruler", checked: model.rulerVisible) {
+                        withAnimation(Brand.spring) { model.rulerVisible.toggle() }
+                        if model.rulerVisible { model.show(Toast(text: L("Lineal mit Fingern verschieben und drehen – Striche daran werden gerade"), seconds: 2.4)) }
+                        close()
+                    }
+                }
+                row(L("Laserpointer am Mac"), icon: "light.beacon.max", checked: model.laserMode) {
+                    model.laserMode.toggle()
+                    model.show(Toast(text: model.laserMode ? L("Laserpointer an – der Pencil zeichnet nur noch Leuchtspuren") : L("Laserpointer aus"), seconds: 1.8))
+                    close()
+                }
+                if !model.tabletModeActive {
+                    row(L("Bildschirmfoto"), icon: "camera.viewfinder", enabled: !model.screenshotPending) {
+                        model.requestScreenshot(); close()
+                    }
                 }
                 header(L("Zwischenablage"))
                 row(L("iPad → Mac kopieren"), icon: "doc.on.clipboard") { model.copyClipboardToMac(); close() }

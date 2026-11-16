@@ -148,4 +148,23 @@ final class SessionIntegrationTests: XCTestCase {
         wait(for: [toMac, fromMac], timeout: 10)
         pad.close()
     }
+
+    func testScreenshotRequestReachesIPad() throws {
+        let key = HostKey.generate()
+        let server = HostServer()
+        server.advertise = false
+        server.start(key: key)
+        let port = try XCTUnwrap(waitForPort { server.mainPort })
+        let endpoint = NWEndpoint.hostPort(host: "127.0.0.1", port: NWEndpoint.Port(rawValue: port)!)
+        let fake = Data(repeating: 0xAB, count: 3 * 1024 * 1024)   // a big image must arrive whole
+        server.screenshotProvider = { done in DispatchQueue.global().async { done(fake) } }
+
+        let pad = Session(endpoint: endpoint, key: key, deviceID: "PAD-D", deviceName: "D", renderer: VideoRenderer())
+        let got = expectation(description: "screenshot arrived")
+        pad.onScreenshot = { d in if d == fake { got.fulfill() } }
+        pad.onConnected = { pad.requestScreenshot() }
+        pad.start()
+        wait(for: [got], timeout: 10)
+        pad.close()
+    }
 }

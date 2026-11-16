@@ -43,6 +43,8 @@ public enum ZoomMethod: String, Codable, CaseIterable, Sendable {
     case commandScroll, optionScroll, controlScroll
     /// Discrete ⌘+ / ⌘- shortcuts, one per zoom step.
     case keyboardSteps
+    /// Zooms only the picture on the iPad (the Mac app is untouched); two fingers then pan it.
+    case localView
     case off
 
     public var modifiers: ModifierSet {
@@ -60,6 +62,7 @@ public enum ZoomMethod: String, Codable, CaseIterable, Sendable {
         case .optionScroll: return L("⌥ + Scrollen")
         case .controlScroll: return L("⌃ + Scrollen")
         case .keyboardSteps: return L("⌘+ / ⌘− Tasten")
+        case .localView: return L("Nur auf dem iPad (Bild vergrößern)")
         case .off: return L("Aus")
         }
     }

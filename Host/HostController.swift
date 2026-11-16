@@ -140,6 +140,9 @@ final class HostController: ObservableObject {
         didSet { UserDefaults.standard.set(regionFollow, forKey: "regionFollow"); updateFollowTimer() }
     }
     private var followTimer: Timer?
+    /// Laser pointer (set by the iPad's config, read on the network queue) and its overlay.
+    private let laserOn = LockedBool()
+    private let laser = LaserOverlay()
     private var followMoving = false
 
     let hostID: String
@@ -476,10 +479,23 @@ final class HostController: ObservableObject {
         // Pen and scroll go straight from the network queue to CGEvent (no main-thread hop).
         let api = devAPI
         let plugins = self.plugins
+        let laserOn = self.laserOn
+        let laser = self.laser
         server.onPen = { raw in
             // Plugin filters may change, drop or multiply the sample (like OpenTabletDriver filters).
             let samples = plugins.hasFilters ? plugins.filterPen(raw) : [raw]
             for p in samples {
+            if laserOn.value {
+                // Laser pointer: the pointer follows the Pencil, but nothing is clicked; the
+                // marks are drawn by the overlay window.
+                let sp = injector.screenPoint(x: p.x, y: p.y)
+                var hover = p
+                if p.phase != .enter && p.phase != .exit { hover.phase = .hover; hover.pressure = 0 }
+                injector.handle(hover)
+                let phase = p.phase
+                DispatchQueue.main.async { MainActor.assumeIsolated { laser.handle(phase, at: sp) } }
+                continue
+            }
             injector.handle(p)
             if !plugins.isEmpty { plugins.emit("pen", plugins.penDict(p)) }
             if api.wants("input") {
@@ -537,7 +553,12 @@ final class HostController: ObservableObject {
                 if self?.streamer == nil { self?.restartStream() } else { self?.streamer?.requestKeyframe() }
             }
         }
-        server.onClientConfig = { [weak self] cfg in
+        server.onClientConfig = { [weak self, laserOn, laser] cfg in
+            let on = cfg.laser ?? false
+            if laserOn.value != on {
+                laserOn.value = on
+                if !on { DispatchQueue.main.async { MainActor.assumeIsolated { laser.clear() } } }
+            }
             Task { @MainActor in
                 guard let self else { return }
                 if let d = cfg.diagnostics, d != self.clientConfig?.diagnostics {
@@ -560,6 +581,8 @@ final class HostController: ObservableObject {
                 self.plugins.emit(name == nil ? "disconnect" : "connect", ["device": name ?? "", "link": link])
                 self.scheduleVirtualTeardown(sessionActive: name != nil)
                 if name == nil {
+                    self.laserOn.value = false
+                    self.laser.clear()
                     self.clientConfig = nil
                     self.ipadBattery = nil
                     self.ipadCharging = nil
@@ -793,6 +816,10 @@ final class HostController: ObservableObject {
         }
         server.onRunPluginAction = { [plugins] id in plugins.runAction(id) }
         server.onClipboard = { item in MacClipboard.write(item) }
+        server.screenshotProvider = { [weak self] done in
+            guard let streamer = self?.streamer else { done(nil); return }
+            Task { done(await streamer.screenshot()) }
+        }
         server.clipboardProvider = { MacClipboard.read() }
         plugins.startEnabled()
     }
@@ -1043,6 +1070,15 @@ final class HostController: ObservableObject {
                   let rect = CGRect(dictionaryRepresentation: b) else { return }
             if injector.region != rect { injector.region = rect }
         }
+    }
+}
+
+final class LockedBool: @unchecked Sendable {
+    private let lock = NSLock()
+    private var _value = false
+    var value: Bool {
+        get { lock.withLock { _value } }
+        set { lock.withLock { _value = newValue } }
     }
 }
 

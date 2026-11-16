@@ -31,6 +31,9 @@ final class HostServer {
     var onClipboard: ((ClipboardItem) -> Void)?
     /// Reads the Mac clipboard for an iPad that asked for it (main thread).
     var clipboardProvider: (() -> ClipboardItem)?
+    /// Takes a full-resolution screenshot of the streamed source and calls back with PNG/JPEG
+    /// data (nil = failed). Called on the main thread.
+    var screenshotProvider: ((@escaping (Data?) -> Void) -> Void)?
     /// Pencil samples of extra (tablet) iPads – mapped onto a whole display, not the stream.
     var onExtraPen: ((PenSample) -> Void)?
     /// Names of the extra (tablet) iPads connected.
@@ -249,6 +252,12 @@ final class HostServer {
         case .clipboard:
             if let item = try? ClipboardItem(decoding: f.payload) {
                 DispatchQueue.main.async { [weak self] in self?.onClipboard?(item) }
+            }
+        case .requestScreenshot:
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                guard let provider = self.screenshotProvider else { self.queue.async { fc.send(.screenshot, Data()) }; return }
+                provider { data in self.queue.async { fc.send(.screenshot, data ?? Data()) } }
             }
         case .requestClipboard:
             DispatchQueue.main.async { [weak self] in

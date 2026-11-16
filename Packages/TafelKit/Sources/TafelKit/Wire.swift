@@ -25,6 +25,8 @@ public enum MessageType: UInt8, Sendable {
     case scroll = 0x11
     case mouse = 0x12          // trackpad / mouse pointer
     case gesture = 0x13        // client -> host: JSON GestureEvent (informational, for the developer API)
+    case requestScreenshot = 0x16 // client -> host: empty, host answers with .screenshot
+    case screenshot = 0x17     // host -> client: PNG or JPEG of the streamed source at full resolution (empty = failed)
     case shortcut = 0x20
     case key = 0x21            // hardware keyboard key down/up (HID usage)
     case text = 0x22           // on-screen keyboard text (UTF-8)
@@ -199,10 +201,13 @@ public struct ClientConfig: Codable, Equatable, Sendable {
     /// Tablet mode (like a screenless pen tablet): no picture, the iPad's active area maps onto
     /// the whole selected Mac display.
     public var tabletMode: Bool?
+    /// Laser pointer: the Pencil draws fading marks over the Mac screen instead of clicking.
+    public var laser: Bool?
 
     public init(viewPixelWidth: Int, viewPixelHeight: Int, quality: StreamQuality, diagnostics: String? = nil,
-                batteryLevel: Double? = nil, batteryCharging: Bool? = nil, tabletMode: Bool? = nil) {
+                batteryLevel: Double? = nil, batteryCharging: Bool? = nil, tabletMode: Bool? = nil, laser: Bool? = nil) {
         self.tabletMode = tabletMode
+        self.laser = laser
         self.viewPixelWidth = viewPixelWidth
         self.viewPixelHeight = viewPixelHeight
         self.quality = quality

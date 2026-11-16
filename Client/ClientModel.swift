@@ -134,6 +134,16 @@ final class ClientModel: ObservableObject {
     @Published var showKeyboard = false
     /// Floating reference photo (iPad only, never sent to the Mac).
     let reference = ReferenceImage()
+    /// Virtual ruler on the canvas (strokes near it stay straight).
+    @Published var rulerVisible = false
+    /// Local zoom of the picture (zoom method "only on the iPad"); bump `localZoomResets` to reset.
+    @Published var localZoom: CGFloat = 1
+    @Published var localZoomResets = 0
+    /// Laser pointer: the Pencil draws fading marks on the Mac screen instead of clicking.
+    @Published var laserMode = false { didSet { if laserMode != oldValue { sendConfig() } } }
+    /// Screenshot from the Mac waiting to be cropped / shared.
+    @Published var screenshot: UIImage?
+    @Published var screenshotPending = false
 
     @Published var settings: InputSettings {
         didSet {
@@ -526,6 +536,14 @@ final class ClientModel: ObservableObject {
         s.onPluginActions = { [weak self] l in Task { @MainActor in self?.pluginActions = l } }
         s.onToast = { [weak self] t in Task { @MainActor in self?.show(t) } }
         s.onClipboard = { [weak self] c in Task { @MainActor in self?.receiveClipboard(c) } }
+        s.onScreenshot = { [weak self] d in
+            Task { @MainActor in
+                guard let self else { return }
+                self.screenshotPending = false
+                if let img = UIImage(data: d) { self.screenshot = img }
+                else { self.show(Toast(text: L("Bildschirmfoto fehlgeschlagen – fehlt am Mac die Bildschirmaufnahme-Erlaubnis?"), seconds: 2.5)) }
+            }
+        }
         s.onSettingsPatch = { [weak self] patch in Task { @MainActor in self?.applySettingsPatch(patch) } }
         s.onTiming = { [weak self] t in
             Task { @MainActor in
@@ -610,7 +628,7 @@ final class ClientModel: ObservableObject {
         let b = battery
         session.send(config: ClientConfig(viewPixelWidth: viewPixelSize.0, viewPixelHeight: viewPixelSize.1, quality: effectiveQuality,
                                           diagnostics: diagnostics, batteryLevel: b.level, batteryCharging: b.charging,
-                                          tabletMode: tabletModeActive))
+                                          tabletMode: tabletModeActive, laser: laserMode && !settings.viewOnly))
     }
 
     // MARK: Developer API (settings live on the iPad; the Mac reads and patches them)
@@ -732,6 +750,13 @@ final class ClientModel: ObservableObject {
         } else {
             show(Toast(text: L("Die iPad-Zwischenablage ist leer"), seconds: 1.6))
         }
+    }
+
+    /// Asks the Mac for a full-resolution picture of what is streamed.
+    func requestScreenshot() {
+        guard let session else { return }
+        screenshotPending = true
+        session.requestScreenshot()
     }
 
     /// Asks the Mac for its clipboard; the answer lands in `receiveClipboard`.

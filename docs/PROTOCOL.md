@@ -56,7 +56,7 @@ JSON messages use plain `JSONEncoder` key names (camelCase).
 |---|---|---|---|
 | 0x01 | hello | C→H | JSON `{protocolVersion: 2, role: "control"\|"video"\|"audio"\|"pair", deviceID, deviceName}` |
 | 0x02 | hostInfo | H→C | JSON `{hostID, hostName, protocolVersion, sourceDescription, secondary?}` – `secondary: true`: another iPad has the picture, this one is an input-only tablet (it opens no video/audio connection) |
-| 0x03 | clientConfig | C→H | JSON `{viewPixelWidth, viewPixelHeight, quality: {codec: "h264"\|"hevc", bitrateMbps, fps, resolutionScale, audio, adaptive, fullSource}, diagnostics?, batteryLevel?, batteryCharging?, tabletMode?}` – `tabletMode: true`: no video; pen coordinates are normalised to the iPad's active area and map onto the whole selected display |
+| 0x03 | clientConfig | C→H | JSON `{viewPixelWidth, viewPixelHeight, quality: {codec: "h264"\|"hevc", bitrateMbps, fps, resolutionScale, audio, adaptive, fullSource}, diagnostics?, batteryLevel?, batteryCharging?, tabletMode?, laser?}` – `tabletMode: true`: no video; pen coordinates are normalised to the iPad's active area and map onto the whole selected display. `laser: true`: pen samples only move the pointer and draw fading marks on a click-through overlay (no clicks) |
 | 0x04 | pairGrant | H→C | JSON `{hostID, hostName, keyBase64}` (32-byte key) |
 | 0x05 | error | H→C | JSON `{message}` |
 | 0x06 | appInfo | H→C | JSON `{bundleID, name}` – app in front on the host |
@@ -69,6 +69,8 @@ JSON messages use plain `JSONEncoder` key names (camelCase).
 | 0x0D | toast | H→C | JSON `{text, seconds}` – short message shown on the iPad |
 | 0x0E | clipboard | both | 1 byte kind (0 empty, 1 UTF-8 text, 2 PNG) + data, max 32 MB – only sent when the user asks |
 | 0x0F | requestClipboard | C→H | empty; the Mac answers with `clipboard` |
+| 0x16 | requestScreenshot | C→H | empty; the Mac answers with `screenshot` |
+| 0x17 | screenshot | H→C | PNG (JPEG if over 24 MB) of the streamed source at full resolution; empty = failed |
 | 0x10 | pen | C→H | `u8 phase, f32 x, f32 y, f32 pressure, f32 tiltX, f32 tiltY, f32 rotation°, f64 timestamp` |
 | 0x11 | scroll | C→H | `f32 x, f32 y, f32 dx, f32 dy, u8 modifiers` |
 | 0x12 | mouse | C→H | `u8 phase (0 move, 1 down, 2 up, 3 exit), u8 button (0 left, 1 right), f32 x, f32 y` |

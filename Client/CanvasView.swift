@@ -62,6 +62,28 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     private var lastPinchScale: CGFloat = 1
     private var zoomSteps = StepAccumulator(stepSize: 0.35)
     private var lastRotation: CGFloat = 0
+    // Local zoom ("only on the iPad"): screen = centre + (content − centre)·scale + offset.
+    private(set) var zoomScale: CGFloat = 1
+    private var zoomOffset: CGPoint = .zero
+    private var localPinch: (scale: CGFloat, content: CGPoint)?
+    var onLocalZoom: ((CGFloat) -> Void)?
+    // Ruler: fingers on it move/turn it, Pencil strokes near its edges stay straight.
+    let rulerView = RulerView()
+    private var rulerTouches: [UITouch] = []
+    private var rulerGrab: (ruler: Ruler, points: [CGPoint])?
+    private var rulerLine: SnapLine?
+    private var rulerPlaced = false
+    var rulerVisible = false {
+        didSet {
+            guard rulerVisible != oldValue else { return }
+            rulerView.isHidden = !rulerVisible
+            if rulerVisible && !rulerPlaced, bounds.width > 0 {
+                rulerView.ruler = Ruler(center: CGPoint(x: bounds.midX, y: bounds.midY), angle: 0, length: 2.5 * max(bounds.width, bounds.height))
+                rulerPlaced = true
+            }
+            if !rulerVisible { rulerTouches = []; rulerGrab = nil; rulerLine = nil }
+        }
+    }
     private var rotateSteps = StepAccumulator(stepSize: 15)
 
     init(renderer: VideoRenderer) {
@@ -70,6 +92,8 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         backgroundColor = .black
         isMultipleTouchEnabled = true
         layer.addSublayer(videoLayer)
+        addSubview(rulerView)
+        rulerView.isHidden = true
         addSubview(ink)
         addSubview(keys)
         keys.isHidden = true
@@ -202,9 +226,14 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         super.layoutSubviews()
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        videoLayer.frame = bounds
+        // bounds + position (not frame): the layer may carry the local zoom transform.
+        videoLayer.bounds = CGRect(origin: .zero, size: bounds.size)
+        videoLayer.position = CGPoint(x: bounds.midX, y: bounds.midY)
+        clampZoom()
+        applyZoom()
         CATransaction.commit()
         ink.frame = bounds
+        rulerView.frame = bounds
         keys.frame = bounds
         let scale = traitCollection.displayScale
         onPixelSize?(Int((bounds.width * scale).rounded()), Int((bounds.height * scale).rounded()))
@@ -215,6 +244,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         didSet {
             guard tabletMode != oldValue else { return }
             videoLayer.isHidden = tabletMode
+            if tabletMode { resetLocalZoom() }
             backgroundColor = tabletMode ? .clear : .black
             if tabletMode { emitFinger(oneFinger.cancel()) } else { keys.releaseAll() }
             keys.isHidden = !tabletMode || !settings.tabletKeys.enabled
@@ -226,7 +256,82 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
 
     /// View point → normalised input position (picture, or the possibly rotated tablet area).
     func normalizeInput(_ p: CGPoint) -> CGPoint {
-        tabletMode ? settings.tabletArea.normalized(p, in: bounds.size) : Geometry.normalized(p, in: videoRect)
+        tabletMode ? settings.tabletArea.normalized(p, in: bounds.size) : Geometry.normalized(contentPoint(p), in: videoRect)
+    }
+
+    // MARK: Local zoom
+
+    /// Screen point → point in the unzoomed picture.
+    private func contentPoint(_ p: CGPoint) -> CGPoint {
+        guard zoomScale != 1 || zoomOffset != .zero else { return p }
+        let c = CGPoint(x: bounds.midX, y: bounds.midY)
+        return CGPoint(x: c.x + (p.x - c.x - zoomOffset.x) / zoomScale, y: c.y + (p.y - c.y - zoomOffset.y) / zoomScale)
+    }
+
+    private var localZoomActive: Bool { settings.zoomMethod == .localView && !tabletMode }
+
+    /// Keeps the zoomed picture covering the screen.
+    private func clampZoom() {
+        zoomScale = min(max(zoomScale, 1), 8)
+        let mx = bounds.width / 2 * (zoomScale - 1), my = bounds.height / 2 * (zoomScale - 1)
+        zoomOffset = CGPoint(x: min(max(zoomOffset.x, -mx), mx), y: min(max(zoomOffset.y, -my), my))
+    }
+
+    private func applyZoom() {
+        videoLayer.setAffineTransform(CGAffineTransform(translationX: zoomOffset.x, y: zoomOffset.y).scaledBy(x: zoomScale, y: zoomScale))
+    }
+
+    private func setZoom(_ scale: CGFloat, _ offset: CGPoint) {
+        let before = zoomScale
+        zoomScale = scale
+        zoomOffset = offset
+        clampZoom()
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        applyZoom()
+        CATransaction.commit()
+        if abs(before - zoomScale) > 0.001 || zoomScale == 1 { onLocalZoom?(zoomScale) }
+    }
+
+    func resetLocalZoom() {
+        guard zoomScale != 1 || zoomOffset != .zero else { return }
+        CATransaction.begin()
+        CATransaction.setAnimationDuration(0.25)
+        zoomScale = 1
+        zoomOffset = .zero
+        applyZoom()
+        CATransaction.commit()
+        onLocalZoom?(1)
+    }
+
+    // MARK: Ruler touches
+
+    private func snapshotRuler() {
+        rulerGrab = rulerTouches.isEmpty ? nil : (rulerView.ruler, rulerTouches.map { $0.location(in: self) })
+    }
+
+    private func moveRuler() {
+        guard let g = rulerGrab, !rulerTouches.isEmpty else { return }
+        let now = rulerTouches.map { $0.location(in: self) }
+        var r = g.ruler
+        if now.count >= 2, g.points.count >= 2 {
+            let m0 = CGPoint(x: (g.points[0].x + g.points[1].x) / 2, y: (g.points[0].y + g.points[1].y) / 2)
+            let m1 = CGPoint(x: (now[0].x + now[1].x) / 2, y: (now[0].y + now[1].y) / 2)
+            let a0 = atan2(g.points[1].y - g.points[0].y, g.points[1].x - g.points[0].x)
+            let a1 = atan2(now[1].y - now[0].y, now[1].x - now[0].x)
+            r.angle = Ruler.snapped(g.ruler.angle + Double(a1 - a0))
+            // Turn around the fingers' midpoint, then follow it.
+            let v = CGPoint(x: g.ruler.center.x - m0.x, y: g.ruler.center.y - m0.y)
+            let da = r.angle - g.ruler.angle
+            r.center = CGPoint(x: m1.x + v.x * cos(da) - v.y * sin(da), y: m1.y + v.x * sin(da) + v.y * cos(da))
+        } else {
+            r.center = CGPoint(x: g.ruler.center.x + now[0].x - g.points[0].x, y: g.ruler.center.y + now[0].y - g.points[0].y)
+        }
+        rulerView.ruler = r
+    }
+
+    func gestureRecognizer(_ g: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        !(rulerVisible && touch.type == .direct && rulerView.ruler.contains(touch.location(in: self)))
     }
 
     /// Tablet keys ("ExpressKeys") above the surface in tablet mode.
@@ -248,6 +353,14 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         onInput?()
         // Back to the canvas after a menu or sheet took the keyboard focus (hardware keyboard).
         if keyboardShown != true, !isFirstResponder { becomeFirstResponder() }
+        var touches = touches
+        if rulerVisible {
+            for t in touches where t.type == .direct && rulerTouches.count < 2 && rulerView.ruler.contains(t.location(in: self)) {
+                rulerTouches.append(t)
+                touches.remove(t)
+            }
+            snapshotRuler()
+        }
         fingersBegan(touches)
         if settings.trackpadAsMouse, pointerTouch == nil, let t = touches.first(where: { $0.type == .indirectPointer }) {
             pointerTouch = t
@@ -266,6 +379,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if rulerTouches.contains(where: { touches.contains($0) }) { moveRuler() }
         if let f = trackedFinger, touches.contains(f) {
             for c in event?.coalescedTouches(for: f) ?? [f] {
                 emitFinger(oneFinger.move(c.location(in: self), at: c.timestamp))
@@ -282,16 +396,24 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        releaseRuler(touches)
         fingersEnded(touches)
         endPointer(touches)
         endPencil(touches, phase: .up)
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        releaseRuler(touches)
         for t in touches where t === trackedFinger { emitFinger(oneFinger.cancel()) }
         fingersEnded(touches)
         endPointer(touches)
         endPencil(touches, phase: .cancel)
+    }
+
+    private func releaseRuler(_ touches: Set<UITouch>) {
+        let before = rulerTouches.count
+        rulerTouches.removeAll { touches.contains($0) }
+        if rulerTouches.count != before { snapshotRuler() }
     }
 
     // MARK: One finger (pen-display style touch)
@@ -425,9 +547,14 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
 
     private func send(_ t: UITouch, _ rawPhase: PenPhase) {
         guard let session else { return }
+        // Ruler: a stroke that starts near an edge stays on that edge's line.
+        var loc = t.preciseLocation(in: self)
+        if rawPhase == .down { rulerLine = rulerVisible ? rulerView.ruler.snapLine(for: loc) : nil }
+        if let line = rulerLine { loc = line.project(loc) }
+        defer { if rawPhase == .up || rawPhase == .cancel { rulerLine = nil } }
         // Pencil without hover: a touch only moves the pointer; touch again at once to click.
         if settings.doubleTapToClick {
-            let at = t.preciseLocation(in: self)
+            let at = loc
             if rawPhase == .down { _ = tapGate.begin(at: at, time: t.timestamp) }
             if !tapGate.armed {
                 if rawPhase == .up || rawPhase == .cancel { tapGate.end(at: at, time: t.timestamp); return }
@@ -443,10 +570,10 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         guard let phase = tipGate.phase(for: rawPhase, pressure: curved, threshold: settings.tipThreshold) else { return }
         if settings.instantInk, phase == .down || phase == .move {
             let raw = t.maximumPossibleForce > 0 ? Double(t.force / t.maximumPossibleForce) : 0.5
-            ink.add(t.preciseLocation(in: self), pressure: settings.pressure.map(raw), newStroke: phase == .down)
+            ink.add(loc, pressure: settings.pressure.map(raw), newStroke: phase == .down)
         }
         if phase == .down { ink.setHover(nil) }
-        var n = normalizeInput(t.preciseLocation(in: self))
+        var n = normalizeInput(loc)
         let touching = phase == .down || phase == .move
         var pressure = touching ? settings.pressure.apply(force: Double(t.force), maximumForce: Double(t.maximumPossibleForce)) : 0
         if phase == .down {
@@ -648,6 +775,16 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     }
 
     @objc private func handlePan(_ g: UIPanGestureRecognizer) {
+        // Zoomed in locally: two fingers move the picture instead of scrolling the Mac.
+        if localZoomActive && zoomScale > 1.001 {
+            let t = g.translation(in: self)
+            if g.state == .began { lastPan = t }
+            if g.state == .changed, localPinch == nil {
+                setZoom(zoomScale, CGPoint(x: zoomOffset.x + t.x - lastPan.x, y: zoomOffset.y + t.y - lastPan.y))
+            }
+            lastPan = t
+            return
+        }
         guard settings.panEnabled, let session else { return }
         let t = g.translation(in: self)
         switch g.state {
@@ -668,6 +805,23 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     }
 
     @objc private func handlePinch(_ g: UIPinchGestureRecognizer) {
+        if localZoomActive {
+            let a = g.location(in: self)
+            switch g.state {
+            case .began:
+                localPinch = (zoomScale / max(g.scale, 0.01), contentPoint(a))
+            case .changed:
+                guard let lp = localPinch else { return }
+                // Keep the picture point under the fingers there while scaling.
+                let s = min(max(lp.scale * g.scale, 1), 8)
+                let c = CGPoint(x: bounds.midX, y: bounds.midY)
+                setZoom(s, CGPoint(x: a.x - c.x - (lp.content.x - c.x) * s, y: a.y - c.y - (lp.content.y - c.y) * s))
+            default:
+                localPinch = nil
+                if zoomScale < 1.06 { resetLocalZoom() }
+            }
+            return
+        }
         guard let session, settings.zoomMethod != .off else { return }
         switch g.state {
         case .began:
@@ -747,6 +901,9 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
 struct CanvasRepresentable: UIViewRepresentable {
     @ObservedObject var model: ClientModel
 
+    final class Coordinator { var zoomResets = 0 }
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
     func makeUIView(context: Context) -> CanvasView {
         let v = CanvasView(renderer: model.renderer)
         let model = self.model
@@ -757,6 +914,7 @@ struct CanvasRepresentable: UIViewRepresentable {
         v.onRadialPick = { [weak model] in model?.pickRadial(model?.radialHighlight) }
         v.onScrub = { [weak model] n in model?.scrubSteps = n }
         v.onInput = { [weak model] in model?.noteInput() }
+        v.onLocalZoom = { [weak model] s in DispatchQueue.main.async { model?.localZoom = s } }
         return v
     }
 
@@ -774,6 +932,12 @@ struct CanvasRepresentable: UIViewRepresentable {
             v.ink.lifetime = min(max((t.rttMs / 2 + (t.frameAgeMs ?? 40) + 45) / 1000, 0.06), 0.4)
         }
         v.radialOpen = model.radialCenter != nil
+        v.rulerVisible = model.rulerVisible && !model.tabletModeActive && !model.settings.viewOnly
+        v.rulerView.accent = UIColor(Brand.mint)
+        if model.settings.zoomMethod != .localView || model.localZoomResets != context.coordinator.zoomResets {
+            context.coordinator.zoomResets = model.localZoomResets
+            v.resetLocalZoom()
+        }
         v.videoSize = model.videoSize
         v.keyboardProxy.onDismiss = { [weak model] in model?.showKeyboard = false }
         v.setOnScreenKeyboard(model.showKeyboard)

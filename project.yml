@@ -88,6 +88,7 @@ targets:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationPortraitUpsideDown
         NSLocalNetworkUsageDescription: UniversePen finds your paired Mac on the local network and connects to it directly.
+        NSPhotoLibraryAddUsageDescription: UniversePen saves screenshots of your Mac to Photos when you ask it to.
         NSBonjourServices: [_tafel._tcp, _tafelpair._tcp]
   PipelineTests:
     type: bundle.unit-test

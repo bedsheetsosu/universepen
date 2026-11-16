@@ -1,5 +1,6 @@
 import Foundation
 import ScreenCaptureKit
+import AppKit
 import CoreMedia
 import TafelKit
 
@@ -46,7 +47,13 @@ final class ScreenStreamer: NSObject, SCStreamOutput, SCStreamDelegate {
     private var lastDropped = 0
     private var calmSeconds = 0
 
+    /// What is captured right now (for full-resolution screenshots).
+    private var currentFilter: SCContentFilter?
+    private var currentSourceRect: CGRect?
+
     func start(filter: SCContentFilter, sourceRect: CGRect?, width: Int, height: Int, quality: StreamQuality) async throws {
+        currentFilter = filter
+        currentSourceRect = sourceRect
         let enc = try VideoEncoder(codec: quality.codec, width: width, height: height, quality: quality)
         enc.onOutput = { [weak self] format, frame in
             guard let self else { return }
@@ -93,6 +100,7 @@ final class ScreenStreamer: NSObject, SCStreamOutput, SCStreamDelegate {
     /// Live update of the captured area (region mode sliders) without restarting.
     func updateSourceRect(_ rect: CGRect, width: Int, height: Int, fps: Int) async {
         guard let stream else { return }
+        currentSourceRect = rect
         let cfg = SCStreamConfiguration()
         cfg.width = width
         cfg.height = height
@@ -120,6 +128,25 @@ final class ScreenStreamer: NSObject, SCStreamOutput, SCStreamDelegate {
     }
 
     func requestKeyframe() { encoder?.requestKeyframe() }
+
+    /// Still image of exactly what is streamed, at the full pixel resolution of the source
+    /// (not the stream size). PNG, or JPEG if the PNG would be too big for the wire.
+    func screenshot() async -> Data? {
+        guard let filter = currentFilter else { return nil }
+        let scale = CGFloat(filter.pointPixelScale)
+        let rect = currentSourceRect ?? filter.contentRect
+        let cfg = SCStreamConfiguration()
+        if let r = currentSourceRect { cfg.sourceRect = r }
+        cfg.width = max(Int((rect.width * scale).rounded()), 1)
+        cfg.height = max(Int((rect.height * scale).rounded()), 1)
+        cfg.captureResolution = .best
+        cfg.showsCursor = false
+        cfg.colorSpaceName = CGColorSpace.displayP3
+        guard let img = try? await SCScreenshotManager.captureImage(contentFilter: filter, configuration: cfg) else { return nil }
+        let rep = NSBitmapImageRep(cgImage: img)
+        if let png = rep.representation(using: .png, properties: [:]), png.count <= 24 * 1024 * 1024 { return png }
+        return rep.representation(using: .jpeg, properties: [.compressionFactor: 0.92])
+    }
 
     func stop() async {
         statsTimer?.cancel()
