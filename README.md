@@ -174,6 +174,7 @@ UniversePen does not change profiles, restrictions or MDM settings and does not 
 - UniversePen detects this after 2.5 s without a ping reply (instead of after a long TCP timeout), keeps the last frame on screen and reconnects automatically for up to 30 s: over the cable first, otherwise Wi-Fi. While on Wi-Fi, UniversePen checks every 10 s whether the cable works again and switches back (after a failure at most once per minute). Confirmed on real hardware (2026-11-15).
 - On the Mac, any pressed pen/mouse/key state is released when the connection drops.
 - Encoder or decoder errors trigger a new full frame immediately instead of freezing until the next periodic keyframe (5 s).
+- While an iPad is connected the Mac's display does not go to sleep (a power assertion, visible in `pmset -g assertions`), and connecting wakes a sleeping display.
 - If the Mac's screen capture stops by itself (display change, window closed) while an iPad is connected, it is restarted (up to 3 times in 30 s). After the Mac or its displays wake up, the capture is started fresh, so the iPad never keeps a frozen picture.
 - Coming back to the iPad app retries a failed connection and asks a live one for a fresh full frame.
 

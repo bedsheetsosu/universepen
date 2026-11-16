@@ -1,4 +1,5 @@
 import Foundation
+import IOKit.pwr_mgt
 import AppKit
 import ScreenCaptureKit
 import CoreGraphics
@@ -168,6 +169,26 @@ final class HostController: ObservableObject {
     private var restartTask: Task<Void, Never>?
     private var captureRestarts: [Date] = []
     private var thermalObserver: NSObjectProtocol?
+
+    // MARK: Keep awake
+
+    /// While an iPad is connected the Mac's display must not sleep (the capture would stop and the
+    /// iPad would show a frozen picture). Connecting also wakes a sleeping display.
+    private var awakeAssertion: IOPMAssertionID = 0
+
+    private func updateAwake(sessionActive: Bool) {
+        if sessionActive {
+            var wake: IOPMAssertionID = 0
+            IOPMAssertionDeclareUserActivity("UniversePen: iPad connected" as CFString, kIOPMUserActiveLocal, &wake)
+            guard awakeAssertion == 0 else { return }
+            IOPMAssertionCreateWithName(kIOPMAssertionTypePreventUserIdleDisplaySleep as CFString,
+                                        IOPMAssertionLevel(kIOPMAssertionLevelOn),
+                                        "UniversePen: streaming to the iPad" as CFString, &awakeAssertion)
+        } else if awakeAssertion != 0 {
+            IOPMAssertionRelease(awakeAssertion)
+            awakeAssertion = 0
+        }
+    }
 
     // MARK: Palette window
 
@@ -699,6 +720,7 @@ final class HostController: ObservableObject {
             Task { @MainActor in
                 guard let self else { return }
                 self.sessionDevice = name
+                self.updateAwake(sessionActive: name != nil)
                 self.sessionLink = link
                 self.plugins.emit(name == nil ? "disconnect" : "connect", ["device": name ?? "", "link": link])
                 self.scheduleVirtualTeardown(sessionActive: name != nil)
