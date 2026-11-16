@@ -302,6 +302,7 @@ extension Translations {
         "Warte auf das iPad …": "iPad를 기다리는 중 …",
         "iPad-Akku: %d %%": "iPad 배터리: %d %%",
         "Volle Mac-Auflösung senden": "Mac 전체 해상도로 전송",
+        "Squeeze halten": "스퀴즈 길게",
         "Beim Anmelden öffnen": "로그인 시 열기",
         "Beim Anmelden öffnen ging nicht: %@ (liegt die App im Programme-Ordner?)": "로그인 시 열기 실패: %@ (앱이 응용 프로그램 폴더에 있나요?)",
         "Striche am Raster einrasten": "획을 격자에 맞추기",

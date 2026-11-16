@@ -244,6 +244,12 @@ struct SettingsView: View {
                 }
                 ActionPicker(title: L("Doppeltippen"), action: pen.doubleTap)
                 ActionPicker(title: L("Squeeze"), action: pen.squeeze)
+                Picker(L("Squeeze halten"), selection: $model.settings.squeezeHoldKey) {
+                    Text(L("Aus")).tag(HoldKey?.none)
+                    ForEach(HoldKey.allCases, id: \.self) { k in
+                        Text(k == .space ? L("Leertaste") : k.symbol).tag(HoldKey?.some(k))
+                    }
+                }
                 if targetHasOwnProfile {
                     Button(L("Eigenes Stift-Profil löschen"), role: .destructive) {
                         model.settings.appPenProfiles[penTarget] = nil

@@ -13,6 +13,7 @@ struct CheatSheetView: View {
                 Section(L("Pencil")) {
                     entry("applepencil.doubletap", L("Doppeltippen"), s.doubleTap.display)
                     entry("applepencil.squeeze", L("Squeeze"), s.squeeze.display)
+                    if let k = s.squeezeHoldKey { entry("applepencil.squeeze", L("Squeeze halten"), k == .space ? L("Leertaste") : k.symbol) }
                     if s.shapeRecognition { entry("scribble.variable", L("Formerkennung"), L("Am Strichende kurz halten")) }
                     if s.ropeLength > 0 { entry("lasso", L("Seil-Stabilisator: %d pt", Int(s.ropeLength)), "") }
                 }

@@ -302,6 +302,7 @@ extension Translations {
         "Warte auf das iPad …": "iPad を待っています …",
         "iPad-Akku: %d %%": "iPad のバッテリー：%d %%",
         "Volle Mac-Auflösung senden": "Mac のフル解像度で送信",
+        "Squeeze halten": "スクイーズ長押し",
         "Beim Anmelden öffnen": "ログイン時に開く",
         "Beim Anmelden öffnen ging nicht: %@ (liegt die App im Programme-Ordner?)": "ログイン時に開く設定に失敗：%@（アプリはアプリケーションフォルダにありますか？）",
         "Striche am Raster einrasten": "ストロークをグリッドに吸着",

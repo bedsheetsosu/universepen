@@ -77,6 +77,10 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     private var rulerGrab: (ruler: Ruler, points: [CGPoint])?
     private var rulerLine: SnapLine?
     private var rulerStart: CGPoint?
+    private var squeezeHoldWork: DispatchWorkItem?
+    private var heldSqueezeKey: HoldKey?
+    /// Hold / release a key on the Mac (spring-loaded squeeze).
+    var onHoldKey: ((HoldKey, Bool) -> Void)?
     /// Live pressure meter (bottom left): a bar filled to the pressure sent to the Mac.
     private let meterTrack = CALayer()
     private let meterFill = CALayer()
@@ -1045,10 +1049,26 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
             squeezing = true
             touchedWhileSqueezing = false
             onGesture?(GestureEvent(name: "pencil.squeezeBegan"))
+            // Spring-loaded key: after 0.35 s of squeezing the key goes down until release.
+            if let key = settings.squeezeHoldKey {
+                let w = DispatchWorkItem { [weak self] in
+                    guard let self, self.squeezing else { return }
+                    self.heldSqueezeKey = key
+                    self.onHoldKey?(key, true)
+                }
+                squeezeHoldWork = w
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35, execute: w)
+            }
         }
         if squeeze.phase == .ended || squeeze.phase == .cancelled {
             onGesture?(GestureEvent(name: "pencil.squeezeEnded", value: touchedWhileSqueezing ? 1 : 0))
             squeezing = false
+            squeezeHoldWork?.cancel(); squeezeHoldWork = nil
+            if let key = heldSqueezeKey {
+                heldSqueezeKey = nil
+                onHoldKey?(key, false)
+                return   // it was a hold, not a squeeze tap
+            }
         }
         guard squeeze.phase == .ended else { return }
         // The Pencil touched the glass while squeezed: the squeeze was used as a modifier
@@ -1328,6 +1348,7 @@ struct CanvasRepresentable: UIViewRepresentable {
         let v = CanvasView(renderer: model.renderer)
         let model = self.model
         v.onAction = { [weak model] a in model?.trigger(a) }
+        v.onHoldKey = { [weak model] k, down in model?.hold(k, down: down) }
         v.onGesture = { [weak model] g in model?.report(g) }
         v.onPixelSize = { [weak model] w, h in model?.updateViewPixelSize(width: w, height: h) }
         v.onRadialOpen = { [weak model] p in model?.openRadial(at: p) }
