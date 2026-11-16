@@ -302,6 +302,7 @@ extension Translations {
         "Warte auf das iPad …": "正在等待 iPad …",
         "iPad-Akku: %d %%": "iPad 电量：%d %%",
         "Volle Mac-Auflösung senden": "发送 Mac 完整分辨率",
+        "iPad-Akku bei %d %% – bald laden": "iPad 电量 %d %% – 请尽快充电",
         "Zeitraffer gestoppt – gesichert in Filme → UniversePen": "延时摄影已停止 – 已保存到“影片 → UniversePen”",
         "Zeitraffer läuft am Mac": "Mac 正在录制延时摄影",
         "Zeitraffer konnte nicht starten": "无法开始延时摄影",

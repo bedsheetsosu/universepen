@@ -211,6 +211,10 @@ Bring one Mac panel (layers, colours, brushes …) onto the iPad as a small floa
 
 iPad → Settings → Pencil → "Shape recognition" (off by default). Hold the Pencil still for half a second at the end of a stroke: if it looks like a line, an open polyline, a triangle, a rectangle (snapped to right angles and to horizontal/vertical within 6°), a pentagon, an ellipse or a circle, UniversePen lifts the pen on the Mac, sends Undo (⌘Z) and draws the clean shape as a new stroke with the stroke's average pressure. The Pencil Pro gives a haptic tick. Works in any Mac app whose Undo removes the last stroke. Not in tablet mode or with the ruler.
 
+## iPad battery warning
+
+When the connected iPad drops to 15 % and is not charging, the Mac's menu bar icon turns into an empty battery and the iPad shows a reminder (once, until it is above 20 % or charging again).
+
 ## Mac shortcuts
 
 The laser pointer colour (red, green, yellow, blue, magenta) is chosen in the Mac window → Source.

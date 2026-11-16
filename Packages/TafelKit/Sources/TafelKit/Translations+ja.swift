@@ -302,6 +302,7 @@ extension Translations {
         "Warte auf das iPad …": "iPad を待っています …",
         "iPad-Akku: %d %%": "iPad のバッテリー：%d %%",
         "Volle Mac-Auflösung senden": "Mac のフル解像度で送信",
+        "iPad-Akku bei %d %% – bald laden": "iPad のバッテリー残量 %d %% – そろそろ充電してください",
         "Zeitraffer gestoppt – gesichert in Filme → UniversePen": "タイムラプスを停止 – ムービー → UniversePen に保存しました",
         "Zeitraffer läuft am Mac": "Mac でタイムラプスを記録中",
         "Zeitraffer konnte nicht starten": "タイムラプスを開始できませんでした",

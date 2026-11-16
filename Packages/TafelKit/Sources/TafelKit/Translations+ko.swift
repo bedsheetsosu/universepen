@@ -302,6 +302,7 @@ extension Translations {
         "Warte auf das iPad …": "iPad를 기다리는 중 …",
         "iPad-Akku: %d %%": "iPad 배터리: %d %%",
         "Volle Mac-Auflösung senden": "Mac 전체 해상도로 전송",
+        "iPad-Akku bei %d %% – bald laden": "iPad 배터리 %d %% – 곧 충전하세요",
         "Zeitraffer gestoppt – gesichert in Filme → UniversePen": "타임랩스 중지 – 동영상 → UniversePen에 저장됨",
         "Zeitraffer läuft am Mac": "Mac에서 타임랩스 녹화 중",
         "Zeitraffer konnte nicht starten": "타임랩스를 시작할 수 없음",

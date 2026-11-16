@@ -302,6 +302,7 @@ extension Translations {
         "Warte auf das iPad …": "iPad की प्रतीक्षा …",
         "iPad-Akku: %d %%": "iPad बैटरी: %d %%",
         "Volle Mac-Auflösung senden": "Mac का पूरा रिज़ॉल्यूशन भेजें",
+        "iPad-Akku bei %d %% – bald laden": "iPad बैटरी %d %% पर – जल्द चार्ज करें",
         "Zeitraffer gestoppt – gesichert in Filme → UniversePen": "टाइम-लैप्स रुका – Movies → UniversePen में सहेजा गया",
         "Zeitraffer läuft am Mac": "Mac पर टाइम-लैप्स रिकॉर्ड हो रहा है",
         "Zeitraffer konnte nicht starten": "टाइम-लैप्स शुरू नहीं हो सका",

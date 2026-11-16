@@ -78,8 +78,20 @@ final class HostController: ObservableObject {
     /// Display the extra tablets map onto (read from the network queue).
     private let tabletDisplay = LockedDisplayID()
 
-    @Published var ipadBattery: Double?
-    @Published var ipadCharging: Bool?
+    @Published var ipadBattery: Double? { didSet { checkBattery() } }
+    @Published var ipadCharging: Bool? { didSet { checkBattery() } }
+    private var batteryWarned = false
+
+    private func checkBattery() {
+        let low = (ipadBattery ?? 1) <= 0.15 && ipadCharging != true
+        if menuIcon.lowBattery != low { menuIcon.lowBattery = low }
+        if low, !batteryWarned {
+            batteryWarned = true
+            server.sendToast(Toast(text: L("iPad-Akku bei %d %% – bald laden", Int(((ipadBattery ?? 0) * 100).rounded())), seconds: 4))
+        } else if !low, (ipadBattery ?? 1) > 0.2 || ipadCharging == true {
+            batteryWarned = false
+        }
+    }
     // MARK: Developer API state
     let devAPI = DeveloperAPI()
     @Published var devAPIClients = 0
@@ -1310,6 +1322,8 @@ final class LiveStats: ObservableObject {
 @MainActor
 final class MenuIconState: ObservableObject {
     @Published var connected = false
+    /// The connected iPad is below 15 % and not charging.
+    @Published var lowBattery = false
 }
 
 final class LockedRect: @unchecked Sendable {

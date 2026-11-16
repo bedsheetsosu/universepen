@@ -345,6 +345,7 @@ enum Translations {
         "Warte auf das iPad …": "Waiting for the iPad …",
         "iPad-Akku: %d %%": "iPad battery: %d %%",
         "Volle Mac-Auflösung senden": "Send full Mac resolution",
+        "iPad-Akku bei %d %% – bald laden": "iPad battery at %d %% – charge it soon",
         "Zeitraffer gestoppt – gesichert in Filme → UniversePen": "Time-lapse stopped – saved in Movies → UniversePen",
         "Zeitraffer läuft am Mac": "Time-lapse is recording on the Mac",
         "Zeitraffer konnte nicht starten": "Time-lapse could not start",

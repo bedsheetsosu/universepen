@@ -302,6 +302,7 @@ extension Translations {
         "Warte auf das iPad …": "Esperando al iPad …",
         "iPad-Akku: %d %%": "Batería del iPad: %d %%",
         "Volle Mac-Auflösung senden": "Enviar resolución completa del Mac",
+        "iPad-Akku bei %d %% – bald laden": "Batería del iPad al %d %%: cárgalo pronto",
         "Zeitraffer gestoppt – gesichert in Filme → UniversePen": "Timelapse detenido: guardado en Películas → UniversePen",
         "Zeitraffer läuft am Mac": "El timelapse se está grabando en el Mac",
         "Zeitraffer konnte nicht starten": "No se pudo iniciar el timelapse",
