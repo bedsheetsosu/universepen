@@ -302,6 +302,7 @@ extension Translations {
         "Warte auf das iPad …": "Esperando al iPad …",
         "iPad-Akku: %d %%": "Batería del iPad: %d %%",
         "Volle Mac-Auflösung senden": "Enviar resolución completa del Mac",
+        "Finger: %@": "Dedos: %@",
         "Am Mac getippt": "Escrito en el Mac",
         "Neuer Textbaustein": "Nuevo fragmento",
         "Hinzufügen": "Añadir",

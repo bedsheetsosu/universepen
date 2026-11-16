@@ -223,7 +223,7 @@ iPad → Settings → Pencil → "Shape recognition" (off by default). Hold the 
 ## Small things
 
 - **Open at login** (Mac window → Stream), via the system's login items (the app should be in Applications).
-- **View only** is also in the iPad … menu.
+- **View only** and the **finger mode** (tap to cycle off / mouse / pen / pointer) are also in the iPad … menu; palette and heat guard are also in the Mac menu bar menu.
 - **Text snippets** (Settings → Text snippets): saved texts in the … menu under Clipboard; one tap types them on the Mac.
 
 ## iPad battery warning

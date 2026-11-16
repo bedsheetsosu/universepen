@@ -340,6 +340,11 @@ private struct OverlayMenuPanel: View {
                     row(L("Tablett-Modus automatisch für %@", app.name), icon: "rectangle.dashed",
                         checked: model.autoTabletForFrontApp) { model.toggleAutoTablet(); close() }
                 }
+                row(L("Finger: %@", model.settings.fingerMode.title), icon: "hand.point.up.left") {
+                    // Cycles off → mouse → pen → pointer.
+                    let all = FingerMode.allCases
+                    model.settings.fingerMode = all[(all.firstIndex(of: model.settings.fingerMode)! + 1) % all.count]
+                }
                 row(L("Nur Monitor (keine Eingabe)"), icon: "eye", checked: model.settings.viewOnly) {
                     model.settings.viewOnly.toggle(); close()
                 }

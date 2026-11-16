@@ -345,6 +345,7 @@ enum Translations {
         "Warte auf das iPad …": "Waiting for the iPad …",
         "iPad-Akku: %d %%": "iPad battery: %d %%",
         "Volle Mac-Auflösung senden": "Send full Mac resolution",
+        "Finger: %@": "Fingers: %@",
         "Am Mac getippt": "Typed on the Mac",
         "Neuer Textbaustein": "New snippet",
         "Hinzufügen": "Add",

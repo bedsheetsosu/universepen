@@ -113,6 +113,9 @@ struct HostMenu: View {
             openMain()
             host.beginPairing()
         }
+        Button(host.paletteArea == nil ? L("Palette fürs iPad wählen …") : L("Palette neu wählen …")) { host.pickPalette() }
+        if host.paletteArea != nil { Button(L("Palette entfernen")) { host.removePalette() } }
+        Toggle(L("Hitzeschutz"), isOn: $host.heatGuard)
         Divider()
         if host.timelapseRunning {
             Button(L("Zeitraffer stoppen")) { host.stopTimelapse() }

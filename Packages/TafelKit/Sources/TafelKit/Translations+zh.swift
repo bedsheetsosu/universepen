@@ -302,6 +302,7 @@ extension Translations {
         "Warte auf das iPad …": "正在等待 iPad …",
         "iPad-Akku: %d %%": "iPad 电量：%d %%",
         "Volle Mac-Auflösung senden": "发送 Mac 完整分辨率",
+        "Finger: %@": "手指：%@",
         "Am Mac getippt": "已在 Mac 上输入",
         "Neuer Textbaustein": "新文本片段",
         "Hinzufügen": "添加",
