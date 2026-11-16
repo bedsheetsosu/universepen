@@ -154,6 +154,7 @@ final class HostController: ObservableObject {
     /// Laser pointer (set by the iPad's config, read on the network queue) and its overlay.
     private let laserOn = LockedBool()
     private let laser = LaserOverlay()
+    @Published var laserColour: LaserOverlay.Colour = .red { didSet { laser.colour = laserColour } }
     private var followMoving = false
 
     let hostID: String
@@ -348,6 +349,7 @@ final class HostController: ObservableObject {
         observeFrontApp()
         observeWake()
         observeThermal()
+        laserColour = laser.colour
         hotkeys.register { [weak self] a in self?.hotkey(a) }
         observeDisplayChanges()
         observeSources()

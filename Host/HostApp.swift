@@ -356,6 +356,11 @@ struct HostView: View {
             }
             Text(L("Ein Bereich des Macs (z. B. Ebenen- oder Farbpalette) schwebt live als kleines Fenster auf dem iPad und lässt sich dort antippen."))
                 .font(.caption).foregroundStyle(.secondary)
+            Picker(L("Laserpointer-Farbe"), selection: $host.laserColour) {
+                ForEach(LaserOverlay.Colour.allCases) { c in
+                    Label { Text(c.title) } icon: { Image(systemName: "circle.fill").foregroundStyle(Color(nsColor: c.color)) }.tag(c)
+                }
+            }
             Text(L("Tastenkürzel: ⌃⌥⌘T Tablett-Modus · ⌃⌥⌘P Palette wählen · ⌃⌥⌘I vorderstes Fenster aufs iPad"))
                 .font(.caption).foregroundStyle(.secondary)
                 .contentTransition(.opacity)
