@@ -696,6 +696,19 @@ final class HostController: ObservableObject {
             guard let area = paletteArea.value else { return }
             injector.pointer(m, area: area)
         }
+        server.onHostCommand = { [weak self] c in
+            guard let self else { return }
+            switch c {
+            case .toggleTimelapse:
+                if self.timelapseRunning {
+                    self.stopTimelapse()
+                    self.server.sendToast(Toast(text: L("Zeitraffer gestoppt – gesichert in Filme → UniversePen"), seconds: 2.4))
+                } else {
+                    self.startTimelapse()
+                    self.server.sendToast(Toast(text: self.timelapseRunning ? L("Zeitraffer läuft am Mac") : L("Zeitraffer konnte nicht starten"), seconds: 2))
+                }
+            }
+        }
         server.onPaletteCommand = { [weak self] c in
             switch c {
             case .pick: self?.pickPalette()

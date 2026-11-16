@@ -44,6 +44,7 @@ final class HostServer {
     var onMouse: ((MouseEvent) -> Void)?
     var onPaletteMouse: ((MouseEvent) -> Void)?
     var onPaletteCommand: ((PaletteCommand) -> Void)?
+    var onHostCommand: ((HostCommand) -> Void)?
     /// iPad settings snapshot as JSON {settings, quality} (developer API).
     var onClientSettings: (([String: Any]) -> Void)?
     var onGesture: ((GestureEvent) -> Void)?
@@ -231,6 +232,10 @@ final class HostServer {
             if let m = try? MouseEvent(decoding: f.payload) { onMouse?(m) }
         case .paletteMouse:
             if let m = try? MouseEvent(decoding: f.payload) { onPaletteMouse?(m) }
+        case .hostCommand:
+            if let b = f.payload.first, let c = HostCommand(rawValue: b) {
+                DispatchQueue.main.async { [weak self] in self?.onHostCommand?(c) }
+            }
         case .paletteCommand:
             if let b = f.payload.first, let c = PaletteCommand(rawValue: b) {
                 DispatchQueue.main.async { [weak self] in self?.onPaletteCommand?(c) }

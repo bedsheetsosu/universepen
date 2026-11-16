@@ -291,6 +291,7 @@ final class Session: @unchecked Sendable {
     func requestClipboard() { control?.send(.requestClipboard, Data()) }
     func requestScreenshot() { control?.send(.requestScreenshot, Data()) }
     func sendPalette(_ m: MouseEvent) { control?.send(.paletteMouse, m.encoded()) }
+    func send(_ c: HostCommand) { control?.send(.hostCommand, Data([c.rawValue])) }
     func sendPalette(_ c: PaletteCommand) { control?.send(.paletteCommand, Data([c.rawValue])) }
 
     func send(config: ClientConfig) {

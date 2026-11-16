@@ -30,6 +30,7 @@ public enum MessageType: UInt8, Sendable {
     case paletteFrame = 0x18   // host -> client, video connection: JPEG of the palette area (empty = no palette)
     case paletteMouse = 0x19   // client -> host: MouseEvent, x/y normalised inside the palette area
     case paletteCommand = 0x1A // client -> host: u8 PaletteCommand
+    case hostCommand = 0x1B    // client -> host: u8 HostCommand
     case shortcut = 0x20
     case key = 0x21            // hardware keyboard key down/up (HID usage)
     case text = 0x22           // on-screen keyboard text (UTF-8)
@@ -391,6 +392,12 @@ public enum JSONWire {
 
 /// Trackpad or mouse on the iPad, acting as the Mac's mouse. Position is absolute (where the
 /// iPad pointer is over the mirrored image), so pointer and picture always line up.
+/// iPad → Mac: small remote controls for the Mac app.
+public enum HostCommand: UInt8, Sendable {
+    /// Start the time-lapse, or stop it if it is running.
+    case toggleTimelapse = 0
+}
+
 /// iPad → Mac: what to do with the palette window.
 public enum PaletteCommand: UInt8, Sendable {
     /// Forget the palette area.

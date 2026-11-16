@@ -389,6 +389,9 @@ private struct OverlayMenuPanel: View {
                         close()
                     }
                 }
+                row(L("Zeitraffer am Mac starten/stoppen"), icon: "timelapse") {
+                    model.session?.send(HostCommand.toggleTimelapse); close()
+                }
                 row(L("Laserpointer am Mac"), icon: "light.beacon.max", checked: model.laserMode) {
                     model.laserMode.toggle()
                     model.noteRecent(.laser)
