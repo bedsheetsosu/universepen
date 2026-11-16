@@ -59,7 +59,7 @@ extension Translations {
         "Quellen aktualisieren": "소스 새로 고침",
         "Encoder": "인코더",
         "Stifttest öffnen …": "펜 테스트 열기…",
-        "Zeigt, welche Druck-, Neigungs- und Rotationswerte eine Mac-App wirklich empfängt. Das Stifttest-Fenster wird mit übertragen, dieses Fenster nicht.": "Mac 앱이 실제로 받는 필압, 기울기, 회전 값을 보여줍니다. 펜 테스트 윈도우는 iPad로 전송되고 이 윈도우는 전송되지 않습니다.",
+        "Zeigt, welche Druck-, Neigungs- und Rotationswerte eine Mac-App wirklich empfängt.": "Mac 앱이 실제로 받는 필압, 기울기, 회전 값을 보여줍니다.",
         "Netzwerk-Diagnose": "네트워크 진단",
         "verbunden": "연결됨",
         "iPad-Ausschnitt": "iPad 영역",

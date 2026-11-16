@@ -59,7 +59,7 @@ extension Translations {
         "Quellen aktualisieren": "स्रोत रीफ़्रेश करें",
         "Encoder": "एनकोडर",
         "Stifttest öffnen …": "पेन टेस्ट खोलें …",
-        "Zeigt, welche Druck-, Neigungs- und Rotationswerte eine Mac-App wirklich empfängt. Das Stifttest-Fenster wird mit übertragen, dieses Fenster nicht.": "दिखाता है कि Mac ऐप को वास्तव में कौन-से दबाव, झुकाव और घुमाव के मान मिलते हैं। पेन टेस्ट विंडो iPad पर स्ट्रीम होती है, यह विंडो नहीं।",
+        "Zeigt, welche Druck-, Neigungs- und Rotationswerte eine Mac-App wirklich empfängt.": "दिखाता है कि Mac ऐप को वास्तव में कौन-से दबाव, झुकाव और घुमाव के मान मिलते हैं।",
         "Netzwerk-Diagnose": "नेटवर्क डायग्नोस्टिक्स",
         "verbunden": "कनेक्टेड",
         "iPad-Ausschnitt": "iPad क्षेत्र",

@@ -59,7 +59,7 @@ extension Translations {
         "Quellen aktualisieren": "Actualizar fuentes",
         "Encoder": "Codificador",
         "Stifttest öffnen …": "Abrir prueba del lápiz …",
-        "Zeigt, welche Druck-, Neigungs- und Rotationswerte eine Mac-App wirklich empfängt. Das Stifttest-Fenster wird mit übertragen, dieses Fenster nicht.": "Muestra qué valores de presión, inclinación y rotación recibe realmente una app del Mac. La ventana de prueba del lápiz se transmite al iPad; esta ventana no.",
+        "Zeigt, welche Druck-, Neigungs- und Rotationswerte eine Mac-App wirklich empfängt.": "Muestra qué valores de presión, inclinación y rotación recibe realmente una app del Mac.",
         "Netzwerk-Diagnose": "Diagnóstico de red",
         "verbunden": "conectado",
         "iPad-Ausschnitt": "Región del iPad",

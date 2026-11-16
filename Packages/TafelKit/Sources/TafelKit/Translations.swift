@@ -78,7 +78,7 @@ enum Translations {
         "Quellen aktualisieren": "Refresh sources",
         "Encoder": "Encoder",
         "Stifttest öffnen …": "Open Pen Test …",
-        "Zeigt, welche Druck-, Neigungs- und Rotationswerte eine Mac-App wirklich empfängt. Das Stifttest-Fenster wird mit übertragen, dieses Fenster nicht.": "Shows which pressure, tilt and rotation values a Mac app actually receives. The Pen Test window is streamed to the iPad, this window is not.",
+        "Zeigt, welche Druck-, Neigungs- und Rotationswerte eine Mac-App wirklich empfängt.": "Shows which pressure, tilt and rotation values a Mac app actually receives.",
         "Netzwerk-Diagnose": "Network diagnostics",
         "verbunden": "connected",
 

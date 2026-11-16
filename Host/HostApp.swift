@@ -464,7 +464,7 @@ struct HostView: View {
                 }
                 Spacer()
             }
-            Text(L("Zeigt, welche Druck-, Neigungs- und Rotationswerte eine Mac-App wirklich empfängt. Das Stifttest-Fenster wird mit übertragen, dieses Fenster nicht."))
+            Text(L("Zeigt, welche Druck-, Neigungs- und Rotationswerte eine Mac-App wirklich empfängt."))
                 .font(.caption).foregroundStyle(.secondary)
             Divider().opacity(0.4)
             TimelapseControls()

@@ -50,7 +50,6 @@ final class HostController: ObservableObject {
     @Published var listenerStatus = L("Startet …")
     /// Titles of the pen-test window in both languages (the window keeps the title it was opened with).
     /// The pen test window's title in every app language (it keeps the title it was opened with).
-    static let penTestTitles: Set<String> = L10n.allTranslations(of: "Stifttest")
     /// Listener is up (status texts start with "Bereit"/"Ready", depending on the language at the time).
     @Published var listenerReady = false
     @Published var sessionDevice: String? {
@@ -184,9 +183,6 @@ final class HostController: ObservableObject {
     private var windowTracker: Timer?
     private var permissionTimer: Timer?
     private var currentRegionLocal: CGRect = .zero
-    private var ownApps: [SCRunningApplication] = []
-    /// Own windows that *should* be mirrored (the pen test window).
-    private var ownVisibleWindows: [SCWindow] = []
     /// Thread-safe copy of the stream description for the network queue.
     private let sourceSnapshot = LockedString()
 
@@ -675,8 +671,6 @@ final class HostController: ObservableObject {
                 return DisplayChoice(id: d.displayID, title: "\(name ?? "Display \(d.displayID)") (\(Int(d.frame.width))×\(Int(d.frame.height)) pt)")
             }
             let own = Bundle.main.bundleIdentifier
-            ownApps = content.applications.filter { $0.bundleIdentifier == own }
-            ownVisibleWindows = content.windows.filter { $0.owningApplication?.bundleIdentifier == own && HostController.penTestTitles.contains($0.title ?? "") }
             let candidates = content.windows.filter {
                 $0.windowLayer == 0 && $0.frame.width > 100 && $0.frame.height > 100 && $0.owningApplication?.bundleIdentifier != own
             }
@@ -784,8 +778,8 @@ final class HostController: ObservableObject {
                    full.width > size.width {
                     size = full
                 }
-                // Our own window is never mirrored onto the iPad.
-                let filter = SCContentFilter(display: display, excludingApplications: ownApps, exceptingWindows: ownVisibleWindows)
+                // Everything on the display is mirrored, our own windows included.
+                let filter = SCContentFilter(display: display, excludingWindows: [])
                 injector.region = rect.offsetBy(dx: display.frame.minX, dy: display.frame.minY)
                 try await streamer.start(filter: filter, sourceRect: rect, width: size.width, height: size.height, quality: cfg.quality)
             case .window:

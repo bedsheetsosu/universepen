@@ -59,7 +59,7 @@ extension Translations {
         "Quellen aktualisieren": "ソースを更新",
         "Encoder": "エンコーダ",
         "Stifttest öffnen …": "ペンテストを開く…",
-        "Zeigt, welche Druck-, Neigungs- und Rotationswerte eine Mac-App wirklich empfängt. Das Stifttest-Fenster wird mit übertragen, dieses Fenster nicht.": "Macのアプリが実際に受け取る筆圧・傾き・回転の値を表示します。ペンテストのウインドウはiPadに転送され、このウインドウは転送されません。",
+        "Zeigt, welche Druck-, Neigungs- und Rotationswerte eine Mac-App wirklich empfängt.": "Macのアプリが実際に受け取る筆圧・傾き・回転の値を表示します。",
         "Netzwerk-Diagnose": "ネットワーク診断",
         "verbunden": "接続済み",
         "iPad-Ausschnitt": "iPad範囲",
