@@ -77,6 +77,9 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     private var rulerGrab: (ruler: Ruler, points: [CGPoint])?
     private var rulerLine: SnapLine?
     private var rulerStart: CGPoint?
+    /// Live pressure meter (bottom left): a bar filled to the pressure sent to the Mac.
+    private let meterTrack = CALayer()
+    private let meterFill = CALayer()
     private var measureClear: DispatchWorkItem?
     // Shape recognition: the stroke so far (view points), its pressures, and the hold timer.
     private var shapePoints: [CGPoint] = []
@@ -231,6 +234,14 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         rulerView.isHidden = true
         addSubview(guideView)
         guideView.isHidden = true
+        meterTrack.backgroundColor = UIColor.black.withAlphaComponent(0.45).cgColor
+        meterTrack.cornerRadius = 4
+        meterTrack.borderColor = UIColor.white.withAlphaComponent(0.3).cgColor
+        meterTrack.borderWidth = 1
+        meterFill.cornerRadius = 3
+        meterTrack.addSublayer(meterFill)
+        meterTrack.isHidden = true
+        layer.addSublayer(meterTrack)
         addSubview(ink)
         addSubview(keys)
         keys.isHidden = true
@@ -373,6 +384,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         ink.frame = bounds
         rulerView.frame = bounds
         guideView.frame = bounds
+        meterTrack.frame = CGRect(x: 16, y: bounds.height - 156, width: 10, height: 120)
         if guideKind != .none, guideView.content == .none { applyGuideKind() }
         keys.frame = bounds
         let scale = traitCollection.displayScale
@@ -870,6 +882,19 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         session.send(PenSample(phase: phase, x: Float(n.x), y: Float(n.y), pressure: Float(pressure),
                                tiltX: Float(tilt.x), tiltY: Float(tilt.y), rotation: Float(roll), timestamp: t.timestamp))
         trackShape(loc, phase: phase, pressure: pressure, tilt: CGPoint(x: tilt.x, y: tilt.y))
+        if settings.pressureMeter { showPressure(touching ? pressure : 0) }
+    }
+
+    func hidePressureMeter() { meterTrack.isHidden = true }
+
+    private func showPressure(_ p: Double) {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        meterTrack.isHidden = false
+        let h = (meterTrack.bounds.height - 4) * CGFloat(min(max(p, 0), 1))
+        meterFill.frame = CGRect(x: 2, y: meterTrack.bounds.height - 2 - h, width: meterTrack.bounds.width - 4, height: h)
+        meterFill.backgroundColor = ink.color.cgColor
+        CATransaction.commit()
     }
 
     // MARK: Shape recognition
@@ -1293,6 +1318,7 @@ struct CanvasRepresentable: UIViewRepresentable {
         v.keys.isHidden = !model.tabletModeActive || !model.settings.tabletKeys.enabled || model.settings.viewOnly
         v.ink.color = model.settings.inkColor.isEmpty ? UIColor(Brand.mint) : UIColor(Theme.color(model.settings.inkColor))
         v.ink.hoverSize = CGFloat(model.settings.hoverDotSize)
+        if !model.settings.pressureMeter { v.hidePressureMeter() }
         // Visible for about as long as the Mac's own stroke takes to appear in the picture:
         // pen event to the Mac (½ RTT) + drawing + capture/encode/network (frame age) + decode/display.
         if let t = model.timing {

@@ -302,6 +302,8 @@ extension Translations {
         "Warte auf das iPad …": "Esperando al iPad …",
         "iPad-Akku: %d %%": "Batería del iPad: %d %%",
         "Volle Mac-Auflösung senden": "Enviar resolución completa del Mac",
+        "WLAN ist gerade langsam (%d ms) – mit USB-Kabel ist es schneller und stabiler": "El Wi-Fi va lento ahora (%d ms): con cable USB es más rápido y estable",
+        "Druck-Anzeige beim Zeichnen": "Indicador de presión al dibujar",
         "Sitzung: %d min · %d Striche": "Sesión: %d min · %d trazos",
         "Bild zu groß für die Zwischenablage": "Imagen demasiado grande para el portapapeles",
         "Auf den Mac kopieren": "Copiar al Mac",

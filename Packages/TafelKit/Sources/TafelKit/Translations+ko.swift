@@ -302,6 +302,8 @@ extension Translations {
         "Warte auf das iPad …": "iPad를 기다리는 중 …",
         "iPad-Akku: %d %%": "iPad 배터리: %d %%",
         "Volle Mac-Auflösung senden": "Mac 전체 해상도로 전송",
+        "WLAN ist gerade langsam (%d ms) – mit USB-Kabel ist es schneller und stabiler": "지금 Wi-Fi가 느립니다(%d ms) – USB 케이블이 더 빠르고 안정적입니다",
+        "Druck-Anzeige beim Zeichnen": "그리는 동안 필압 표시",
         "Sitzung: %d min · %d Striche": "세션: %d분 · 획 %d개",
         "Bild zu groß für die Zwischenablage": "이미지가 너무 커서 클립보드에 넣을 수 없음",
         "Auf den Mac kopieren": "Mac에 복사",

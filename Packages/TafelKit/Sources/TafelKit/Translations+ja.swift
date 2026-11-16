@@ -302,6 +302,8 @@ extension Translations {
         "Warte auf das iPad …": "iPad を待っています …",
         "iPad-Akku: %d %%": "iPad のバッテリー：%d %%",
         "Volle Mac-Auflösung senden": "Mac のフル解像度で送信",
+        "WLAN ist gerade langsam (%d ms) – mit USB-Kabel ist es schneller und stabiler": "Wi-Fi が遅くなっています（%d ms）– USB ケーブルの方が速く安定します",
+        "Druck-Anzeige beim Zeichnen": "描画中の筆圧メーター",
         "Sitzung: %d min · %d Striche": "セッション：%d 分 · %d ストローク",
         "Bild zu groß für die Zwischenablage": "画像が大きすぎてクリップボードに入りません",
         "Auf den Mac kopieren": "Mac にコピー",

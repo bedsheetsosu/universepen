@@ -94,6 +94,7 @@ struct ReferenceOverlay: View {
                         }
                         .shadow(color: .black.opacity(ref.locked ? 0 : 0.35), radius: 12, y: 4)
                         .allowsHitTesting(!ref.locked)
+                        .onTapGesture(count: 2) { ref.locked = true }   // double-tap: lock and trace
                         .gesture(moveAndScale(in: g.size), including: ref.locked ? .none : .all)
                     lockButton.offset(x: 10, y: -10)
                 }

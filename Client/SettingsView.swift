@@ -281,6 +281,7 @@ struct SettingsView: View {
                 Text(L("Am Strichende den Stift kurz still halten: Linie, Kreis, Ellipse, Dreieck oder Rechteck wird sauber neu gezeichnet (der Strich wird dafür am Mac rückgängig gemacht)."))
                     .font(.caption).foregroundStyle(.secondary)
             }
+            Toggle(L("Druck-Anzeige beim Zeichnen"), isOn: $model.settings.pressureMeter)
             Toggle(L("Hover-Punkt unter der Stiftspitze"), isOn: $model.settings.hoverDot)
             if model.settings.hoverDot {
                 Stepper(L("Hover-Punkt: %d pt", Int(model.settings.hoverDotSize)), value: $model.settings.hoverDotSize, in: 4...40, step: 2)

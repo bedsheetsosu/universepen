@@ -206,6 +206,9 @@ Bring one Mac panel (layers, colours, brushes …) onto the iPad as a small floa
 - **Composition grid** (… menu → Tools, tap again to cycle): thirds, quarters or squares (2–32 across, Settings → General) over the picture on the iPad only; it zooms, turns and mirrors with the picture.
 - **Reference picture:** its bar now also flips it horizontally and shows it in grey; both are remembered.
 - **Session summary:** disconnecting shows how long you drew and how many strokes went to the Mac.
+- **Pressure meter** (Settings → Pencil): a small bar bottom left shows the pressure that reaches the Mac, handy for tuning the curve.
+- **Reference picture:** double-tap it to lock it for tracing.
+- **Slow Wi-Fi hint:** if Wi-Fi round trips stay above 35 ms for 10 s, the iPad suggests the USB cable (once per sitting).
 - **Break reminder** (Settings → General: 30/45/60/90 min): a gentle toast after that much drawing time; five minutes without input count as the break.
 
 ## Shape recognition

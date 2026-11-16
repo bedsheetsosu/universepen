@@ -302,6 +302,8 @@ extension Translations {
         "Warte auf das iPad …": "iPad की प्रतीक्षा …",
         "iPad-Akku: %d %%": "iPad बैटरी: %d %%",
         "Volle Mac-Auflösung senden": "Mac का पूरा रिज़ॉल्यूशन भेजें",
+        "WLAN ist gerade langsam (%d ms) – mit USB-Kabel ist es schneller und stabiler": "Wi-Fi अभी धीमा है (%d ms) – USB केबल ज़्यादा तेज़ और स्थिर है",
+        "Druck-Anzeige beim Zeichnen": "ड्रॉ करते समय दबाव मीटर",
         "Sitzung: %d min · %d Striche": "सत्र: %d मिनट · %d स्ट्रोक",
         "Bild zu groß für die Zwischenablage": "तस्वीर क्लिपबोर्ड के लिए बहुत बड़ी है",
         "Auf den Mac kopieren": "Mac पर कॉपी करें",

@@ -667,6 +667,7 @@ final class ClientModel: ObservableObject {
                 let linkChanged = self.timing?.link != t.link
                 self.timing = t
                 if linkChanged { self.sendConfig() }
+                self.checkSlowWiFi(t)
             }
         }
         s.onClosed = { [weak self, weak s] reason in
@@ -717,6 +718,19 @@ final class ClientModel: ObservableObject {
         }
     }
 
+    /// Wi-Fi round trips above 35 ms for ~10 s: one hint per sitting that the cable is faster.
+    private var slowSince: Date?
+    private var slowWarned = false
+
+    private func checkSlowWiFi(_ t: Session.Timing) {
+        guard !t.link.hasPrefix("USB"), t.rttMs > 35 else { slowSince = nil; return }
+        let since = slowSince ?? Date()
+        slowSince = since
+        guard !slowWarned, Date().timeIntervalSince(since) > 10 else { return }
+        slowWarned = true
+        show(Toast(text: L("WLAN ist gerade langsam (%d ms) – mit USB-Kabel ist es schneller und stabiler", Int(t.rttMs)), seconds: 4))
+    }
+
     /// Start of the current sitting (survives reconnects), for the summary on disconnect.
     private var sessionStart: Date?
 
@@ -729,6 +743,7 @@ final class ClientModel: ObservableObject {
             }
             sessionStart = nil
         }
+        slowWarned = false
         let s = session
         session = nil
         s?.close()
