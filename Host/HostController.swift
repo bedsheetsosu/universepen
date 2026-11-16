@@ -170,6 +170,33 @@ final class HostController: ObservableObject {
     private var captureRestarts: [Date] = []
     private var thermalObserver: NSObjectProtocol?
 
+    // MARK: Hot keys
+
+    private let hotkeys = Hotkeys()
+
+    private func hotkey(_ a: Hotkeys.Action) {
+        switch a {
+        case .tabletMode:
+            guard let cfg = clientConfig else { return }
+            _ = server.sendSettingsPatch(["settings": ["tabletMode": !(cfg.tabletMode ?? false)]])
+        case .palette:
+            pickPalette()
+        case .windowToIPad:
+            moveFrontWindowToIPad()
+        }
+    }
+
+    /// Puts the front app's window where the iPad looks: the second screen, or the streamed
+    /// display/region.
+    func moveFrontWindowToIPad() {
+        guard sessionDevice != nil, mode != .window else { return }
+        let area = injector.region
+        guard area.width > 50, area.height > 50 else { return }
+        if !Hotkeys.moveFrontWindow(into: area) {
+            NSLog("Tafel: could not move the front window (Accessibility?)")
+        }
+    }
+
     // MARK: Keep awake
 
     /// While an iPad is connected the Mac's display must not sleep (the capture would stop and the
@@ -321,6 +348,7 @@ final class HostController: ObservableObject {
         observeFrontApp()
         observeWake()
         observeThermal()
+        hotkeys.register { [weak self] a in self?.hotkey(a) }
         observeDisplayChanges()
         observeSources()
         updateFollowTimer()

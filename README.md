@@ -209,6 +209,10 @@ Bring one Mac panel (layers, colours, brushes …) onto the iPad as a small floa
 
 iPad → Settings → Pencil → "Shape recognition" (off by default). Hold the Pencil still for half a second at the end of a stroke: if it looks like a line, an open polyline, a triangle, a rectangle (snapped to right angles and to horizontal/vertical within 6°), a pentagon, an ellipse or a circle, UniversePen lifts the pen on the Mac, sends Undo (⌘Z) and draws the clean shape as a new stroke with the stroke's average pressure. The Pencil Pro gives a haptic tick. Works in any Mac app whose Undo removes the last stroke. Not in tablet mode or with the ruler.
 
+## Mac shortcuts
+
+System-wide, from any app: **⌃⌥⌘T** switches the iPad into or out of tablet mode, **⌃⌥⌘P** lets you drag out the palette area, **⌃⌥⌘I** moves the front app's window to where the iPad looks (the second screen, or the centre of the streamed display/region), shrinking it to fit if needed (uses Accessibility). Also in the menu bar menu.
+
 ## Heat guard (Mac)
 
 On by default (Mac window → Stream). macOS reports how hot the Mac is (`ProcessInfo.thermalState`). At "serious" UniversePen streams at most 30 fps, ≤ 25 Mbit/s and without full source resolution; at "critical" also ≤ 15 Mbit/s and ≤ 75 % resolution. When the Mac has cooled off, the iPad's own settings apply again. It only ever lowers settings. Made for the fanless MacBook Air.

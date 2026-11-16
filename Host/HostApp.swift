@@ -93,6 +93,8 @@ struct HostMenu: View {
             Text(localizedLink(host.sessionLink))
             ForEach(host.extraTablets, id: \.self) { t in Text(L("+ als Tablett: %@", t)) }
             MenuStatsLine(live: host.live)
+            Button(L("Vorderstes Fenster aufs iPad")) { host.moveFrontWindowToIPad() }
+                .keyboardShortcut("i", modifiers: [.control, .option, .command])
             if host.heatLevel > 0, host.heatGuard { Text(L("Mac ist heiß – Stream gedrosselt (30 fps).")) }
             if let b = host.ipadBattery {
                 Text(L("iPad-Akku: %d %%", Int((b * 100).rounded())) + (host.ipadCharging == true ? " ⚡︎" : ""))
@@ -353,6 +355,8 @@ struct HostView: View {
                 Spacer()
             }
             Text(L("Ein Bereich des Macs (z. B. Ebenen- oder Farbpalette) schwebt live als kleines Fenster auf dem iPad und lässt sich dort antippen."))
+                .font(.caption).foregroundStyle(.secondary)
+            Text(L("Tastenkürzel: ⌃⌥⌘T Tablett-Modus · ⌃⌥⌘P Palette wählen · ⌃⌥⌘I vorderstes Fenster aufs iPad"))
                 .font(.caption).foregroundStyle(.secondary)
                 .contentTransition(.opacity)
             if !HostController.secondScreenAvailable {

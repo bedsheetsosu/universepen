@@ -302,6 +302,8 @@ extension Translations {
         "Warte auf das iPad …": "正在等待 iPad …",
         "iPad-Akku: %d %%": "iPad 电量：%d %%",
         "Volle Mac-Auflösung senden": "发送 Mac 完整分辨率",
+        "Tastenkürzel: ⌃⌥⌘T Tablett-Modus · ⌃⌥⌘P Palette wählen · ⌃⌥⌘I vorderstes Fenster aufs iPad": "快捷键：⌃⌥⌘T 数位板模式 · ⌃⌥⌘P 选择面板 · ⌃⌥⌘I 把最前面的窗口移到 iPad",
+        "Vorderstes Fenster aufs iPad": "把最前面的窗口移到 iPad",
         "Raster": "网格",
         "Drittel": "三分法",
         "Viertel": "四等分",
