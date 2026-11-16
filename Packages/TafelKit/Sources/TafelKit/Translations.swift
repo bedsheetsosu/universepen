@@ -345,6 +345,8 @@ enum Translations {
         "Warte auf das iPad …": "Waiting for the iPad …",
         "iPad-Akku: %d %%": "iPad battery: %d %%",
         "Volle Mac-Auflösung senden": "Send full Mac resolution",
+        "Undo/Redo-Knöpfe am Rand": "Undo/redo buttons at the edge",
+        "Wiederholen": "Redo",
         "WLAN ist gerade langsam (%d ms) – mit USB-Kabel ist es schneller und stabiler": "Wi-Fi is slow right now (%d ms) – a USB cable is faster and steadier",
         "Druck-Anzeige beim Zeichnen": "Pressure meter while drawing",
         "Sitzung: %d min · %d Striche": "Session: %d min · %d strokes",

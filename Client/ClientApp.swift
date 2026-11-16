@@ -105,8 +105,32 @@ struct RootView: View {
         }
     }
 
+    private func undoButton(_ symbol: String, _ label: String, _ action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.9))
+                .frame(width: 48, height: 48)
+                .tafelOverlayGlass(Circle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
+    }
+
     private var overlay: some View {
         ZStack {
+            if model.settings.undoButtons && !model.tabletModeActive && !model.settings.viewOnly {
+                VStack {
+                    Spacer()
+                    HStack(spacing: 12) {
+                        if !model.settings.shortcutBarOnRight { Spacer() }
+                        undoButton("arrow.uturn.backward", L("Widerrufen")) { model.trigger(.undo) }
+                        undoButton("arrow.uturn.forward", L("Wiederholen")) { model.trigger(.redo) }
+                        if model.settings.shortcutBarOnRight { Spacer() }
+                    }
+                    .padding(.horizontal, 18).padding(.bottom, 18)
+                }
+            }
             if model.settings.showShortcutBar && !model.tabletModeActive && !model.settings.viewOnly {
                 HStack {
                     if model.settings.shortcutBarOnRight { Spacer() }

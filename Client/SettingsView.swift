@@ -282,6 +282,7 @@ struct SettingsView: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
             Toggle(L("Druck-Anzeige beim Zeichnen"), isOn: $model.settings.pressureMeter)
+            Toggle(L("Undo/Redo-Knöpfe am Rand"), isOn: $model.settings.undoButtons)
             Toggle(L("Hover-Punkt unter der Stiftspitze"), isOn: $model.settings.hoverDot)
             if model.settings.hoverDot {
                 Stepper(L("Hover-Punkt: %d pt", Int(model.settings.hoverDotSize)), value: $model.settings.hoverDotSize, in: 4...40, step: 2)

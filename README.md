@@ -209,6 +209,7 @@ Bring one Mac panel (layers, colours, brushes …) onto the iPad as a small floa
 - **Pressure meter** (Settings → Pencil): a small bar bottom left shows the pressure that reaches the Mac, handy for tuning the curve.
 - **Reference picture:** double-tap it to lock it for tracing.
 - **Slow Wi-Fi hint:** if Wi-Fi round trips stay above 35 ms for 10 s, the iPad suggests the USB cable (once per sitting).
+- **Undo/redo buttons** (Settings → Pencil): two round buttons at the bottom edge, on the side opposite the shortcut bar.
 - **Break reminder** (Settings → General: 30/45/60/90 min): a gentle toast after that much drawing time; five minutes without input count as the break.
 
 ## Shape recognition
