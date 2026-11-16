@@ -278,6 +278,8 @@ public struct InputSettings: Codable, Equatable, Sendable {
     public var undoButtons = false
     /// Squeeze and hold (> 0.35 s): this key is held on the Mac until the squeeze ends (spring-loaded tool).
     public var squeezeHoldKey: HoldKey?
+    /// Saved texts typed on the Mac with one tap (… menu).
+    public var snippets: [String] = []
     /// Small ring under the hovering Pencil tip, drawn on the iPad.
     public var hoverDot = true
 
@@ -360,7 +362,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         case fingerMode, fingerPressure, longPressRightClick, palmRadius
         case threeFingerSwipeLeft, threeFingerSwipeRight, threeFingerSwipeUp, threeFingerSwipeDown, fourFingerTap
         case swapISOKeys, trackpadAsMouse, hideIPadPointer, showShortcutBar, shortcutBarOnRight, shortcutBar
-        case appShortcutBars, appNames, radialMenu, appPenProfiles, gameApps, tabletApps, undoScrub, undoScrubStep, instantInk, shapeRecognition, ropeLength, constantPressure, speedPressure, inkColor, hoverDotSize, pressureMeter, undoButtons, squeezeHoldKey, hoverDot, tabletMode, tabletArea, tabletLockAspect, tabletPresets, tipThreshold, tabletKeys, doubleTapToClick, viewOnly, dimAfterMinutes, dimOnlyWhenStill, breakReminderMinutes
+        case appShortcutBars, appNames, radialMenu, appPenProfiles, gameApps, tabletApps, undoScrub, undoScrubStep, instantInk, shapeRecognition, ropeLength, constantPressure, speedPressure, inkColor, hoverDotSize, pressureMeter, undoButtons, squeezeHoldKey, snippets, hoverDot, tabletMode, tabletArea, tabletLockAspect, tabletPresets, tipThreshold, tabletKeys, doubleTapToClick, viewOnly, dimAfterMinutes, dimOnlyWhenStill, breakReminderMinutes
     }
 
     /// Tolerates settings saved by older versions: missing keys keep their defaults.
@@ -393,7 +395,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         try get(.instantInk, &instantInk); try get(.hoverDot, &hoverDot)
         try get(.shapeRecognition, &shapeRecognition)
         try get(.ropeLength, &ropeLength); try get(.constantPressure, &constantPressure)
-        try get(.speedPressure, &speedPressure); try get(.inkColor, &inkColor); try get(.hoverDotSize, &hoverDotSize); try get(.pressureMeter, &pressureMeter); try get(.undoButtons, &undoButtons); try get(.squeezeHoldKey, &squeezeHoldKey)
+        try get(.speedPressure, &speedPressure); try get(.inkColor, &inkColor); try get(.hoverDotSize, &hoverDotSize); try get(.pressureMeter, &pressureMeter); try get(.undoButtons, &undoButtons); try get(.squeezeHoldKey, &squeezeHoldKey); try get(.snippets, &snippets)
         try get(.tabletMode, &tabletMode); try get(.tabletArea, &tabletArea); try get(.tabletLockAspect, &tabletLockAspect)
         try get(.tabletPresets, &tabletPresets)
         try get(.tipThreshold, &tipThreshold); try get(.tabletKeys, &tabletKeys)

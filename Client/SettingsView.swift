@@ -33,6 +33,7 @@ struct SettingsView: View {
                 shortcutSection
                 radialSection
                 keyboardSection
+                snippetSection
                 Section {
                     Toggle(L("Nur Monitor (keine Eingabe)"), isOn: $model.settings.viewOnly)
                     Picker(L("Abdunkeln nach"), selection: $model.settings.dimAfterMinutes) {
@@ -106,6 +107,29 @@ struct SettingsView: View {
             Text(L("Verbindung"))
         } footer: {
             Text(L("Mit USB-Kabel zum Mac verbindet UniversePen zuerst über das Kabel und sonst über WLAN. Peer-to-Peer-WLAN nur einschalten, wenn kein gemeinsames WLAN da ist – es erhöht die Latenz."))
+        }
+    }
+
+    @State private var newSnippet = ""
+
+    private var snippetSection: some View {
+        Section {
+            ForEach(Array(model.settings.snippets.enumerated()), id: \.offset) { _, t in Text(t) }
+                .onDelete { model.settings.snippets.remove(atOffsets: $0) }
+                .onMove { model.settings.snippets.move(fromOffsets: $0, toOffset: $1) }
+            HStack {
+                TextField(L("Neuer Textbaustein"), text: $newSnippet)
+                Button(L("Hinzufügen")) {
+                    let t = newSnippet.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !t.isEmpty { model.settings.snippets.append(t) }
+                    newSnippet = ""
+                }
+                .disabled(newSnippet.trimmingCharacters(in: .whitespaces).isEmpty)
+            }
+        } header: {
+            Text(L("Textbausteine"))
+        } footer: {
+            Text(L("Erscheinen im …-Menü unter Zwischenablage; antippen tippt den Text am Mac (z. B. Ebenennamen, Signatur)."))
         }
     }
 

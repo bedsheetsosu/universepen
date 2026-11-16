@@ -441,6 +441,13 @@ private struct OverlayMenuPanel: View {
                 header(L("Zwischenablage"))
                 row(L("iPad → Mac kopieren"), icon: "doc.on.clipboard") { model.copyClipboardToMac(); close() }
                 row(L("Mac → iPad holen"), icon: "clipboard") { model.fetchClipboardFromMac(); close() }
+                ForEach(Array(model.settings.snippets.enumerated()), id: \.offset) { _, text in
+                    row(text, icon: "text.quote", indent: true) {
+                        model.session?.send(text: text)
+                        model.show(Toast(text: L("Am Mac getippt"), seconds: 1.2))
+                        close()
+                    }
+                }
                 row(L("Referenzbild …"), icon: "photo.on.rectangle", checked: model.reference.image != nil) {
                     close(); model.reference.pickerShown = true
                 }
