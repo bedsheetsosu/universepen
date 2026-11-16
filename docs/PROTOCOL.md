@@ -80,7 +80,7 @@ JSON messages use plain `JSONEncoder` key names (camelCase).
 | 0x23 | charKey | C→H | JSON `{key, down}` – hold/release a key given as character or special key name (resolved with the Mac's layout; tablet key pad) |
 | 0x30 | ping | C→H | `f64 clientTime` (seconds since 1970) |
 | 0x31 | pong | H→C | `f64 clientTime, f64 hostTime` |
-| 0x40 | videoFormat | H→C | `u8 codec (0 H.264, 1 HEVC), u32 width, u32 height, u8 count, count × blob parameter set, [bool displayP3]` |
+| 0x40 | videoFormat | H→C | `u8 codec (0 H.264, 1 HEVC), u32 width, u32 height, u8 count, count × blob parameter set, [bool displayP3], [bool sRGBTransfer]` – sRGBTransfer (0.8+): tone curve is sRGB instead of BT.709 |
 | 0x41 | videoFrame | H→C | `bool keyframe, f64 captureTime, rest = AVCC/HVCC (4-byte big-endian NAL lengths)` |
 | 0x42 | requestKeyframe | C→H | empty |
 | 0x50 | audioChunk | H→C | `u32 sampleRate, u8 channels, f64 captureTime, rest = s16 LE interleaved PCM` |

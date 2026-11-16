@@ -91,6 +91,7 @@ On first launch both apps walk you through a short **setup**. On the iPad it is 
 | Capture the Mac screen/a window | ScreenCaptureKit (`SCStream`, `SCContentFilter`) | ✅ screen, region (`sourceRect`) or a single window |
 | Low-latency hardware encoding | VideoToolbox, `kVTVideoEncoderSpecification_EnableLowLatencyRateControl` | ✅ H.264 and HEVC, confirmed as hardware encoder on this Mac |
 | Hardware decoding on the iPad | `AVSampleBufferDisplayLayer` with "display immediately" | ✅ |
+| Same colours as on the Mac | ScreenCaptureKit in Display P3, stream tagged P3 + sRGB tone curve; HEVC in 10 bit (Main10, `x420` frames straight from ScreenCaptureKit), 8 bit in full range | ✅ no lifted shadows (older versions tagged BT.709) and no banding in soft gradients. iPad → Settings → Image → "10-bit colour" (switches to HEVC). |
 | **iPad as an additional, separate display** at native resolution | only `CGVirtualDisplay` – **private** | ⚠️ not available through public APIs. Äbbl's own solution is Sidecar. UniversePen offers it as a deliberate, experimental exception (see "Second screen"). |
 | Native iPad resolution without black bars | region in the iPad aspect ratio (2360×1640 ≈ 1.44:1) taken from the Mac screen (1470×956 pt ≈ 1.54:1) | ✅ "iPad region" mode: fills the iPad completely, size and position via sliders. The rest of the Mac screen is not visible on the iPad. |
 
@@ -173,6 +174,18 @@ UniversePen does not change profiles, restrictions or MDM settings and does not 
 - UniversePen detects this after 2.5 s without a ping reply (instead of after a long TCP timeout), keeps the last frame on screen and reconnects automatically for up to 30 s: over the cable first, otherwise Wi-Fi. While on Wi-Fi, UniversePen checks every 10 s whether the cable works again and switches back (after a failure at most once per minute). Confirmed on real hardware (2026-11-15).
 - On the Mac, any pressed pen/mouse/key state is released when the connection drops.
 - Encoder or decoder errors trigger a new full frame immediately instead of freezing until the next periodic keyframe (5 s).
+- If the Mac's screen capture stops by itself (display change, window closed) while an iPad is connected, it is restarted (up to 3 times in 30 s). After the Mac or its displays wake up, the capture is started fresh, so the iPad never keeps a frozen picture.
+- Coming back to the iPad app retries a failed connection and asks a live one for a fresh full frame.
+
+## Shortcuts, Siri, Control Center
+
+The iPad app offers actions in the Shortcuts app: **Connect to Mac** (optionally a specific paired Mac), **Disconnect from Mac**, **Tablet Mode** and **Laser Pointer** (on / off / toggle) and **Take Mac Screenshot**. They also work with Siri and Spotlight (e.g. "Connect UniversePen"). For Control Center or the Lock Screen, add the system "Shortcut" control and pick one of them. All actions are translated into the 7 app languages.
+
+## Accessibility
+
+- VoiceOver: all icon buttons have labels; selected menu entries and the active profile are announced as selected. The Mac picture is a single element with *direct interaction*, so the Pencil and fingers keep working with VoiceOver on.
+- Reduce Motion (iPad and Mac): springs become short fades, the flowing background stands still.
+- Settings and menus use system text styles and grow with the text size.
 
 ## Second screen (experimental, private API)
 
