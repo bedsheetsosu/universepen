@@ -34,7 +34,7 @@ struct CommandCenter: View {
         let tabs: [(value: Tab, title: String, symbol: String?)] = [
             (.tools, L("Werkzeuge"), "pencil.and.ruler"),
             (.source, L("Quelle"), "display"),
-            (.clipboard, L("Ablage"), "doc.on.clipboard"),
+            (.clipboard, L("Zwischenablage"), "doc.on.clipboard"),
             (.more, L("Mehr"), "ellipsis"),
         ]
         VStack(spacing: 12) {
@@ -120,9 +120,17 @@ struct CommandCenter: View {
                     }
                     tool(.ellipse)
                     tool(.grid)
-                    tool(.shapeRecognition)
                 }
                 aidOptions
+            }
+            UltraHeader(L("Strich"))
+            LazyVGrid(columns: four, spacing: 8) {
+                if !model.tabletModeActive {
+                    tool(.shapeRecognition)
+                    tool(.rope)
+                }
+                tool(.fixedPressure)
+                tool(.speedPressure)
             }
             UltraHeader(L("Ansicht"))
             LazyVGrid(columns: four, spacing: 8) {

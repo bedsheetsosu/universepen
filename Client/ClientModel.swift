@@ -1011,6 +1011,9 @@ final class ClientModel: ObservableObject {
         case .mirror: return mirrored
         case .grayscale: return grayscale
         case .grid: return grid != .off
+        case .rope: return settings.ropeLength > 0
+        case .fixedPressure: return settings.constantPressure > 0
+        case .speedPressure: return settings.speedPressure > 0
         }
     }
 
@@ -1040,6 +1043,16 @@ final class ClientModel: ObservableObject {
         show(Toast(text: orientationLocked ? L("Ausrichtung gesperrt") : L("Ausrichtung entsperrt"), seconds: 1.4))
     }
 
+    /// Switches a "0 = off" setting off (remembering its value) or back on to the remembered value.
+    private func toggled(_ value: Double, key: String, fallback: Double) -> Double {
+        if value > 0 {
+            UserDefaults.standard.set(value, forKey: key)
+            return 0
+        }
+        let last = UserDefaults.standard.double(forKey: key)
+        return last > 0 ? last : fallback
+    }
+
     func noteRecent(_ t: IPadTool) {
         recentTools = Array(([t] + recentTools.filter { $0 != t }).prefix(4))
         UserDefaults.standard.set(recentTools.map(\.rawValue), forKey: "recentTools")
@@ -1067,6 +1080,15 @@ final class ClientModel: ObservableObject {
             requestScreenshot()
         case .palette:
             if palette.image != nil { removePalette() } else { pickPalette() }
+        case .rope:
+            settings.ropeLength = toggled(settings.ropeLength, key: "lastRopeLength", fallback: 20)
+            show(Toast(text: settings.ropeLength > 0 ? L("Seil-Stabilisator: %d pt", Int(settings.ropeLength)) : L("%@ aus", t.title), seconds: 1.4))
+        case .fixedPressure:
+            settings.constantPressure = toggled(settings.constantPressure, key: "lastConstantPressure", fallback: 0.6)
+            show(Toast(text: settings.constantPressure > 0 ? L("Druck: %d %%", Int(settings.constantPressure * 100)) : L("%@ aus", t.title), seconds: 1.4))
+        case .speedPressure:
+            settings.speedPressure = toggled(settings.speedPressure, key: "lastSpeedPressure", fallback: 0.5)
+            show(Toast(text: settings.speedPressure > 0 ? L("Tempo-Druck: %d %%", Int(settings.speedPressure * 100)) : L("%@ aus", t.title), seconds: 1.4))
         case .grid:
             let last = GridStyle(rawValue: UserDefaults.standard.string(forKey: "lastGrid") ?? "") ?? .thirds
             grid = grid == .off ? last : .off

@@ -221,8 +221,8 @@ private struct ScrubPill: View {
                 .contentTransition(.numericText())
         }
         .font(.callout.weight(.semibold))
-        .padding(.horizontal, 16).padding(.vertical, 10)
-        .tafelGlass(Capsule())
+        .padding(.horizontal, 18).padding(.vertical, 11)
+        .ultraPanel(Capsule(), shadow: false)
         .animation(Brand.spring, value: steps)
         .allowsHitTesting(false)
     }
@@ -237,8 +237,8 @@ private struct ReconnectBanner: View {
             Text(L("Verbindung unterbrochen – verbinde neu …"))
                 .font(.callout.weight(.medium))
         }
-        .padding(.horizontal, 16).padding(.vertical, 10)
-        .tafelGlass(Capsule())
+        .padding(.horizontal, 18).padding(.vertical, 11)
+        .ultraPanel(Capsule(), shadow: false)
         .allowsHitTesting(false)
     }
 }
@@ -265,9 +265,9 @@ struct StatusPill: View {
             }
         }
         .font(.caption.monospacedDigit())
-        .padding(.horizontal, 12)
-        .padding(.vertical, 7)
-        .tafelGlass(Capsule())
+        .padding(.horizontal, 14)
+        .frame(height: 40)
+        .ultraPanel(Capsule(), shadow: false)
     }
 
     private func metric(_ v: Double, _ unit: String) -> some View {
@@ -301,7 +301,6 @@ struct ShortcutBar: View {
                 }
             }
         }
-        .opacity(0.85)
         .animation(Brand.spring, value: model.currentBar.map(\.id))
     }
 }
@@ -310,10 +309,10 @@ func barLabel(_ title: String, active: Bool) -> some View {
     Text(title)
         .font(.caption2.weight(.semibold))
         .lineLimit(1)
-        .frame(width: 60, height: 36)
-        .foregroundStyle(active ? Brand.slateDeep : .primary)
-        .background(active ? AnyShapeStyle(Brand.mint) : AnyShapeStyle(Color.clear), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-        .tafelGlass(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .frame(width: 64, height: 40)
+        .foregroundStyle(active ? Brand.slateDeep : Color.white.opacity(0.92))
+        .background(active ? AnyShapeStyle(Ultra.accentFill) : AnyShapeStyle(Color.clear), in: Ultra.shape(12))
+        .ultraPanel(Ultra.shape(12), shadow: false)
 }
 
 /// Holds a key (⇧, ⌥, ⌘, ⌃, Space) down while the finger rests on it – works while the Pencil

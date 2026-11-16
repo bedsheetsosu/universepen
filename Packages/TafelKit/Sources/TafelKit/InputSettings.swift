@@ -5,6 +5,7 @@ import CoreGraphics
 /// Things that happen on the iPad itself (no Mac shortcut): drawing aids and tools.
 public enum IPadTool: String, Codable, CaseIterable, Sendable {
     case ruler, perspective1, perspective2, perspective3, ellipse, shapeRecognition, laser, screenshot, palette, mirror, grayscale, grid
+    case rope, fixedPressure, speedPressure
 
     public var title: String {
         switch self {
@@ -20,6 +21,9 @@ public enum IPadTool: String, Codable, CaseIterable, Sendable {
         case .mirror: return L("Ansicht spiegeln")
         case .grayscale: return L("Graustufen-Vorschau")
         case .grid: return L("Raster")
+        case .rope: return L("Seil-Stabilisator")
+        case .fixedPressure: return L("Fester Druck")
+        case .speedPressure: return L("Tempo-Druck")
         }
     }
 
@@ -38,6 +42,9 @@ public enum IPadTool: String, Codable, CaseIterable, Sendable {
         case .mirror: return L("Spiegeln")
         case .grayscale: return L("Grau")
         case .grid: return L("Raster")
+        case .rope: return L("Seil")
+        case .fixedPressure: return L("Druck fest")
+        case .speedPressure: return L("Tempo")
         }
     }
 }

@@ -13,6 +13,9 @@ extension IPadTool {
         case .mirror: return "arrow.left.and.right.righttriangle.left.righttriangle.right"
         case .grayscale: return "circle.lefthalf.filled"
         case .grid: return "grid"
+        case .rope: return "lasso"
+        case .fixedPressure: return "lineweight"
+        case .speedPressure: return "hare"
         }
     }
 }
