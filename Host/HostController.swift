@@ -166,6 +166,8 @@ final class HostController: ObservableObject {
     private var scDisplays: [CGDirectDisplayID: SCDisplay] = [:]
     private var scWindows: [CGWindowID: SCWindow] = [:]
     private var restartTask: Task<Void, Never>?
+    private var captureRestarts: [Date] = []
+    private var wakeObservers: [NSObjectProtocol] = []
     /// Whether the private API for "Zweiter Bildschirm" matches what Tafel expects on this macOS.
     static let secondScreenAvailable = VirtualDisplay.availability.isAvailable
 
@@ -206,6 +208,7 @@ final class HostController: ObservableObject {
         wireServer()
         setupDevAPI()
         observeFrontApp()
+        observeWake()
         observeDisplayChanges()
         observeSources()
         updateFollowTimer()
@@ -702,6 +705,40 @@ final class HostController: ObservableObject {
         }
     }
 
+    /// ScreenCaptureKit ended the capture on its own (display reconfigured, Mac woke up, the
+    /// captured window closed …). With an iPad still connected, start it again – a few times,
+    /// so a capture that keeps failing ends with a message instead of a loop.
+    private func captureStoppedUnexpectedly(_ error: Error?) {
+        let now = Date()
+        captureRestarts = captureRestarts.filter { now.timeIntervalSince($0) < 30 }
+        guard server.hasVideo || sessionDevice != nil, captureRestarts.count < 3 else {
+            lastError = L("Aufnahme gestoppt: %@", error?.localizedDescription ?? L("unbekannt"))
+            return
+        }
+        captureRestarts.append(now)
+        NSLog("Tafel: capture stopped (%@), restarting", error?.localizedDescription ?? "-")
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+            self?.restartStream()
+        }
+    }
+
+    /// After sleep (or the displays sleeping) the old capture is often dead without telling
+    /// anyone, and the iPad would keep showing a frozen picture. Start it fresh.
+    private func observeWake() {
+        let nc = NSWorkspace.shared.notificationCenter
+        for name in [NSWorkspace.didWakeNotification, NSWorkspace.screensDidWakeNotification] {
+            wakeObservers.append(nc.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    try? await Task.sleep(nanoseconds: 1_500_000_000)
+                    guard let self, self.server.hasVideo || self.sessionDevice != nil else { return }
+                    NSLog("Tafel: woke up, restarting capture")
+                    self.restartStream()
+                }
+            })
+        }
+    }
+
     private func stopStream() async {
         windowTracker?.invalidate()
         windowTracker = nil
@@ -714,8 +751,7 @@ final class HostController: ObservableObject {
 
     private func startStreamIfPossible() async {
         guard let cfg = clientConfig, server.hasVideo || sessionDevice != nil else { return }
-        // Always refresh: our own windows must be known so they can be excluded from capture
-        // (at app launch the main window may not have been on screen yet).
+        // Always refresh: displays and windows may have changed since the last start.
         await refreshSources()
         lastError = nil
         if cfg.tabletMode == true {
@@ -739,10 +775,11 @@ final class HostController: ObservableObject {
                 if self.devAPI.wants("status") { self.devAPI.emit("status", event: "status", data: self.statusInfo()) }
             }
         }
-        streamer.onStopped = { [weak self] e in
+        streamer.onStopped = { [weak self, weak streamer] e in
             Task { @MainActor in
-                self?.lastError = L("Aufnahme gestoppt: %@", e?.localizedDescription ?? L("unbekannt"))
-                self?.streamer = nil
+                guard let self, let streamer, self.streamer === streamer else { return }   // an old stream
+                self.streamer = nil
+                self.captureStoppedUnexpectedly(e)
             }
         }
 

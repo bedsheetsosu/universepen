@@ -308,6 +308,9 @@ final class ClientModel: ObservableObject {
         NotificationCenter.default.addObserver(forName: UIApplication.willResignActiveNotification, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in self?.undim() }
         }
+        NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in self?.cameToForeground() }
+        }
         startWiredMonitor()
         startBatteryMonitor()
         startBrowsing()
@@ -472,6 +475,24 @@ final class ClientModel: ObservableObject {
         session = nil
         s?.close()
         phase = .idle
+    }
+
+    /// Back from the background (or the iPad unlocked): iOS may have killed the connection
+    /// meanwhile. A failed attempt gets a fresh try; a live one asks for a keyframe so the
+    /// picture is complete again at once.
+    private func cameToForeground() {
+        switch phase {
+        case .failed:
+            guard lastHostID != nil else { return }
+            phase = .idle
+            autoConnect()
+        case .idle:
+            autoConnect()
+        case .connected:
+            renderer.requestKeyframe?()
+        default:
+            break
+        }
     }
 
     private func autoConnect() {
