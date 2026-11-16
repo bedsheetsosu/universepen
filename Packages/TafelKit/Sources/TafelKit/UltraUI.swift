@@ -79,6 +79,25 @@ public extension View {
     }
 }
 
+/// Several glass shapes that belong together (they blend and morph as one on iOS/macOS 26+).
+public struct UltraGlassGroup<Content: View>: View {
+    let spacing: CGFloat
+    let content: Content
+
+    public init(spacing: CGFloat = 12, @ViewBuilder content: () -> Content) {
+        self.spacing = spacing
+        self.content = content()
+    }
+
+    public var body: some View {
+        if #available(iOS 26.0, macOS 26.0, *) {
+            GlassEffectContainer(spacing: spacing) { content }
+        } else {
+            content
+        }
+    }
+}
+
 // MARK: - Controls
 
 /// Press feedback shared by every UltraUI control: it gives a little and lights up.

@@ -577,6 +577,8 @@ final class ClientModel: ObservableObject {
     }
 
     private func autoConnect() {
+        // `-debugNoAutoConnect YES` keeps the start screen up (for screenshots of it).
+        guard !UserDefaults.standard.bool(forKey: "debugNoAutoConnect") else { return }
         guard phase == .idle, let last = lastHostID,
               let h = discovered.first(where: { $0.hostID == last }) else { return }
         connect(h)
