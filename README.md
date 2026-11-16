@@ -196,6 +196,7 @@ Bring one Mac panel (layers, colours, brushes …) onto the iPad as a small floa
 ## Mirror view, break reminder
 
 - **Mirror view** (… menu → Tools, or as an iPad tool on a gesture): flips the picture on the iPad only, to check proportions the way painters look at a drawing in a mirror. The Mac stays as it is; Pencil input and tilt are mirrored back, so strokes land where they should. Works together with the local zoom.
+- **Turn the view** (zoom method "Only on the iPad"): two fingers turn the picture on the iPad like a sheet of paper (snaps to 0/90/180/270°); pinch and pan keep working, the pill shows angle and zoom and resets both. Pencil position and tilt are turned back, so the Mac gets upright input.
 - **Break reminder** (Settings → General: 30/45/60/90 min): a gentle toast after that much drawing time; five minutes without input count as the break.
 
 ## Shape recognition

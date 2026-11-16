@@ -131,11 +131,12 @@ struct RootView: View {
                         .transition(.move(edge: .top).combined(with: .opacity))
                         .id(t.text)
                 }
-                if model.localZoom > 1.01 && model.settings.zoomMethod == .localView {
+                if (model.localZoom > 1.01 || model.localAngle != 0) && model.settings.zoomMethod == .localView {
                     Button {
                         model.localZoomResets += 1
                     } label: {
-                        Label(L("%d %% · Zurücksetzen", Int((model.localZoom * 100).rounded())), systemImage: "arrow.up.left.and.down.right.magnifyingglass")
+                        Label((model.localAngle != 0 ? "\(model.localAngle)° · " : "") + L("%d %% · Zurücksetzen", Int((model.localZoom * 100).rounded())),
+                              systemImage: model.localAngle != 0 ? "rotate.right" : "arrow.up.left.and.down.right.magnifyingglass")
                             .font(.callout.weight(.semibold).monospacedDigit())
                             .padding(.horizontal, 14).padding(.vertical, 8)
                             .tafelOverlayGlass(Capsule())

@@ -173,6 +173,8 @@ final class ClientModel: ObservableObject {
     /// Local zoom of the picture (zoom method "only on the iPad"); bump `localZoomResets` to reset.
     @Published var localZoom: CGFloat = 1
     @Published var localZoomResets = 0
+    /// Local view rotation in whole degrees (shown in the zoom pill).
+    @Published var localAngle = 0
     /// Laser pointer: the Pencil draws fading marks on the Mac screen instead of clicking.
     @Published var laserMode = false { didSet { if laserMode != oldValue { sendConfig() } } }
     /// Screenshot from the Mac waiting to be cropped / shared.

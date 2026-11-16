@@ -65,6 +65,10 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     // Local zoom ("only on the iPad"): screen = centre + (content − centre)·scale + offset.
     private(set) var zoomScale: CGFloat = 1
     private var zoomOffset: CGPoint = .zero
+    /// Local view rotation (radians), like turning a sheet of paper; iPad only.
+    private(set) var viewAngle: CGFloat = 0
+    private var localTurn: (angle: CGFloat, content: CGPoint)?
+    var onLocalAngle: ((CGFloat) -> Void)?
     private var localPinch: (scale: CGFloat, content: CGPoint)?
     var onLocalZoom: ((CGFloat) -> Void)?
     // Ruler: fingers on it move/turn it, Pencil strokes near its edges stay straight.
@@ -394,10 +398,36 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
 
     /// Screen point → point in the unzoomed picture.
     private func contentPoint(_ p: CGPoint) -> CGPoint {
-        guard zoomScale != 1 || zoomOffset != .zero || mirrored else { return p }
+        guard zoomScale != 1 || zoomOffset != .zero || mirrored || viewAngle != 0 else { return p }
         let c = CGPoint(x: bounds.midX, y: bounds.midY)
         let m: CGFloat = mirrored ? -1 : 1
-        return CGPoint(x: c.x + m * (p.x - c.x - zoomOffset.x) / zoomScale, y: c.y + (p.y - c.y - zoomOffset.y) / zoomScale)
+        let dx = p.x - c.x - zoomOffset.x, dy = p.y - c.y - zoomOffset.y
+        let ca = cos(-viewAngle), sa = sin(-viewAngle)
+        let rx = dx * ca - dy * sa, ry = dx * sa + dy * ca
+        return CGPoint(x: c.x + m * rx / zoomScale, y: c.y + ry / zoomScale)
+    }
+
+    /// Offset that puts picture point `content` under screen point `screen` at this scale and angle.
+    private func offsetKeeping(_ content: CGPoint, at screen: CGPoint, scale s: CGFloat, angle: CGFloat) -> CGPoint {
+        let c = CGPoint(x: bounds.midX, y: bounds.midY)
+        let m: CGFloat = mirrored ? -1 : 1
+        let vx = (content.x - c.x) * s * m, vy = (content.y - c.y) * s
+        let ca = cos(angle), sa = sin(angle)
+        return CGPoint(x: screen.x - c.x - (vx * ca - vy * sa), y: screen.y - c.y - (vx * sa + vy * ca))
+    }
+
+    /// Snaps to 0/90/180/270° within 6°.
+    private static func snapAngle(_ a: CGFloat) -> CGFloat {
+        let q = CGFloat.pi / 2
+        let n = (a / q).rounded() * q
+        return abs(a - n) < 6 * .pi / 180 ? n : a
+    }
+
+    /// Screen tilt → picture tilt (undo the view's rotation and mirroring).
+    func contentTilt(_ x: Double, _ y: Double) -> (x: Double, y: Double) {
+        let ca = cos(-Double(viewAngle)), sa = sin(-Double(viewAngle))
+        let rx = x * ca - y * sa, ry = x * sa + y * ca
+        return (mirrored ? -rx : rx, ry)
     }
 
     /// The picture is shown mirrored on the iPad only (checking proportions); input is mirrored back.
@@ -415,6 +445,13 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
 
     /// Keeps the zoomed picture covering the screen.
     private func clampZoom() {
+        if viewAngle != 0 {
+            // Turned: the picture cannot cover the screen anyway; keep it reachable.
+            zoomScale = min(max(zoomScale, 0.5), 8)
+            let mx = bounds.width / 2 * zoomScale, my = bounds.height / 2 * zoomScale
+            zoomOffset = CGPoint(x: min(max(zoomOffset.x, -mx), mx), y: min(max(zoomOffset.y, -my), my))
+            return
+        }
         zoomScale = min(max(zoomScale, 1), 8)
         let mx = bounds.width / 2 * (zoomScale - 1), my = bounds.height / 2 * (zoomScale - 1)
         zoomOffset = CGPoint(x: min(max(zoomOffset.x, -mx), mx), y: min(max(zoomOffset.y, -my), my))
@@ -422,6 +459,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
 
     private func applyZoom() {
         videoLayer.setAffineTransform(CGAffineTransform(translationX: zoomOffset.x, y: zoomOffset.y)
+            .rotated(by: viewAngle)
             .scaledBy(x: zoomScale * (mirrored ? -1 : 1), y: zoomScale))
     }
 
@@ -438,14 +476,16 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     }
 
     func resetLocalZoom() {
-        guard zoomScale != 1 || zoomOffset != .zero else { return }
+        guard zoomScale != 1 || zoomOffset != .zero || viewAngle != 0 else { return }
         CATransaction.begin()
         CATransaction.setAnimationDuration(0.25)
         zoomScale = 1
         zoomOffset = .zero
+        viewAngle = 0
         applyZoom()
         CATransaction.commit()
         onLocalZoom?(1)
+        onLocalAngle?(0)
     }
 
     // MARK: Ruler touches
@@ -769,7 +809,8 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
             if settings.constantPressure > 0 { pressure = settings.constantPressure }
         }
         var tilt = settings.tilt.tilt(altitude: Double(t.altitudeAngle), azimuth: Double(t.azimuthAngle(in: self)))
-        if mirrored { tilt.x = -tilt.x }
+        let tiltIn = contentTilt(Double(tilt.x), Double(tilt.y))
+        tilt.x = .init(tiltIn.x); tilt.y = .init(tiltIn.y)
         let roll = settings.sendRoll ? Double(t.rollAngle) * 180 / .pi : 0
         session.send(PenSample(phase: phase, x: Float(n.x), y: Float(n.y), pressure: Float(pressure),
                                tiltX: Float(tilt.x), tiltY: Float(tilt.y), rotation: Float(roll), timestamp: t.timestamp))
@@ -1021,7 +1062,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
 
     @objc private func handlePan(_ g: UIPanGestureRecognizer) {
         // Zoomed in locally: two fingers move the picture instead of scrolling the Mac.
-        if localZoomActive && zoomScale > 1.001 {
+        if localZoomActive && (zoomScale > 1.001 || viewAngle != 0) {
             let t = g.translation(in: self)
             if g.state == .began { lastPan = t }
             if g.state == .changed, localPinch == nil {
@@ -1058,12 +1099,11 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
             case .changed:
                 guard let lp = localPinch else { return }
                 // Keep the picture point under the fingers there while scaling.
-                let s = min(max(lp.scale * g.scale, 1), 8)
-                let c = CGPoint(x: bounds.midX, y: bounds.midY)
-                setZoom(s, CGPoint(x: a.x - c.x - (lp.content.x - c.x) * s, y: a.y - c.y - (lp.content.y - c.y) * s))
+                let s = min(max(lp.scale * g.scale, viewAngle != 0 ? 0.5 : 1), 8)
+                setZoom(s, offsetKeeping(lp.content, at: a, scale: s, angle: viewAngle))
             default:
                 localPinch = nil
-                if zoomScale < 1.06 { resetLocalZoom() }
+                if zoomScale < 1.06, viewAngle == 0 { resetLocalZoom() }
             }
             return
         }
@@ -1104,6 +1144,24 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     private var pinchReport = 1.0
 
     @objc private func handleRotate(_ g: UIRotationGestureRecognizer) {
+        // Local zoom mode: two fingers turn the picture on the iPad like a sheet of paper.
+        if localZoomActive {
+            let a = g.location(in: self)
+            switch g.state {
+            case .began:
+                localTurn = (viewAngle - g.rotation, contentPoint(a))
+            case .changed:
+                guard let lt = localTurn else { return }
+                var angle = Self.snapAngle(lt.angle + g.rotation)
+                if abs(angle) < 0.0001 { angle = 0 }
+                viewAngle = angle
+                setZoom(zoomScale, offsetKeeping(lt.content, at: a, scale: zoomScale, angle: angle))
+                onLocalAngle?(angle)
+            default:
+                localTurn = nil
+            }
+            return
+        }
         switch g.state {
         case .began:
             lastRotation = g.rotation
@@ -1160,6 +1218,10 @@ struct CanvasRepresentable: UIViewRepresentable {
         v.onScrub = { [weak model] n in model?.scrubSteps = n }
         v.onInput = { [weak model] in model?.noteInput() }
         v.onLocalZoom = { [weak model] s in DispatchQueue.main.async { model?.localZoom = s } }
+        v.onLocalAngle = { [weak model] a in
+            let deg = Int((a * 180 / .pi).rounded())
+            DispatchQueue.main.async { if model?.localAngle != deg { model?.localAngle = deg } }
+        }
         return v
     }
 
