@@ -1,0 +1,6 @@
+"Connect ${applicationName}" = "${applicationName} 연결";
+"Connect ${applicationName} to my Mac" = "${applicationName}을 내 Mac에 연결";
+"Toggle tablet mode in ${applicationName}" = "${applicationName} 태블릿 모드 전환";
+"Toggle the laser pointer in ${applicationName}" = "${applicationName} 레이저 포인터 전환";
+"Take a Mac screenshot with ${applicationName}" = "${applicationName}으로 Mac 스크린샷 찍기";
+"Disconnect ${applicationName}" = "${applicationName} 연결 해제";

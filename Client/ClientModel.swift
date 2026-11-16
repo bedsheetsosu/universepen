@@ -21,6 +21,8 @@ struct DiscoveredHost: Identifiable, Hashable {
 
 @MainActor
 final class ClientModel: ObservableObject {
+    static let shared = ClientModel()
+
     enum Phase: Equatable {
         case idle
         case connecting(String)
@@ -448,6 +450,29 @@ final class ClientModel: ObservableObject {
     }
 
     func isPaired(_ h: DiscoveredHost) -> Bool { paired.contains { $0.id == h.hostID } }
+
+    /// From a Shortcut: connect to that Mac (or the last one) now, or as soon as Bonjour finds it.
+    func requestConnect(hostID: String?) {
+        guard let target = hostID ?? lastHostID else { return }
+        switch phase {
+        case .connected, .connecting, .reconnecting:
+            if hostID == nil || lastHostID == target { return }   // already there
+            disconnectQuietly()
+        case .failed:
+            phase = .idle
+        case .idle:
+            break
+        }
+        lastHostID = target
+        if let h = discovered.first(where: { $0.hostID == target }) { connect(h) }   // else autoConnect() on discovery
+    }
+
+    private func disconnectQuietly() {
+        let s = session
+        session = nil
+        s?.close()
+        phase = .idle
+    }
 
     private func autoConnect() {
         guard phase == .idle, let last = lastHostID,

@@ -3,7 +3,7 @@ import TafelKit
 
 @main
 struct TafelApp: App {
-    @StateObject private var model = ClientModel()
+    @StateObject private var model = ClientModel.shared
 
     var body: some Scene {
         WindowGroup {
