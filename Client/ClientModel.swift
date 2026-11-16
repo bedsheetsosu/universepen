@@ -163,6 +163,10 @@ final class ClientModel: ObservableObject {
     @Published var mirrored = false
     /// Picture shown in grey on the iPad only (checking light and dark values).
     @Published var grayscale = false
+    /// Composition grid over the picture (iPad only); the tool toggles the last chosen style.
+    @Published var grid: GridStyle = .off {
+        didSet { if grid != .off { UserDefaults.standard.set(grid.rawValue, forKey: "lastGrid") } }
+    }
     private var drawingSince: Date?
     private var lastBreakReminder: Date?
 
@@ -904,6 +908,10 @@ final class ClientModel: ObservableObject {
             requestScreenshot()
         case .palette:
             if palette.image != nil { removePalette() } else { pickPalette() }
+        case .grid:
+            let last = GridStyle(rawValue: UserDefaults.standard.string(forKey: "lastGrid") ?? "") ?? .thirds
+            grid = grid == .off ? last : .off
+            show(Toast(text: grid == .off ? L("%@ aus", t.title) : t.title + ": " + grid.title, seconds: 1.4))
         case .grayscale:
             grayscale.toggle()
             show(Toast(text: grayscale ? L("Graustufen – nur auf dem iPad, zum Prüfen der Helligkeitswerte") : L("%@ aus", t.title), seconds: 1.8))

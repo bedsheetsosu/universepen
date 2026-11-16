@@ -122,3 +122,43 @@ public struct EllipseGuide: Equatable, Sendable {
         if i == 0 { rx = max(abs(q.x), 20) } else { ry = max(abs(q.y), 20) }
     }
 }
+
+/// Composition grid over the picture (iPad only).
+public enum GridStyle: String, Codable, CaseIterable, Sendable {
+    case off, thirds, quarters, squares
+
+    public var title: String {
+        switch self {
+        case .off: return L("Aus")
+        case .thirds: return L("Drittel")
+        case .quarters: return L("Viertel")
+        case .squares: return L("Quadrate")
+        }
+    }
+
+    /// Line segments inside `rect`. Squares: 8 cells across the longer side.
+    public func lines(in rect: CGRect) -> [(CGPoint, CGPoint)] {
+        func split(_ n: Int) -> [(CGPoint, CGPoint)] {
+            (1..<n).flatMap { i -> [(CGPoint, CGPoint)] in
+                let x = rect.minX + rect.width * CGFloat(i) / CGFloat(n)
+                let y = rect.minY + rect.height * CGFloat(i) / CGFloat(n)
+                return [(CGPoint(x: x, y: rect.minY), CGPoint(x: x, y: rect.maxY)),
+                        (CGPoint(x: rect.minX, y: y), CGPoint(x: rect.maxX, y: y))]
+            }
+        }
+        switch self {
+        case .off: return []
+        case .thirds: return split(3)
+        case .quarters: return split(4)
+        case .squares:
+            let cell = max(rect.width, rect.height) / 8
+            guard cell > 0 else { return [] }
+            var out: [(CGPoint, CGPoint)] = []
+            var x = rect.minX + cell
+            while x < rect.maxX - 0.5 { out.append((CGPoint(x: x, y: rect.minY), CGPoint(x: x, y: rect.maxY))); x += cell }
+            var y = rect.minY + cell
+            while y < rect.maxY - 0.5 { out.append((CGPoint(x: rect.minX, y: y), CGPoint(x: rect.maxX, y: y))); y += cell }
+            return out
+        }
+    }
+}

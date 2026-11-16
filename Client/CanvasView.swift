@@ -364,6 +364,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         // bounds + position (not frame): the layer may carry the local zoom transform.
         videoLayer.bounds = CGRect(origin: .zero, size: bounds.size)
         videoLayer.position = CGPoint(x: bounds.midX, y: bounds.midY)
+        updateGrid()
         clampZoom()
         applyZoom()
         CATransaction.commit()
@@ -528,6 +529,35 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     private var tapGate = DoubleTapClickGate()
 
     /// Where the video is drawn inside the view (aspect fit, same as the layer's gravity).
+    // MARK: Grid
+
+    /// Composition grid, a sublayer of the picture so it zooms, turns and mirrors with it.
+    private let gridLayer: CAShapeLayer = {
+        let l = CAShapeLayer()
+        l.fillColor = nil
+        l.lineWidth = 1
+        l.strokeColor = UIColor.white.withAlphaComponent(0.45).cgColor
+        l.shadowColor = UIColor.black.cgColor
+        l.shadowOpacity = 0.6
+        l.shadowRadius = 1
+        l.shadowOffset = .zero
+        return l
+    }()
+
+    var grid: GridStyle = .off { didSet { if grid != oldValue { updateGrid() } } }
+
+    private func updateGrid() {
+        if gridLayer.superlayer == nil { videoLayer.addSublayer(gridLayer) }
+        let path = UIBezierPath()
+        for (a, b) in grid.lines(in: videoRect) { path.move(to: a); path.addLine(to: b) }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        gridLayer.frame = videoLayer.bounds
+        gridLayer.path = path.cgPath
+        gridLayer.isHidden = grid == .off
+        CATransaction.commit()
+    }
+
     var videoRect: CGRect {
         videoSize == .zero ? bounds : Geometry.aspectFit(content: videoSize, in: bounds)
     }
@@ -1256,6 +1286,7 @@ struct CanvasRepresentable: UIViewRepresentable {
         v.guideView.accent = UIColor(Brand.mint)
         v.guideKind = guidesAllowed ? model.guide : .none
         v.mirrored = model.mirrored && !model.tabletModeActive
+        v.grid = model.tabletModeActive ? .off : model.grid
         if model.settings.zoomMethod != .localView || model.localZoomResets != context.coordinator.zoomResets {
             context.coordinator.zoomResets = model.localZoomResets
             v.resetLocalZoom()

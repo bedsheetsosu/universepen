@@ -51,4 +51,12 @@ final class GuideTests: XCTestCase {
         XCTAssertEqual(e.ry, 80, accuracy: 0.001)
         XCTAssertEqual(e.rx, 80, accuracy: 0.001)
     }
+
+    func testGridLines() {
+        let r = CGRect(x: 0, y: 0, width: 300, height: 200)
+        XCTAssertEqual(GridStyle.thirds.lines(in: r).count, 4)
+        XCTAssertEqual(GridStyle.quarters.lines(in: r).count, 6)
+        XCTAssertEqual(GridStyle.squares.lines(in: r).count, 7 + 5)   // cell 37.5: 7 verticals, 5 horizontals
+        XCTAssertTrue(GridStyle.off.lines(in: r).isEmpty)
+    }
 }

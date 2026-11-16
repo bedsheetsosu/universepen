@@ -329,6 +329,11 @@ private struct OverlayMenuPanel: View {
                         model.runTool(.mirror)
                         close()
                     }
+                    row(model.grid == .off ? L("Raster") : L("Raster") + ": " + model.grid.title, icon: "grid", checked: model.grid != .off) {
+                        // Cycles off → thirds → quarters → squares → off.
+                        let all = GridStyle.allCases
+                        model.grid = all[(all.firstIndex(of: model.grid)! + 1) % all.count]
+                    }
                     row(L("Graustufen-Vorschau"), icon: "circle.lefthalf.filled", checked: model.grayscale) {
                         model.runTool(.grayscale)
                         close()
