@@ -302,6 +302,8 @@ extension Translations {
         "Warte auf das iPad …": "iPad を待っています …",
         "iPad-Akku: %d %%": "iPad のバッテリー：%d %%",
         "Volle Mac-Auflösung senden": "Mac のフル解像度で送信",
+        "Tablett-Modus automatisch für %@": "%@ で自動的にタブレットモード",
+        "Tablett-Modus automatisch": "自動タブレットモード",
         "Ausrichtung sperren": "画面の向きをロック",
         "Ausrichtung entsperren": "画面の向きのロックを解除",
         "Ausrichtung gesperrt": "画面の向きをロックしました",

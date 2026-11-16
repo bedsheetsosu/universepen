@@ -302,6 +302,8 @@ extension Translations {
         "Warte auf das iPad …": "iPad की प्रतीक्षा …",
         "iPad-Akku: %d %%": "iPad बैटरी: %d %%",
         "Volle Mac-Auflösung senden": "Mac का पूरा रिज़ॉल्यूशन भेजें",
+        "Tablett-Modus automatisch für %@": "%@ के लिए अपने-आप टैबलेट मोड",
+        "Tablett-Modus automatisch": "अपने-आप टैबलेट मोड",
         "Ausrichtung sperren": "ओरिएंटेशन लॉक करें",
         "Ausrichtung entsperren": "ओरिएंटेशन अनलॉक करें",
         "Ausrichtung gesperrt": "ओरिएंटेशन लॉक",

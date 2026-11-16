@@ -302,6 +302,8 @@ extension Translations {
         "Warte auf das iPad …": "Esperando al iPad …",
         "iPad-Akku: %d %%": "Batería del iPad: %d %%",
         "Volle Mac-Auflösung senden": "Enviar resolución completa del Mac",
+        "Tablett-Modus automatisch für %@": "Modo tableta automático para %@",
+        "Tablett-Modus automatisch": "Modo tableta automático",
         "Ausrichtung sperren": "Bloquear orientación",
         "Ausrichtung entsperren": "Desbloquear orientación",
         "Ausrichtung gesperrt": "Orientación bloqueada",

@@ -309,6 +309,8 @@ private struct OverlayMenuPanel: View {
                 if let app = model.frontApp {
                     row(model.gameModeActive ? L("Spielmodus für %@ aus", app.name) : L("Spielmodus für %@", app.name),
                         icon: "gamecontroller", checked: model.gameModeActive) { model.toggleGameMode(); close() }
+                    row(L("Tablett-Modus automatisch für %@", app.name), icon: "rectangle.dashed",
+                        checked: model.autoTabletForFrontApp) { model.toggleAutoTablet(); close() }
                 }
                 row(model.orientationLocked ? L("Ausrichtung entsperren") : L("Ausrichtung sperren"),
                     icon: model.orientationLocked ? "lock.rotation" : "rotate.right", checked: model.orientationLocked) {

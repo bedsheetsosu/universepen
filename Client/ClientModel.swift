@@ -48,7 +48,7 @@ final class ClientModel: ObservableObject {
     @Published var frontApp: AppInfo? {
         didSet {
             if settings.isGame(frontApp?.bundleID) != settings.isGame(oldValue?.bundleID) { sendConfig() }
-            if frontApp?.bundleID != oldValue?.bundleID { restoreGuide() }
+            if frontApp?.bundleID != oldValue?.bundleID { restoreGuide(); autoTablet() }
         }
     }
     /// What the Mac can stream (source menu).
@@ -831,6 +831,31 @@ final class ClientModel: ObservableObject {
     }
 
     /// Toggles game mode for the app in front on the Mac.
+    /// Tablet mode that was switched on by an app in `tabletApps` (and goes off when it leaves).
+    private var autoTabletOn = false
+
+    private func autoTablet() {
+        guard let id = frontApp?.bundleID else { return }
+        if settings.tabletApps[id] != nil {
+            if !settings.tabletMode { settings.tabletMode = true; autoTabletOn = true }
+        } else if autoTabletOn {
+            autoTabletOn = false
+            if settings.tabletMode { settings.tabletMode = false }
+        }
+    }
+
+    var autoTabletForFrontApp: Bool { frontApp.map { settings.tabletApps[$0.bundleID] != nil } ?? false }
+
+    func toggleAutoTablet() {
+        guard let app = frontApp else { return }
+        if settings.tabletApps[app.bundleID] == nil {
+            settings.tabletApps[app.bundleID] = app.name
+            if !settings.tabletMode { settings.tabletMode = true; autoTabletOn = true }
+        } else {
+            settings.tabletApps[app.bundleID] = nil
+        }
+    }
+
     func toggleGameMode() {
         guard let app = frontApp else { return }
         if settings.gameApps[app.bundleID] == nil { settings.gameApps[app.bundleID] = app.name } else { settings.gameApps[app.bundleID] = nil }

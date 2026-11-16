@@ -254,6 +254,8 @@ public struct InputSettings: Codable, Equatable, Sendable {
     /// Mac apps (bundle ID → name) that get game mode: maximum picture quality and no smoothing
     /// while they are in front (e.g. osu!).
     public var gameApps: [String: String] = [:]
+    /// Mac apps (bundle ID → name) that switch the iPad into tablet mode while they are in front.
+    public var tabletApps: [String: String] = [:]
 
     /// Draw the stroke on the iPad right away (fades when the Mac's picture catches up).
     public var instantInk = true
@@ -348,7 +350,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         case fingerMode, fingerPressure, longPressRightClick, palmRadius
         case threeFingerSwipeLeft, threeFingerSwipeRight, threeFingerSwipeUp, threeFingerSwipeDown, fourFingerTap
         case swapISOKeys, trackpadAsMouse, hideIPadPointer, showShortcutBar, shortcutBarOnRight, shortcutBar
-        case appShortcutBars, appNames, radialMenu, appPenProfiles, gameApps, undoScrub, undoScrubStep, instantInk, shapeRecognition, ropeLength, constantPressure, speedPressure, hoverDot, tabletMode, tabletArea, tabletLockAspect, tabletPresets, tipThreshold, tabletKeys, doubleTapToClick, viewOnly, dimAfterMinutes, dimOnlyWhenStill, breakReminderMinutes
+        case appShortcutBars, appNames, radialMenu, appPenProfiles, gameApps, tabletApps, undoScrub, undoScrubStep, instantInk, shapeRecognition, ropeLength, constantPressure, speedPressure, hoverDot, tabletMode, tabletArea, tabletLockAspect, tabletPresets, tipThreshold, tabletKeys, doubleTapToClick, viewOnly, dimAfterMinutes, dimOnlyWhenStill, breakReminderMinutes
     }
 
     /// Tolerates settings saved by older versions: missing keys keep their defaults.
@@ -377,7 +379,7 @@ public struct InputSettings: Codable, Equatable, Sendable {
         try get(.showShortcutBar, &showShortcutBar); try get(.shortcutBar, &shortcutBar)
         try get(.appShortcutBars, &appShortcutBars); try get(.appNames, &appNames)
         try get(.radialMenu, &radialMenu); try get(.appPenProfiles, &appPenProfiles)
-        try get(.gameApps, &gameApps); try get(.undoScrub, &undoScrub); try get(.undoScrubStep, &undoScrubStep)
+        try get(.gameApps, &gameApps); try get(.tabletApps, &tabletApps); try get(.undoScrub, &undoScrub); try get(.undoScrubStep, &undoScrubStep)
         try get(.instantInk, &instantInk); try get(.hoverDot, &hoverDot)
         try get(.shapeRecognition, &shapeRecognition)
         try get(.ropeLength, &ropeLength); try get(.constantPressure, &constantPressure)

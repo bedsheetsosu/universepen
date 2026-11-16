@@ -345,6 +345,8 @@ enum Translations {
         "Warte auf das iPad …": "Waiting for the iPad …",
         "iPad-Akku: %d %%": "iPad battery: %d %%",
         "Volle Mac-Auflösung senden": "Send full Mac resolution",
+        "Tablett-Modus automatisch für %@": "Tablet mode automatically for %@",
+        "Tablett-Modus automatisch": "Tablet mode automatically",
         "Ausrichtung sperren": "Lock orientation",
         "Ausrichtung entsperren": "Unlock orientation",
         "Ausrichtung gesperrt": "Orientation locked",

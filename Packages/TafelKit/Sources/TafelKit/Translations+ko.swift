@@ -302,6 +302,8 @@ extension Translations {
         "Warte auf das iPad …": "iPad를 기다리는 중 …",
         "iPad-Akku: %d %%": "iPad 배터리: %d %%",
         "Volle Mac-Auflösung senden": "Mac 전체 해상도로 전송",
+        "Tablett-Modus automatisch für %@": "%@에서 자동으로 태블릿 모드",
+        "Tablett-Modus automatisch": "자동 태블릿 모드",
         "Ausrichtung sperren": "화면 방향 잠금",
         "Ausrichtung entsperren": "화면 방향 잠금 해제",
         "Ausrichtung gesperrt": "화면 방향 잠김",

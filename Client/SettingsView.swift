@@ -149,6 +149,13 @@ struct SettingsView: View {
                 Toggle(L("Spielmodus für %@", app.name), isOn: Binding(
                     get: { model.settings.gameApps[app.bundleID] != nil },
                     set: { _ in model.toggleGameMode() }))
+                Toggle(L("Tablett-Modus automatisch für %@", app.name), isOn: Binding(
+                    get: { model.autoTabletForFrontApp },
+                    set: { _ in model.toggleAutoTablet() }))
+            }
+            ForEach(model.settings.tabletApps.sorted { $0.value < $1.value }.filter { $0.key != model.frontApp?.bundleID }, id: \.key) { id, name in
+                LabeledContent(L("Tablett-Modus automatisch"), value: name)
+                    .swipeActions { Button(L("Löschen"), role: .destructive) { model.settings.tabletApps[id] = nil } }
             }
             let otherGames = model.settings.gameApps.sorted { $0.value < $1.value }.filter { $0.key != model.frontApp?.bundleID }
             ForEach(otherGames, id: \.key) { _, name in

@@ -223,6 +223,10 @@ On by default (Mac window → Stream). macOS reports how hot the Mac is (`Proces
 
 iPad … menu → "Gestures & shortcuts": one page with what double-tap, squeeze, every finger gesture and the Mac hot keys do right now (for the app in front on the Mac).
 
+## Automatic tablet mode
+
+… menu (or Settings → Image) → "Tablet mode automatically for <app>": while that Mac app is in front (e.g. osu!), the iPad switches into tablet mode by itself and back to the picture when another app comes to the front. Several apps can be on the list.
+
 ## Quick tools, orientation lock
 
 - The … menu shows the last four iPad tools you used as big buttons at the top of "Tools" (lit while on).
