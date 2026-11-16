@@ -195,6 +195,20 @@ public extension StreamQuality {
     }
 }
 
+public extension StreamQuality {
+    /// Heat guard: what the Mac streams at thermal level 0 (cool), 1 ("serious") or 2
+    /// ("critical"). Only ever lowers the iPad's settings, never raises them.
+    func cooled(level: Int) -> StreamQuality {
+        guard level > 0 else { return self }
+        var q = self
+        q.fps = min(q.fps, 30)
+        q.fullSource = false
+        q.bitrateMbps = min(q.bitrateMbps, level >= 2 ? 15 : 25)
+        if level >= 2 { q.resolutionScale = min(q.resolutionScale, 0.75) }
+        return q
+    }
+}
+
 public struct ClientConfig: Codable, Equatable, Sendable {
     /// Drawable area of the iPad in physical pixels (full screen, current orientation).
     public var viewPixelWidth: Int

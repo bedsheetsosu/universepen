@@ -177,6 +177,10 @@ UniversePen does not change profiles, restrictions or MDM settings and does not 
 - If the Mac's screen capture stops by itself (display change, window closed) while an iPad is connected, it is restarted (up to 3 times in 30 s). After the Mac or its displays wake up, the capture is started fresh, so the iPad never keeps a frozen picture.
 - Coming back to the iPad app retries a failed connection and asks a live one for a fresh full frame.
 
+## Heat guard (Mac)
+
+On by default (Mac window → Stream). macOS reports how hot the Mac is (`ProcessInfo.thermalState`). At "serious" UniversePen streams at most 30 fps, ≤ 25 Mbit/s and without full source resolution; at "critical" also ≤ 15 Mbit/s and ≤ 75 % resolution. When the Mac has cooled off, the iPad's own settings apply again. It only ever lowers settings. Made for the fanless MacBook Air.
+
 ## Shortcuts, Siri, Control Center
 
 The iPad app offers actions in the Shortcuts app: **Connect to Mac** (optionally a specific paired Mac), **Disconnect from Mac**, **Tablet Mode** and **Laser Pointer** (on / off / toggle) and **Take Mac Screenshot**. They also work with Siri and Spotlight (e.g. "Connect UniversePen"). For Control Center or the Lock Screen, add the system "Shortcut" control and pick one of them. All actions are translated into the 7 app languages.

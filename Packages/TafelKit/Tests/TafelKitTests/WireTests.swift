@@ -345,4 +345,16 @@ final class PatchTests: XCTestCase {
         let old = try JSONDecoder().decode(StreamQuality.self, from: Data(#"{"codec":"hevc"}"#.utf8))
         XCTAssertTrue(old.usesTenBit)
     }
+
+    func testHeatGuardOnlyLowers() {
+        let q = StreamQuality(codec: .hevc, bitrateMbps: 60, fps: 60, resolutionScale: 1, fullSource: true)
+        XCTAssertEqual(q.cooled(level: 0), q)
+        let hot = q.cooled(level: 1)
+        XCTAssertEqual(hot.fps, 30); XCTAssertFalse(hot.fullSource); XCTAssertEqual(hot.bitrateMbps, 25); XCTAssertEqual(hot.resolutionScale, 1)
+        let critical = q.cooled(level: 2)
+        XCTAssertEqual(critical.bitrateMbps, 15); XCTAssertEqual(critical.resolutionScale, 0.75)
+        // Already lower settings stay as they are.
+        let low = StreamQuality(bitrateMbps: 10, fps: 30, resolutionScale: 0.5, fullSource: false)
+        XCTAssertEqual(low.cooled(level: 2), low)
+    }
 }

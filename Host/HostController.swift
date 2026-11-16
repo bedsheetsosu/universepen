@@ -167,6 +167,46 @@ final class HostController: ObservableObject {
     private var scWindows: [CGWindowID: SCWindow] = [:]
     private var restartTask: Task<Void, Never>?
     private var captureRestarts: [Date] = []
+    private var thermalObserver: NSObjectProtocol?
+
+    // MARK: Heat guard
+
+    /// Lower frame rate and bitrate while macOS reports the Mac as hot (fanless MacBook Air).
+    @Published var heatGuard = UserDefaults.standard.object(forKey: "heatGuard") as? Bool ?? true {
+        didSet {
+            UserDefaults.standard.set(heatGuard, forKey: "heatGuard")
+            if heatGuard != oldValue, heatLevel > 0 { restartStream() }
+        }
+    }
+    /// 0 cool, 1 serious, 2 critical (from ProcessInfo.thermalState).
+    @Published private(set) var heatLevel = HostController.thermalLevel()
+
+    nonisolated static func thermalLevel() -> Int {
+        switch ProcessInfo.processInfo.thermalState {
+        case .serious: 1
+        case .critical: 2
+        default: 0
+        }
+    }
+
+    func effectiveQuality(_ q: StreamQuality) -> StreamQuality {
+        heatGuard ? q.cooled(level: heatLevel) : q
+    }
+
+    private func observeThermal() {
+        thermalObserver = NotificationCenter.default.addObserver(
+            forName: ProcessInfo.thermalStateDidChangeNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                let level = Self.thermalLevel()
+                guard level != self.heatLevel else { return }
+                NSLog("Tafel: thermal level %d -> %d", self.heatLevel, level)
+                self.heatLevel = level
+                if self.heatGuard { self.restartStream() }
+            }
+        }
+    }
     private var wakeObservers: [NSObjectProtocol] = []
     /// Whether the private API for "Zweiter Bildschirm" matches what Tafel expects on this macOS.
     static let secondScreenAvailable = VirtualDisplay.availability.isAvailable
@@ -209,6 +249,7 @@ final class HostController: ObservableObject {
         setupDevAPI()
         observeFrontApp()
         observeWake()
+        observeThermal()
         observeDisplayChanges()
         observeSources()
         updateFollowTimer()
@@ -750,7 +791,8 @@ final class HostController: ObservableObject {
     }
 
     private func startStreamIfPossible() async {
-        guard let cfg = clientConfig, server.hasVideo || sessionDevice != nil else { return }
+        guard var cfg = clientConfig, server.hasVideo || sessionDevice != nil else { return }
+        cfg.quality = effectiveQuality(cfg.quality)
         // Always refresh: displays and windows may have changed since the last start.
         await refreshSources()
         lastError = nil
@@ -1114,7 +1156,8 @@ final class HostController: ObservableObject {
         currentRegionLocal = rect
         injector.region = rect.offsetBy(dx: display.frame.minX, dy: display.frame.minY)
         let w = streamer.outputWidth, h = streamer.outputHeight
-        Task { await streamer.updateSourceRect(rect, width: w, height: h, fps: cfg.quality.fps) }
+        let fps = effectiveQuality(cfg.quality).fps
+        Task { await streamer.updateSourceRect(rect, width: w, height: h, fps: fps) }
     }
 
     /// Keeps Pencil mapping aligned when the captured window moves. Uses the public

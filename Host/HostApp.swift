@@ -93,6 +93,7 @@ struct HostMenu: View {
             Text(localizedLink(host.sessionLink))
             ForEach(host.extraTablets, id: \.self) { t in Text(L("+ als Tablett: %@", t)) }
             MenuStatsLine(live: host.live)
+            if host.heatLevel > 0, host.heatGuard { Text(L("Mac ist heiß – Stream gedrosselt (30 fps).")) }
             if let b = host.ipadBattery {
                 Text(L("iPad-Akku: %d %%", Int((b * 100).rounded())) + (host.ipadCharging == true ? " ⚡︎" : ""))
             }
@@ -469,6 +470,15 @@ struct HostView: View {
             }
             Text(L("Zeigt, welche Druck-, Neigungs- und Rotationswerte eine Mac-App wirklich empfängt."))
                 .font(.caption).foregroundStyle(.secondary)
+            Toggle(isOn: $host.heatGuard) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(L("Hitzeschutz"))
+                    Text(host.heatLevel == 0 ? L("Wird der Mac heiß, sinken Bildrate und Bitrate, bis er wieder kühl ist.")
+                         : host.heatGuard ? L("Mac ist heiß – Stream gedrosselt (30 fps).")
+                         : L("Mac ist heiß."))
+                        .font(.caption).foregroundStyle(host.heatLevel > 0 ? .orange : .secondary)
+                }
+            }
             Divider().opacity(0.4)
             TimelapseControls()
             if !host.clientDiagnostics.isEmpty, connected {
