@@ -76,7 +76,10 @@ private struct StatTiles: View {
 
 private struct MenuBarIcon: View {
     @ObservedObject var state: MenuIconState
-    var body: some View { Image(systemName: state.connected ? "pencil.tip.crop.circle.fill" : "pencil.tip") }
+    var body: some View {
+        Image(systemName: state.connected ? "pencil.tip.crop.circle.fill" : "pencil.tip")
+            .accessibilityLabel(state.connected ? L("UniversePen – verbunden") : "UniversePen")
+    }
 }
 
 /// Menu bar menu: connection at a glance, mode switch, pairing.

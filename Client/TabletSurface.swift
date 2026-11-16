@@ -314,6 +314,7 @@ struct TabletAreaEditor: View {
                                     Image(systemName: "xmark").font(.caption2.bold()).opacity(0.7)
                                 }
                                 .buttonStyle(.plain)
+                                .accessibilityLabel(L("Löschen"))
                             }
                         }
                         .foregroundStyle(on ? Brand.slateDeep : .primary)

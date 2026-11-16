@@ -122,6 +122,7 @@ struct ReferenceOverlay: View {
                 .foregroundStyle(.white.opacity(ref.locked ? 0.6 : 0.95))
                 .frame(width: 30, height: 30)
                 .tafelOverlayGlass(Circle())
+                .accessibilityLabel(ref.locked ? L("Entsperren") : L("Sperren"))
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)

@@ -1,4 +1,9 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#else
+import AppKit
+#endif
 
 /// Shared look of both apps (UniversePen: deep-space indigo, cyan-mint accent, from the icon).
 public enum Brand {
@@ -14,7 +19,18 @@ public enum Brand {
         LinearGradient(colors: [slateTop, slate, slateDeep], startPoint: .topLeading, endPoint: .bottomTrailing)
     }
 
-    public static let spring = Animation.spring(response: 0.45, dampingFraction: 0.82)
+    /// The app's spring – a short plain fade-in-place when "Reduce Motion" is on.
+    public static var spring: Animation {
+        reduceMotion ? .easeInOut(duration: 0.18) : .spring(response: 0.45, dampingFraction: 0.82)
+    }
+
+    public static var reduceMotion: Bool {
+        #if canImport(UIKit)
+        UIAccessibility.isReduceMotionEnabled
+        #else
+        NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        #endif
+    }
 }
 
 public extension View {

@@ -91,6 +91,12 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         super.init(frame: .zero)
         backgroundColor = .black
         isMultipleTouchEnabled = true
+        // VoiceOver: one element for the Mac picture that passes touches straight through,
+        // so Pencil and fingers keep working with VoiceOver on.
+        isAccessibilityElement = true
+        accessibilityLabel = L("Mac-Bildschirm")
+        accessibilityHint = L("Direkt bedienen: Pencil und Finger gehen an den Mac.")
+        accessibilityTraits = .allowsDirectInteraction
         layer.addSublayer(videoLayer)
         addSubview(rulerView)
         rulerView.isHidden = true

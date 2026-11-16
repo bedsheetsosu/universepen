@@ -123,10 +123,12 @@ public final class Theme: ObservableObject, @unchecked Sendable {
 public struct ThemeBackground: View {
     @ObservedObject private var theme = Theme.shared
     @State private var clock = FlowClock()
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     public init() {}
 
     public var body: some View {
-        if theme.flow && theme.flowPaused {
+        // "Reduce Motion": keep the colours, stop the movement.
+        if theme.flow && (theme.flowPaused || reduceMotion) {
             let t = clock.phase
             MeshGradient(width: 3, height: 3, points: Self.points(t), colors: Self.colors(t, theme.palette))
         } else if theme.flow {

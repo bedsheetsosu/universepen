@@ -111,6 +111,7 @@ struct RootView: View {
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundStyle(.white.opacity(0.85))
                             .contentTransition(.symbolEffect(.replace))
+                            .accessibilityLabel(menuOpen ? L("Menü schließen") : L("Menü"))
                             .frame(width: 36, height: 36)
                             .tafelOverlayGlass(Circle())
                             .contentShape(Circle())
@@ -353,12 +354,15 @@ private struct OverlayMenuPanel: View {
                 }
                 .frame(width: 22)
                 .foregroundStyle(destructive ? Color.red : checked ? Brand.mint : .secondary)
+                .accessibilityHidden(true)
                 Text(title).lineLimit(2).multilineTextAlignment(.leading)
                     .foregroundStyle(destructive ? Color.red : .primary)
                 Spacer(minLength: 4)
                 if checked { Image(systemName: "checkmark").font(.footnote.weight(.bold)).foregroundStyle(Brand.mint) }
                 if let trailing { Image(systemName: trailing).font(.footnote).foregroundStyle(.secondary) }
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(checked ? .isSelected : [])
             .font(.callout)
             .padding(.vertical, 9).padding(.horizontal, 12)
             .padding(.leading, indent ? 22 : 0)
@@ -424,6 +428,7 @@ struct StatusPill: View {
                 Image(systemName: usb ? "cable.connector" : "wifi")
                     .foregroundStyle(usb ? Brand.mint : .orange)
                     .contentTransition(.symbolEffect(.replace))
+                    .accessibilityLabel(usb ? L("USB-Kabel") : L("WLAN"))
                 metric(t.rttMs, "ms RTT")
                 if let age = t.frameAgeMs { metric(age, L("ms Bild")) }
                 metric(t.fps, "fps")

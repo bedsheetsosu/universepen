@@ -258,11 +258,13 @@ struct SettingsView: View {
                     HStack {
                         Image(systemName: model.activeProfileID == p.id ? "checkmark.circle.fill" : "circle")
                             .foregroundStyle(model.activeProfileID == p.id ? Brand.mint : .secondary)
+                            .accessibilityHidden(true)
                         Text(p.name).foregroundStyle(.primary)
                         Spacer()
                         if p.settings.tabletMode { Text(L("Tablett-Modus")).font(.caption).foregroundStyle(.secondary) }
                     }
                 }
+                .accessibilityAddTraits(model.activeProfileID == p.id ? .isSelected : [])
                 .contextMenu {
                     Button(L("Umbenennen")) { renameText = p.name; renaming = p }
                     Button(L("Duplizieren")) { model.duplicateProfile(p) }
