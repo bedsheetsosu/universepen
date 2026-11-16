@@ -59,4 +59,10 @@ final class GuideTests: XCTestCase {
         XCTAssertEqual(GridStyle.squares.lines(in: r).count, 7 + 5)   // cell 37.5: 7 verticals, 5 horizontals
         XCTAssertTrue(GridStyle.off.lines(in: r).isEmpty)
     }
+
+    func testGuideStorageRoundTrip() {
+        for g in [DrawingGuide.none, .ruler, .perspective(1), .perspective(2), .perspective(3), .ellipse] {
+            XCTAssertEqual(DrawingGuide(storageName: g.storageName), g)
+        }
+    }
 }

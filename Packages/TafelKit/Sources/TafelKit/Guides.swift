@@ -7,6 +7,27 @@ public enum DrawingGuide: Equatable, Sendable {
     /// 1–3 vanishing points.
     case perspective(Int)
     case ellipse
+
+    /// Stable short name for storing (per app).
+    public var storageName: String {
+        switch self {
+        case .none: return "none"
+        case .ruler: return "ruler"
+        case .perspective(let n): return "p\(n)"
+        case .ellipse: return "ellipse"
+        }
+    }
+
+    public init(storageName: String) {
+        switch storageName {
+        case "ruler": self = .ruler
+        case "ellipse": self = .ellipse
+        case "p1": self = .perspective(1)
+        case "p2": self = .perspective(2)
+        case "p3": self = .perspective(3)
+        default: self = .none
+        }
+    }
 }
 
 /// Perspective aid: every Pencil stroke follows a line towards one of the vanishing points

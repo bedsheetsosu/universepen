@@ -46,7 +46,10 @@ final class ClientModel: ObservableObject {
     @Published var hostInfo: HostInfo?
     /// App in front on the Mac.
     @Published var frontApp: AppInfo? {
-        didSet { if settings.isGame(frontApp?.bundleID) != settings.isGame(oldValue?.bundleID) { sendConfig() } }
+        didSet {
+            if settings.isGame(frontApp?.bundleID) != settings.isGame(oldValue?.bundleID) { sendConfig() }
+            if frontApp?.bundleID != oldValue?.bundleID { restoreGuide() }
+        }
     }
     /// What the Mac can stream (source menu).
     @Published var sourceList: SourceList?
@@ -171,7 +174,26 @@ final class ClientModel: ObservableObject {
     private var lastBreakReminder: Date?
 
     /// The drawing aid on screen (ruler, perspective, ellipse) – one at a time.
-    @Published var guide: DrawingGuide = .none
+    @Published var guide: DrawingGuide = .none {
+        didSet {
+            guard !restoringGuide, guide != oldValue, let id = frontApp?.bundleID else { return }
+            var all = UserDefaults.standard.dictionary(forKey: "appGuides") as? [String: String] ?? [:]
+            all[id] = guide.storageName
+            UserDefaults.standard.set(all, forKey: "appGuides")
+        }
+    }
+    private var restoringGuide = false
+
+    /// Each Mac app keeps its own drawing aid: switching apps brings back the one used there.
+    private func restoreGuide() {
+        guard let id = frontApp?.bundleID else { return }
+        let all = UserDefaults.standard.dictionary(forKey: "appGuides") as? [String: String] ?? [:]
+        let g = all[id].map(DrawingGuide.init(storageName:)) ?? .none
+        guard g != guide else { return }
+        restoringGuide = true
+        guide = g
+        restoringGuide = false
+    }
     var rulerVisible: Bool {
         get { guide == .ruler }
         set { guide = newValue ? .ruler : .none }
