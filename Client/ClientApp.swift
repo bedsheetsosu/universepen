@@ -1,8 +1,17 @@
 import SwiftUI
 import TafelKit
 
+/// Only for the orientation lock: SwiftUI has no API for the allowed orientations.
+final class AppDelegate: NSObject, UIApplicationDelegate {
+    nonisolated(unsafe) static var allowed: UIInterfaceOrientationMask = .all
+    func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+        Self.allowed
+    }
+}
+
 @main
 struct TafelApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var model = ClientModel.shared
 
     var body: some Scene {
@@ -301,13 +310,42 @@ private struct OverlayMenuPanel: View {
                     row(model.gameModeActive ? L("Spielmodus für %@ aus", app.name) : L("Spielmodus für %@", app.name),
                         icon: "gamecontroller", checked: model.gameModeActive) { model.toggleGameMode(); close() }
                 }
+                row(model.orientationLocked ? L("Ausrichtung entsperren") : L("Ausrichtung sperren"),
+                    icon: model.orientationLocked ? "lock.rotation" : "rotate.right", checked: model.orientationLocked) {
+                    model.toggleOrientationLock(); close()
+                }
                 row(showStatus ? L("Status ausblenden") : L("Status anzeigen"), icon: "gauge.with.dots.needle.33percent") {
                     toggleStatus(); close()
                 }
                 header(L("Werkzeuge"))
+                if !model.recentTools.isEmpty && !model.tabletModeActive {
+                    HStack(spacing: 6) {
+                        ForEach(model.recentTools, id: \.self) { t in
+                            let on = model.isOn(t)
+                            Button {
+                                withAnimation(Brand.spring) { model.runTool(t) }
+                                if t == .screenshot || t == .palette { close() }
+                            } label: {
+                                VStack(spacing: 3) {
+                                    Image(systemName: t.symbol).font(.system(size: 15, weight: .semibold))
+                                    Text(t.shortTitle).font(.caption2).lineLimit(1).minimumScaleFactor(0.7)
+                                }
+                                .frame(maxWidth: .infinity, minHeight: 46)
+                                .foregroundStyle(on ? Brand.slateDeep : .primary)
+                                .background(on ? AnyShapeStyle(Brand.mint) : AnyShapeStyle(Color.white.opacity(0.08)),
+                                            in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(t.title)
+                            .accessibilityAddTraits(on ? .isSelected : [])
+                        }
+                    }
+                    .padding(.horizontal, 10).padding(.bottom, 4)
+                }
                 if !model.tabletModeActive {
                     row(L("Lineal"), icon: "ruler", checked: model.rulerVisible) {
                         withAnimation(Brand.spring) { model.rulerVisible.toggle() }
+                        model.noteRecent(.ruler)
                         if model.rulerVisible { model.show(Toast(text: L("Lineal mit Fingern verschieben und drehen – Striche daran werden gerade"), seconds: 2.4)) }
                         close()
                     }
@@ -315,12 +353,14 @@ private struct OverlayMenuPanel: View {
                         row(n == 1 ? L("Perspektive: 1 Fluchtpunkt") : L("Perspektive: %d Fluchtpunkte", n), icon: "perspective",
                             checked: model.guide == .perspective(n)) {
                             withAnimation(Brand.spring) { model.guide = model.guide == .perspective(n) ? .none : .perspective(n) }
+                            model.noteRecent(n == 1 ? .perspective1 : n == 2 ? .perspective2 : .perspective3)
                             if model.guide != .none { model.show(Toast(text: L("Fluchtpunkte mit dem Finger ziehen – jeder Strich folgt der passenden Fluchtlinie"), seconds: 2.6)) }
                             close()
                         }
                     }
                     row(L("Ellipsen-Schablone"), icon: "oval", checked: model.guide == .ellipse) {
                         withAnimation(Brand.spring) { model.guide = model.guide == .ellipse ? .none : .ellipse }
+                        model.noteRecent(.ellipse)
                         if model.guide == .ellipse { model.show(Toast(text: L("Innen verschieben, mit zwei Fingern drehen und skalieren, Knöpfe ändern die Achsen – Striche am Rand folgen der Ellipse"), seconds: 3)) }
                         close()
                     }
@@ -340,6 +380,7 @@ private struct OverlayMenuPanel: View {
                         // Cycles off → thirds → quarters → squares → off.
                         let all = GridStyle.allCases
                         model.grid = all[(all.firstIndex(of: model.grid)! + 1) % all.count]
+                        model.noteRecent(.grid)
                     }
                     row(L("Graustufen-Vorschau"), icon: "circle.lefthalf.filled", checked: model.grayscale) {
                         model.runTool(.grayscale)
@@ -348,6 +389,7 @@ private struct OverlayMenuPanel: View {
                 }
                 row(L("Laserpointer am Mac"), icon: "light.beacon.max", checked: model.laserMode) {
                     model.laserMode.toggle()
+                    model.noteRecent(.laser)
                     model.show(Toast(text: model.laserMode ? L("Laserpointer an – der Pencil zeichnet nur noch Leuchtspuren") : L("Laserpointer aus"), seconds: 1.8))
                     close()
                 }

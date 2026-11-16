@@ -223,6 +223,11 @@ On by default (Mac window → Stream). macOS reports how hot the Mac is (`Proces
 
 iPad … menu → "Gestures & shortcuts": one page with what double-tap, squeeze, every finger gesture and the Mac hot keys do right now (for the app in front on the Mac).
 
+## Quick tools, orientation lock
+
+- The … menu shows the last four iPad tools you used as big buttons at the top of "Tools" (lit while on).
+- **Lock orientation** (… menu): keeps the current orientation, so an iPad lying flat on the desk does not turn by itself.
+
 ## Shortcuts, Siri, Control Center
 
 The iPad app offers actions in the Shortcuts app: **Connect to Mac** (optionally a specific paired Mac), **Disconnect from Mac**, **Tablet Mode** and **Laser Pointer** (on / off / toggle) and **Take Mac Screenshot**. They also work with Siri and Spotlight (e.g. "Connect UniversePen"). For Control Center or the Lock Screen, add the system "Shortcut" control and pick one of them. All actions are translated into the 7 app languages.

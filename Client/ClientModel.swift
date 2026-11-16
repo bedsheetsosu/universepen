@@ -913,7 +913,60 @@ final class ClientModel: ObservableObject {
     }
 
     /// Toggles an iPad tool (from a Pencil gesture, the radial menu, a bar button or a Shortcut).
+    /// Last used iPad tools, newest first (quick chips in the … menu).
+    @Published private(set) var recentTools: [IPadTool] =
+        (UserDefaults.standard.stringArray(forKey: "recentTools") ?? []).compactMap(IPadTool.init(rawValue:))
+
+    func isOn(_ t: IPadTool) -> Bool {
+        switch t {
+        case .ruler: return guide == .ruler
+        case .perspective1: return guide == .perspective(1)
+        case .perspective2: return guide == .perspective(2)
+        case .perspective3: return guide == .perspective(3)
+        case .ellipse: return guide == .ellipse
+        case .shapeRecognition: return settings.shapeRecognition
+        case .laser: return laserMode
+        case .screenshot: return false
+        case .palette: return palette.image != nil
+        case .mirror: return mirrored
+        case .grayscale: return grayscale
+        case .grid: return grid != .off
+        }
+    }
+
+    // MARK: Orientation lock
+
+    /// Keeps the current orientation (lying flat, the iPad would otherwise turn by itself).
+    @Published private(set) var orientationLocked = false
+
+    func toggleOrientationLock() {
+        guard let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first else { return }
+        orientationLocked.toggle()
+        let mask: UIInterfaceOrientationMask
+        if orientationLocked {
+            switch scene.effectiveGeometry.interfaceOrientation {
+            case .portrait: mask = .portrait
+            case .portraitUpsideDown: mask = .portraitUpsideDown
+            case .landscapeLeft: mask = .landscapeLeft
+            case .landscapeRight: mask = .landscapeRight
+            default: mask = .all
+            }
+        } else {
+            mask = .all
+        }
+        AppDelegate.allowed = mask
+        scene.keyWindow?.rootViewController?.setNeedsUpdateOfSupportedInterfaceOrientations()
+        scene.requestGeometryUpdate(.iOS(interfaceOrientations: mask)) { _ in }
+        show(Toast(text: orientationLocked ? L("Ausrichtung gesperrt") : L("Ausrichtung entsperrt"), seconds: 1.4))
+    }
+
+    func noteRecent(_ t: IPadTool) {
+        recentTools = Array(([t] + recentTools.filter { $0 != t }).prefix(4))
+        UserDefaults.standard.set(recentTools.map(\.rawValue), forKey: "recentTools")
+    }
+
     func runTool(_ t: IPadTool) {
+        noteRecent(t)
         func toggleGuide(_ g: DrawingGuide) {
             guide = guide == g ? .none : g
             show(Toast(text: guide == .none ? L("%@ aus", t.title) : t.title, seconds: 1.2))
