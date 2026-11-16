@@ -336,6 +336,9 @@ private struct OverlayMenuPanel: View {
                     row(L("Tablett-Modus automatisch für %@", app.name), icon: "rectangle.dashed",
                         checked: model.autoTabletForFrontApp) { model.toggleAutoTablet(); close() }
                 }
+                row(L("Nur Monitor (keine Eingabe)"), icon: "eye", checked: model.settings.viewOnly) {
+                    model.settings.viewOnly.toggle(); close()
+                }
                 row(model.orientationLocked ? L("Ausrichtung entsperren") : L("Ausrichtung sperren"),
                     icon: model.orientationLocked ? "lock.rotation" : "rotate.right", checked: model.orientationLocked) {
                     model.toggleOrientationLock(); close()

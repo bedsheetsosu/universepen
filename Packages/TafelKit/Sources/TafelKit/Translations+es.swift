@@ -302,6 +302,8 @@ extension Translations {
         "Warte auf das iPad …": "Esperando al iPad …",
         "iPad-Akku: %d %%": "Batería del iPad: %d %%",
         "Volle Mac-Auflösung senden": "Enviar resolución completa del Mac",
+        "Beim Anmelden öffnen": "Abrir al iniciar sesión",
+        "Beim Anmelden öffnen ging nicht: %@ (liegt die App im Programme-Ordner?)": "No se pudo abrir al iniciar sesión: %@ (¿está la app en la carpeta Aplicaciones?)",
         "Striche am Raster einrasten": "Ajustar trazos a la cuadrícula",
         "Undo/Redo-Knöpfe am Rand": "Botones deshacer/rehacer en el borde",
         "Wiederholen": "Rehacer",

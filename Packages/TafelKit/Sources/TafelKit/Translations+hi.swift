@@ -302,6 +302,8 @@ extension Translations {
         "Warte auf das iPad …": "iPad की प्रतीक्षा …",
         "iPad-Akku: %d %%": "iPad बैटरी: %d %%",
         "Volle Mac-Auflösung senden": "Mac का पूरा रिज़ॉल्यूशन भेजें",
+        "Beim Anmelden öffnen": "लॉगिन पर खोलें",
+        "Beim Anmelden öffnen ging nicht: %@ (liegt die App im Programme-Ordner?)": "लॉगिन पर खोलना नहीं हुआ: %@ (क्या ऐप Applications फ़ोल्डर में है?)",
         "Striche am Raster einrasten": "स्ट्रोक को ग्रिड पर स्नैप करें",
         "Undo/Redo-Knöpfe am Rand": "किनारे पर पूर्ववत/फिर से करें बटन",
         "Wiederholen": "फिर से करें",

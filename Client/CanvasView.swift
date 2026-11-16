@@ -840,6 +840,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         if let start = perspectiveStart, guideLine == nil, rawPhase == .move {
             if hypot(loc.x - start.x, loc.y - start.y) < PerspectiveGuide.decideDistance { return }
             guideLine = perspective?.snapLine(start: start, toward: loc)
+            guideView.activeLine = guideLine
         }
         if let line = guideLine { loc = line.project(loc) }
         if rawPhase == .down { gridLine = rulerLine == nil && perspectiveStart == nil && !ellipseSnap ? nearestGridLine(to: loc) : nil }
@@ -848,6 +849,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         defer {
             if rawPhase == .up || rawPhase == .cancel {
                 rulerLine = nil; guideLine = nil; perspectiveStart = nil; ellipseSnap = false; gridLine = nil
+                guideView.activeLine = nil
             }
         }
         // Pencil without hover: a touch only moves the pointer; touch again at once to click.

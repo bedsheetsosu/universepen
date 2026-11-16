@@ -1,6 +1,7 @@
 import Foundation
 import IOKit.pwr_mgt
 import AppKit
+import ServiceManagement
 import ScreenCaptureKit
 import CoreGraphics
 import TafelKit
@@ -182,6 +183,19 @@ final class HostController: ObservableObject {
     private var restartTask: Task<Void, Never>?
     private var captureRestarts: [Date] = []
     private var thermalObserver: NSObjectProtocol?
+
+    // MARK: Open at login
+
+    @Published private(set) var openAtLogin = SMAppService.mainApp.status == .enabled
+
+    func setOpenAtLogin(_ on: Bool) {
+        do {
+            if on { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }
+        } catch {
+            lastError = L("Beim Anmelden öffnen ging nicht: %@ (liegt die App im Programme-Ordner?)", error.localizedDescription)
+        }
+        openAtLogin = SMAppService.mainApp.status == .enabled
+    }
 
     // MARK: Hot keys
 

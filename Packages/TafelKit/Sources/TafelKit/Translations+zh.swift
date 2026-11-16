@@ -302,6 +302,8 @@ extension Translations {
         "Warte auf das iPad …": "正在等待 iPad …",
         "iPad-Akku: %d %%": "iPad 电量：%d %%",
         "Volle Mac-Auflösung senden": "发送 Mac 完整分辨率",
+        "Beim Anmelden öffnen": "登录时打开",
+        "Beim Anmelden öffnen ging nicht: %@ (liegt die App im Programme-Ordner?)": "无法设置登录时打开：%@（应用是否在“应用程序”文件夹中？）",
         "Striche am Raster einrasten": "笔画吸附到网格",
         "Undo/Redo-Knöpfe am Rand": "边缘显示撤销/重做按钮",
         "Wiederholen": "重做",

@@ -14,6 +14,8 @@ final class GuideView: UIView {
     var accent: UIColor = .systemTeal { didSet { setNeedsDisplay() } }
     /// The hovering Pencil is on the ellipse's band: its outline is drawn bolder.
     var highlight = false { didSet { if highlight != oldValue { setNeedsDisplay() } } }
+    /// Perspective line the current stroke follows (drawn bright while drawing).
+    var activeLine: SnapLine? { didSet { if activeLine != oldValue { setNeedsDisplay() } } }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -70,6 +72,15 @@ final class GuideView: UIView {
             horizon.lineWidth = 1.5
             horizon.setLineDash([8, 6], count: 2, phase: 0)
             horizon.stroke()
+        }
+        if let l = activeLine {
+            let a = CGPoint(x: l.origin.x - l.direction.x * reach, y: l.origin.y - l.direction.y * reach)
+            let b = CGPoint(x: l.origin.x + l.direction.x * reach, y: l.origin.y + l.direction.y * reach)
+            let p = UIBezierPath()
+            p.move(to: a); p.addLine(to: b)
+            accent.withAlphaComponent(0.9).setStroke()
+            p.lineWidth = 1.5
+            p.stroke()
         }
         g.points.forEach(knob)
     }

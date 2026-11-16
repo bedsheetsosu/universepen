@@ -345,6 +345,8 @@ enum Translations {
         "Warte auf das iPad …": "Waiting for the iPad …",
         "iPad-Akku: %d %%": "iPad battery: %d %%",
         "Volle Mac-Auflösung senden": "Send full Mac resolution",
+        "Beim Anmelden öffnen": "Open at login",
+        "Beim Anmelden öffnen ging nicht: %@ (liegt die App im Programme-Ordner?)": "Open at login failed: %@ (is the app in the Applications folder?)",
         "Striche am Raster einrasten": "Snap strokes to the grid",
         "Undo/Redo-Knöpfe am Rand": "Undo/redo buttons at the edge",
         "Wiederholen": "Redo",
