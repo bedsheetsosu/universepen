@@ -72,6 +72,11 @@ struct ScreenshotView: View {
                     } label: { Label(L("In Fotos sichern"), systemImage: "photo.on.rectangle.angled") }
                         .buttonStyle(.bordered)
                     Button {
+                        model.copyToMac(output())
+                        withAnimation(Brand.spring) { model.screenshot = nil }
+                    } label: { Label(L("Auf den Mac kopieren"), systemImage: "doc.on.clipboard") }
+                        .buttonStyle(.bordered)
+                    Button {
                         shareItem = ShareImage(image: output())
                     } label: { Label(L("Teilen …"), systemImage: "square.and.arrow.up") }
                         .buttonStyle(.borderedProminent)

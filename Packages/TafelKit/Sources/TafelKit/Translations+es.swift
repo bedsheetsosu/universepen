@@ -302,6 +302,8 @@ extension Translations {
         "Warte auf das iPad …": "Esperando al iPad …",
         "iPad-Akku: %d %%": "Batería del iPad: %d %%",
         "Volle Mac-Auflösung senden": "Enviar resolución completa del Mac",
+        "Bild zu groß für die Zwischenablage": "Imagen demasiado grande para el portapapeles",
+        "Auf den Mac kopieren": "Copiar al Mac",
         "Hover-Punkt: %d pt": "Punto flotante: %d pt",
         "Eigene Farbe für Sofort-Tinte": "Color propio para la tinta instantánea",
         "Tinten-Farbe": "Color de la tinta",

@@ -878,6 +878,16 @@ final class ClientModel: ObservableObject {
     // MARK: Clipboard (only on request, never automatic)
 
     /// Sends the iPad clipboard (image or text) to the Mac clipboard.
+    /// Puts an image (e.g. a cropped screenshot) into the Mac clipboard.
+    func copyToMac(_ image: UIImage) {
+        guard let session else { return }
+        guard let png = image.pngData(), png.count <= ClipboardItem.maxBytes else {
+            show(Toast(text: L("Bild zu groß für die Zwischenablage"), seconds: 1.8)); return
+        }
+        session.send(clipboard: ClipboardItem(kind: .png, data: png))
+        show(Toast(text: L("Bild in die Mac-Zwischenablage kopiert"), seconds: 1.6))
+    }
+
     func copyClipboardToMac() {
         guard let session else { return }
         let pb = UIPasteboard.general

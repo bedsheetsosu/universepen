@@ -302,6 +302,8 @@ extension Translations {
         "Warte auf das iPad …": "正在等待 iPad …",
         "iPad-Akku: %d %%": "iPad 电量：%d %%",
         "Volle Mac-Auflösung senden": "发送 Mac 完整分辨率",
+        "Bild zu groß für die Zwischenablage": "图片太大，无法放入剪贴板",
+        "Auf den Mac kopieren": "复制到 Mac",
         "Hover-Punkt: %d pt": "悬停圆点：%d pt",
         "Eigene Farbe für Sofort-Tinte": "即时墨迹使用自定义颜色",
         "Tinten-Farbe": "墨迹颜色",

@@ -302,6 +302,8 @@ extension Translations {
         "Warte auf das iPad …": "iPad を待っています …",
         "iPad-Akku: %d %%": "iPad のバッテリー：%d %%",
         "Volle Mac-Auflösung senden": "Mac のフル解像度で送信",
+        "Bild zu groß für die Zwischenablage": "画像が大きすぎてクリップボードに入りません",
+        "Auf den Mac kopieren": "Mac にコピー",
         "Hover-Punkt: %d pt": "ホバー点：%d pt",
         "Eigene Farbe für Sofort-Tinte": "即時インクに独自の色",
         "Tinten-Farbe": "インクの色",
