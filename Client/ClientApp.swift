@@ -23,6 +23,7 @@ struct RootView: View {
     @EnvironmentObject var model: ClientModel
     @ObservedObject private var l10n = L10n.shared
     @State private var showSettings = false
+    @State private var showCheatSheet = false
     @State private var showStatus = false
     @State private var menuOpen = false
 
@@ -87,6 +88,10 @@ struct RootView: View {
         .id(l10n.language)   // re-render every text when the language changes
         .sheet(isPresented: $showSettings) {
             SettingsView().environmentObject(model)
+                .presentationBackground { ThemeBackground() }
+        }
+        .sheet(isPresented: $showCheatSheet) {
+            CheatSheetView().environmentObject(model)
                 .presentationBackground { ThemeBackground() }
         }
     }
@@ -169,6 +174,7 @@ struct RootView: View {
                                 close: { withAnimation(Brand.spring) { menuOpen = false } },
                                 toggleStatus: { showStatus.toggle() }, showStatus: showStatus,
                                 openSettings: { showSettings = true },
+                                openCheatSheet: { showCheatSheet = true },
                                 maxHeight: max(g.size.height - 16, 200))
                         }
                         Spacer()
@@ -193,6 +199,7 @@ private struct OverlayMenuPanel: View {
     let toggleStatus: () -> Void
     let showStatus: Bool
     let openSettings: () -> Void
+    let openCheatSheet: () -> Void
     /// Height available on screen for the panel.
     var maxHeight: CGFloat = 560
     @State private var windowsOpen = false
@@ -359,6 +366,7 @@ private struct OverlayMenuPanel: View {
                 row(model.showKeyboard ? L("Bildschirmtastatur ausblenden") : L("Bildschirmtastatur"), icon: "keyboard") {
                     model.showKeyboard.toggle(); close()
                 }
+                row(L("Gesten & Kürzel"), icon: "hand.draw") { close(); openCheatSheet() }
                 row(L("Einstellungen …"), icon: "gearshape") { close(); openSettings() }
                 divider
                 row(L("Trennen"), icon: "xmark.circle", destructive: true) { close(); model.disconnect() }

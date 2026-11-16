@@ -219,6 +219,10 @@ System-wide, from any app: **⌃⌥⌘T** switches the iPad into or out of table
 
 On by default (Mac window → Stream). macOS reports how hot the Mac is (`ProcessInfo.thermalState`). At "serious" UniversePen streams at most 30 fps, ≤ 25 Mbit/s and without full source resolution; at "critical" also ≤ 15 Mbit/s and ≤ 75 % resolution. When the Mac has cooled off, the iPad's own settings apply again. It only ever lowers settings. Made for the fanless MacBook Air.
 
+## Gestures & shortcuts page
+
+iPad … menu → "Gestures & shortcuts": one page with what double-tap, squeeze, every finger gesture and the Mac hot keys do right now (for the app in front on the Mac).
+
 ## Shortcuts, Siri, Control Center
 
 The iPad app offers actions in the Shortcuts app: **Connect to Mac** (optionally a specific paired Mac), **Disconnect from Mac**, **Tablet Mode** and **Laser Pointer** (on / off / toggle) and **Take Mac Screenshot**. They also work with Siri and Spotlight (e.g. "Connect UniversePen"). For Control Center or the Lock Screen, add the system "Shortcut" control and pick one of them. All actions are translated into the 7 app languages.
