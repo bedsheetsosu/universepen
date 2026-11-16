@@ -3,7 +3,9 @@ import TafelKit
 
 @main
 struct TafelHostApp: App {
-    @StateObject private var host = HostController()
+    // @State, not @StateObject: the App itself must not re-run on every change of the controller
+    // (that redraws the menu bar icon on every display each time); the views observe it themselves.
+    @State private var host = HostController()
 
     init() { Self.migrateOldDefaults() }
 
@@ -44,9 +46,37 @@ struct TafelHostApp: App {
         MenuBarExtra {
             HostMenu().environmentObject(host)
         } label: {
-            Image(systemName: host.sessionDevice == nil ? "pencil.tip" : "pencil.tip.crop.circle.fill")
+            MenuBarIcon(state: host.menuIcon)
         }
     }
+}
+
+private struct MenuStatsLine: View {
+    @ObservedObject var live: LiveStats
+    var body: some View {
+        if live.stats.fps > 0 {
+            Text(String(format: "%.0f fps · %.1f Mbit/s", live.stats.fps, live.stats.mbps))
+        }
+    }
+}
+
+private struct StatTiles: View {
+    @ObservedObject var live: LiveStats
+    var body: some View {
+        let s = live.stats
+        HStack(spacing: 10) {
+            StatTile(value: s.fps, format: "%.0f", unit: L("Bilder/s"), symbol: "film")
+            StatTile(value: s.mbps, format: "%.1f",
+                     unit: s.targetMbps > 0 ? L("Mbit/s · Ziel %.0f", s.targetMbps) : "Mbit/s",
+                     symbol: "arrow.up.right")
+            StatTile(value: Double(s.dropped), format: "%.0f", unit: L("verworfen"), symbol: "tray.and.arrow.down")
+        }
+    }
+}
+
+private struct MenuBarIcon: View {
+    @ObservedObject var state: MenuIconState
+    var body: some View { Image(systemName: state.connected ? "pencil.tip.crop.circle.fill" : "pencil.tip") }
 }
 
 /// Menu bar menu: connection at a glance, mode switch, pairing.
@@ -59,9 +89,7 @@ struct HostMenu: View {
             Text(L("Verbunden: %@", device))
             Text(localizedLink(host.sessionLink))
             ForEach(host.extraTablets, id: \.self) { t in Text(L("+ als Tablett: %@", t)) }
-            if host.stats.fps > 0 {
-                Text(String(format: "%.0f fps · %.1f Mbit/s", host.stats.fps, host.stats.mbps))
-            }
+            MenuStatsLine(live: host.live)
             if let b = host.ipadBattery {
                 Text(L("iPad-Akku: %d %%", Int((b * 100).rounded())) + (host.ipadCharging == true ? " ⚡︎" : ""))
             }
@@ -182,13 +210,7 @@ struct HostView: View {
                 Spacer(minLength: 0)
             }
             if connected {
-                HStack(spacing: 10) {
-                    StatTile(value: host.stats.fps, format: "%.0f", unit: L("Bilder/s"), symbol: "film")
-                    StatTile(value: host.stats.mbps, format: "%.1f",
-                             unit: host.stats.targetMbps > 0 ? L("Mbit/s · Ziel %.0f", host.stats.targetMbps) : "Mbit/s",
-                             symbol: "arrow.up.right")
-                    StatTile(value: Double(host.stats.dropped), format: "%.0f", unit: L("verworfen"), symbol: "tray.and.arrow.down")
-                }
+                StatTiles(live: host.live)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
             HStack(spacing: 6) {
@@ -577,8 +599,7 @@ private struct StatTile: View {
             Image(systemName: symbol).font(.caption).foregroundStyle(Brand.mint)
             Text(String(format: format, value))
                 .font(.system(.title3, design: .rounded).weight(.semibold).monospacedDigit())
-                .contentTransition(.numericText(value: value))
-                .animation(.snappy, value: value)
+                // No rolling-digit animation: it changes every second and is drawn on the CPU.
             Text(unit).font(.caption2).foregroundStyle(.secondary)
         }
         .padding(12)

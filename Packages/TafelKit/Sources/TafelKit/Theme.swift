@@ -22,6 +22,9 @@ public final class Theme: ObservableObject, @unchecked Sendable {
     @Published public var flow: Bool { didSet { save() } }
     /// 0.25 … 2: how fast the background flows and the hues drift.
     @Published public var flowSpeed: Double { didSet { save() } }
+    /// Hold the flowing background still (same colours, no redraws) – e.g. on the Mac while an
+    /// iPad is connected: an animated window would be redrawn and re-encoded 30 times a second.
+    @Published public var flowPaused = false
 
     /// Derived colours (rebuilt when the accent changes).
     public private(set) var palette = Palette()
@@ -123,7 +126,10 @@ public struct ThemeBackground: View {
     public init() {}
 
     public var body: some View {
-        if theme.flow {
+        if theme.flow && theme.flowPaused {
+            let t = clock.phase
+            MeshGradient(width: 3, height: 3, points: Self.points(t), colors: Self.colors(t, theme.palette))
+        } else if theme.flow {
             TimelineView(.animation(minimumInterval: 1.0 / 30)) { ctx in
                 let t = clock.advance(to: ctx.date, speed: theme.flowSpeed)
                 MeshGradient(width: 3, height: 3, points: Self.points(t), colors: Self.colors(t, theme.palette))
@@ -137,7 +143,7 @@ public struct ThemeBackground: View {
     /// jumps to another point of the animation (which would just look like other colours).
     final class FlowClock {
         private var last: Date?
-        private var phase = 0.0
+        private(set) var phase = 0.0
         func advance(to now: Date, speed: Double) -> Double {
             if let last { phase += min(max(now.timeIntervalSince(last), 0), 0.25) * speed }
             last = now

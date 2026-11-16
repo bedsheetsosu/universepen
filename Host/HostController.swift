@@ -53,7 +53,12 @@ final class HostController: ObservableObject {
     static let penTestTitles: Set<String> = L10n.allTranslations(of: "Stifttest")
     /// Listener is up (status texts start with "Bereit"/"Ready", depending on the language at the time).
     @Published var listenerReady = false
-    @Published var sessionDevice: String?
+    @Published var sessionDevice: String? {
+        didSet { updateFlowPause(); if menuIcon.connected != (sessionDevice != nil) { menuIcon.connected = sessionDevice != nil } }
+    }
+    /// Just what the menu bar icon needs: it must not redraw on every stats tick (each redraw
+    /// re-renders the icon in the menu bar of every display, including the iPad's).
+    let menuIcon = MenuIconState()
     @Published var sessionLink = ""
     @Published var clientDiagnostics = ""
     /// iPad battery 0…1 and charging state, as reported by the iPad (nil = unknown / not connected).
@@ -99,7 +104,13 @@ final class HostController: ObservableObject {
         }
     }
     @Published var streamDescription = ""
-    @Published var stats = StreamStats()
+    /// Stream numbers change every second: kept in their own object so only the views that show
+    /// them redraw (not the whole window and the menu bar).
+    let live = LiveStats()
+    var stats: StreamStats {
+        get { live.stats }
+        set { if live.stats != newValue { live.stats = newValue } }
+    }
     @Published var lastError: String?
     @Published var screenRecordingGranted = CGPreflightScreenCaptureAccess()
     @Published var accessibilityGranted = InputInjector.isTrusted
@@ -202,6 +213,13 @@ final class HostController: ObservableObject {
         observeDisplayChanges()
         observeSources()
         updateFollowTimer()
+        // Flowing background: only animate while a window is actually visible and no iPad streams.
+        for name in [NSApplication.didChangeOcclusionStateNotification, NSWindow.didChangeOcclusionStateNotification,
+                     NSWindow.willCloseNotification, NSWindow.didBecomeKeyNotification] {
+            NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.updateFlowPause() }
+            }
+        }
         setupPlugins()
         let sink = timelapseSink
         NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: nil) { _ in
@@ -212,8 +230,11 @@ final class HostController: ObservableObject {
         Task { await refreshSources() }
         permissionTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
             Task { @MainActor in
-                self?.screenRecordingGranted = CGPreflightScreenCaptureAccess()
-                self?.accessibilityGranted = InputInjector.isTrusted
+                // Only publish real changes: every publish redraws the windows and the menu bar icon.
+                guard let self else { return }
+                let sr = CGPreflightScreenCaptureAccess(), ax = InputInjector.isTrusted
+                if self.screenRecordingGranted != sr { self.screenRecordingGranted = sr }
+                if self.accessibilityGranted != ax { self.accessibilityGranted = ax }
             }
         }
     }
@@ -1002,6 +1023,12 @@ final class HostController: ObservableObject {
         }
     }
 
+    private func updateFlowPause() {
+        let visible = NSApp.windows.contains { $0.isVisible && $0.occlusionState.contains(.visible) && !($0 is NSPanel) }
+        let pause = sessionDevice != nil || !visible
+        if Theme.shared.flowPaused != pause { Theme.shared.flowPaused = pause }
+    }
+
     private func updateFollowTimer() {
         followTimer?.invalidate()
         followTimer = nil
@@ -1071,6 +1098,16 @@ final class HostController: ObservableObject {
             if injector.region != rect { injector.region = rect }
         }
     }
+}
+
+@MainActor
+final class LiveStats: ObservableObject {
+    @Published var stats = StreamStats()
+}
+
+@MainActor
+final class MenuIconState: ObservableObject {
+    @Published var connected = false
 }
 
 final class LockedBool: @unchecked Sendable {
