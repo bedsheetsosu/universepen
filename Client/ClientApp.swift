@@ -33,6 +33,7 @@ struct RootView: View {
     @ObservedObject private var l10n = L10n.shared
     @State private var showSettings = false
     @State private var showCheatSheet = false
+    @State private var showWhatsNew = WhatsNewView.shouldShow
     @State private var showStatus = false
     @State private var menuOpen = false
 
@@ -98,6 +99,9 @@ struct RootView: View {
         .sheet(isPresented: $showSettings) {
             SettingsView().environmentObject(model)
                 .presentationBackground { ThemeBackground() }
+        }
+        .sheet(isPresented: $showWhatsNew, onDismiss: WhatsNewView.markSeen) {
+            WhatsNewView().presentationBackground { ThemeBackground() }
         }
         .sheet(isPresented: $showCheatSheet) {
             CheatSheetView().environmentObject(model)
