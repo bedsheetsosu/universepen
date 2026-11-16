@@ -50,4 +50,21 @@ final class ShapeRecognizerTests: XCTestCase {
     func testTinyStrokeIsNothing() {
         XCTAssertNil(ShapeRecognizer.recognize([CGPoint(x: 0, y: 0), CGPoint(x: 3, y: 2), CGPoint(x: 5, y: 1), CGPoint(x: 6, y: 4)]))
     }
+
+    func testArrowWithOneBarb() {
+        let p = path([CGPoint(x: 0, y: 100), CGPoint(x: 300, y: 100), CGPoint(x: 250, y: 70)], closed: false)
+        XCTAssertEqual(ShapeRecognizer.recognize(wobble(p, amount: 1.5))?.name, "arrow")
+    }
+
+    func testArrowWithTwoBarbs() {
+        let p = path([CGPoint(x: 0, y: 100), CGPoint(x: 300, y: 100), CGPoint(x: 250, y: 70),
+                      CGPoint(x: 300, y: 100), CGPoint(x: 250, y: 130)], closed: false)
+        XCTAssertEqual(ShapeRecognizer.recognize(wobble(p, amount: 1.5))?.name, "arrow")
+    }
+
+    func testChevronIsNotAnArrow() {
+        // Two equally long legs: a polyline, not an arrow.
+        let p = path([CGPoint(x: 0, y: 200), CGPoint(x: 150, y: 0), CGPoint(x: 300, y: 200)], closed: false)
+        XCTAssertNotEqual(ShapeRecognizer.recognize(wobble(p))?.name, "arrow")
+    }
 }

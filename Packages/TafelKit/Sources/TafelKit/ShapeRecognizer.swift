@@ -8,6 +8,8 @@ public enum RecognizedShape: Equatable, Sendable {
     case polygon([CGPoint], closed: Bool)
     /// `angle` in radians: direction of the `rx` axis.
     case ellipse(center: CGPoint, rx: Double, ry: Double, angle: Double)
+    /// Straight shaft from `from` to `to` with a symmetric head at `to`.
+    case arrow(from: CGPoint, to: CGPoint)
 
     public var name: String {
         switch self {
@@ -16,6 +18,7 @@ public enum RecognizedShape: Equatable, Sendable {
             if !closed { return "polyline" }
             return c.count == 3 ? "triangle" : c.count == 4 ? "quad" : "polygon"
         case .ellipse(_, let rx, let ry, _): return abs(rx - ry) < 0.5 ? "circle" : "ellipse"
+        case .arrow: return "arrow"
         }
     }
 
@@ -39,6 +42,16 @@ public enum RecognizedShape: Equatable, Sendable {
             for i in 0..<(ends.count - 1) { out += segment(ends[i], ends[i + 1], includeEnd: false) }
             out.append(ends[ends.count - 1])
             return out
+        case .arrow(let a, let b):
+            let len = hypot(b.x - a.x, b.y - a.y)
+            let head = max(min(len * 0.22, 60), 12)
+            let back = atan2(a.y - b.y, a.x - b.x)
+            let spread = 28 * Double.pi / 180
+            let w1 = CGPoint(x: b.x + cos(back + spread) * head, y: b.y + sin(back + spread) * head)
+            let w2 = CGPoint(x: b.x + cos(back - spread) * head, y: b.y + sin(back - spread) * head)
+            // One stroke: shaft, first barb and back, second barb.
+            return segment(a, b, includeEnd: false) + segment(b, w1, includeEnd: false)
+                + segment(w1, b, includeEnd: false) + segment(b, w2, includeEnd: true)
         case .ellipse(let o, let rx, let ry, let angle):
             // Ramanujan's perimeter approximation is plenty for spacing.
             let h = pow(rx - ry, 2) / max(pow(rx + ry, 2), 1e-9)
@@ -71,6 +84,7 @@ public enum ShapeRecognizer {
         if !closed {
             let s = simplify(pts, epsilon: max(0.045 * diag, 3))
             if s.count == 2 { return .line(s[0], s[1]) }
+            if let arrow = arrow(s) { return arrow }
             if s.count <= 4, meanDistance(pts, toPolyline: s, closed: false) < 0.03 * diag {
                 return .polygon(s, closed: false)
             }
@@ -92,6 +106,26 @@ public enum ShapeRecognizer {
             }
             return .ellipse(center: e.center, rx: e.rx, ry: e.ry, angle: snapAngle(e.angle))
         }
+        return nil
+    }
+
+    /// A long shaft followed by a short hook back (one barb, or barb–tip–barb): an arrow.
+    static func arrow(_ s: [CGPoint]) -> RecognizedShape? {
+        guard s.count == 3 || s.count == 5 else { return nil }
+        let start = s[0], tip = s[1]
+        let shaft = distance(start, tip)
+        guard shaft > 40 else { return nil }
+        func isBarb(_ p: CGPoint) -> Bool {
+            let d = distance(tip, p)
+            guard d < 0.5 * shaft, d > 0.08 * shaft else { return false }
+            // The barb points back towards the start: angle to the shaft between 15° and 75°.
+            let v1 = CGVector(dx: start.x - tip.x, dy: start.y - tip.y), v2 = CGVector(dx: p.x - tip.x, dy: p.y - tip.y)
+            let c = (v1.dx * v2.dx + v1.dy * v2.dy) / (hypot(v1.dx, v1.dy) * hypot(v2.dx, v2.dy))
+            let a = acos(min(max(c, -1), 1)) * 180 / .pi
+            return a > 15 && a < 75
+        }
+        if s.count == 3, isBarb(s[2]) { return .arrow(from: start, to: tip) }
+        if s.count == 5, isBarb(s[2]), distance(s[3], tip) < 0.25 * shaft, isBarb(s[4]) { return .arrow(from: start, to: tip) }
         return nil
     }
 
