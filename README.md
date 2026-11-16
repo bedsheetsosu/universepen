@@ -203,7 +203,7 @@ Bring one Mac panel (layers, colours, brushes …) onto the iPad as a small floa
 - **Turn the view** (zoom method "Only on the iPad"): two fingers turn the picture on the iPad like a sheet of paper (snaps to 0/90/180/270°); pinch and pan keep working, the pill shows angle and zoom and resets both. Pencil position and tilt are turned back, so the Mac gets upright input.
 - **Grayscale preview** (… menu → Tools): the picture in grey on the iPad only, to check light and dark values while painting in colour.
 - **Speed pressure** (Settings → Pencil, 0–100 %): faster strokes get lighter, slow ones stay full – like an ink nib.
-- **Composition grid** (… menu → Tools, tap again to cycle): thirds, quarters or squares (2–32 across, Settings → General) over the picture on the iPad only; it zooms, turns and mirrors with the picture.
+- **Composition grid** (… menu → Tools, tap again to cycle): thirds, quarters or squares (2–32 across, Settings → General) over the picture on the iPad only; it zooms, turns and mirrors with the picture. With "Snap strokes to the grid" (Settings → General) a stroke that starts within 24 pt of a grid line follows it.
 - **Reference picture:** its bar now also flips it horizontally and shows it in grey; both are remembered.
 - **Session summary:** disconnecting shows how long you drew and how many strokes went to the Mac.
 - **Pressure meter** (Settings → Pencil): a small bar bottom left shows the pressure that reaches the Mac, handy for tuning the curve.

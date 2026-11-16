@@ -302,6 +302,7 @@ extension Translations {
         "Warte auf das iPad …": "iPad を待っています …",
         "iPad-Akku: %d %%": "iPad のバッテリー：%d %%",
         "Volle Mac-Auflösung senden": "Mac のフル解像度で送信",
+        "Striche am Raster einrasten": "ストロークをグリッドに吸着",
         "Undo/Redo-Knöpfe am Rand": "端に取り消し／やり直しボタン",
         "Wiederholen": "やり直す",
         "WLAN ist gerade langsam (%d ms) – mit USB-Kabel ist es schneller und stabiler": "Wi-Fi が遅くなっています（%d ms）– USB ケーブルの方が速く安定します",

@@ -302,6 +302,7 @@ extension Translations {
         "Warte auf das iPad …": "Esperando al iPad …",
         "iPad-Akku: %d %%": "Batería del iPad: %d %%",
         "Volle Mac-Auflösung senden": "Enviar resolución completa del Mac",
+        "Striche am Raster einrasten": "Ajustar trazos a la cuadrícula",
         "Undo/Redo-Knöpfe am Rand": "Botones deshacer/rehacer en el borde",
         "Wiederholen": "Rehacer",
         "WLAN ist gerade langsam (%d ms) – mit USB-Kabel ist es schneller und stabiler": "El Wi-Fi va lento ahora (%d ms): con cable USB es más rápido y estable",

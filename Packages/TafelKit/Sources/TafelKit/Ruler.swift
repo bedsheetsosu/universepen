@@ -65,6 +65,7 @@ public struct Ruler: Equatable, Sendable {
 public struct SnapLine: Equatable, Sendable {
     public var origin: CGPoint
     public var direction: CGPoint
+    public init(origin: CGPoint, direction: CGPoint) { self.origin = origin; self.direction = direction }
     /// Closest point on the line.
     public func project(_ p: CGPoint) -> CGPoint {
         let t = (p.x - origin.x) * direction.x + (p.y - origin.y) * direction.y

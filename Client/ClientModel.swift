@@ -187,6 +187,9 @@ final class ClientModel: ObservableObject {
     }
     private var restoringGuide = false
     /// Squares across the longer side for the "squares" grid.
+    @Published var gridSnap: Bool = UserDefaults.standard.bool(forKey: "gridSnap") {
+        didSet { UserDefaults.standard.set(gridSnap, forKey: "gridSnap") }
+    }
     @Published var gridCells: Int = UserDefaults.standard.object(forKey: "gridCells") as? Int ?? 8 {
         didSet { UserDefaults.standard.set(gridCells, forKey: "gridCells") }
     }

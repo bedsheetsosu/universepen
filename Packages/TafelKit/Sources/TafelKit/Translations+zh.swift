@@ -302,6 +302,7 @@ extension Translations {
         "Warte auf das iPad …": "正在等待 iPad …",
         "iPad-Akku: %d %%": "iPad 电量：%d %%",
         "Volle Mac-Auflösung senden": "发送 Mac 完整分辨率",
+        "Striche am Raster einrasten": "笔画吸附到网格",
         "Undo/Redo-Knöpfe am Rand": "边缘显示撤销/重做按钮",
         "Wiederholen": "重做",
         "WLAN ist gerade langsam (%d ms) – mit USB-Kabel ist es schneller und stabiler": "Wi-Fi 当前较慢（%d ms）– 使用 USB 线更快更稳定",

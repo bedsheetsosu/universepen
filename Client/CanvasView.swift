@@ -560,6 +560,35 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
 
     var grid: GridStyle = .off { didSet { if grid != oldValue { updateGrid() } } }
     var gridCells = 8 { didSet { if gridCells != oldValue { updateGrid() } } }
+    /// Strokes that start near a grid line follow it.
+    var gridSnap = false
+    /// The grid line (picture coordinates) the current stroke follows.
+    private var gridLine: SnapLine?
+
+    /// Picture point → screen point (inverse of contentPoint).
+    private func screenPoint(_ p: CGPoint) -> CGPoint {
+        let c = CGPoint(x: bounds.midX, y: bounds.midY)
+        let m: CGFloat = mirrored ? -1 : 1
+        let vx = (p.x - c.x) * zoomScale * m, vy = (p.y - c.y) * zoomScale
+        let ca = cos(viewAngle), sa = sin(viewAngle)
+        return CGPoint(x: c.x + zoomOffset.x + vx * ca - vy * sa, y: c.y + zoomOffset.y + vx * sa + vy * ca)
+    }
+
+    private func nearestGridLine(to screen: CGPoint) -> SnapLine? {
+        guard gridSnap, grid != .off else { return nil }
+        let p = contentPoint(screen)
+        var best: (SnapLine, CGFloat)?
+        for (a, b) in grid.lines(in: videoRect, cells: gridCells) {
+            let dx = b.x - a.x, dy = b.y - a.y
+            let len = hypot(dx, dy)
+            guard len > 0 else { continue }
+            let line = SnapLine(origin: a, direction: CGPoint(x: dx / len, y: dy / len))
+            let q = line.project(p)
+            let d = hypot(q.x - p.x, q.y - p.y) * zoomScale
+            if d < 24, d < (best?.1 ?? .infinity) { best = (line, d) }
+        }
+        return best?.0
+    }
 
     private func updateGrid() {
         if gridLayer.superlayer == nil { videoLayer.addSublayer(gridLayer) }
@@ -813,10 +842,12 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
             guideLine = perspective?.snapLine(start: start, toward: loc)
         }
         if let line = guideLine { loc = line.project(loc) }
+        if rawPhase == .down { gridLine = rulerLine == nil && perspectiveStart == nil && !ellipseSnap ? nearestGridLine(to: loc) : nil }
+        if let g = gridLine { loc = screenPoint(g.project(contentPoint(loc))) }
         if ellipseSnap, let e = ellipseGuide { loc = e.project(loc) }
         defer {
             if rawPhase == .up || rawPhase == .cancel {
-                rulerLine = nil; guideLine = nil; perspectiveStart = nil; ellipseSnap = false
+                rulerLine = nil; guideLine = nil; perspectiveStart = nil; ellipseSnap = false; gridLine = nil
             }
         }
         // Pencil without hover: a touch only moves the pointer; touch again at once to click.
@@ -840,7 +871,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
             return
         }
         // Rope stabilizer (not with straight-line aids, which are steadier already).
-        if settings.ropeLength > 0, !tabletMode, rulerLine == nil, guideLine == nil, !ellipseSnap {
+        if settings.ropeLength > 0, !tabletMode, rulerLine == nil, guideLine == nil, !ellipseSnap, gridLine == nil {
             switch phase {
             case .down: rope = Rope(length: settings.ropeLength); loc = rope.start(at: loc)
             case .move: loc = rope.pull(to: loc)
@@ -900,7 +931,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     // MARK: Shape recognition
 
     private func trackShape(_ loc: CGPoint, phase: PenPhase, pressure: Double, tilt: CGPoint) {
-        guard settings.shapeRecognition, !tabletMode, rulerLine == nil, perspectiveStart == nil, !ellipseSnap else { return }
+        guard settings.shapeRecognition, !tabletMode, rulerLine == nil, perspectiveStart == nil, !ellipseSnap, gridLine == nil else { return }
         switch phase {
         case .down:
             shapePoints = [loc]; shapePressures = [pressure]; shapeTilt = tilt
@@ -1333,6 +1364,7 @@ struct CanvasRepresentable: UIViewRepresentable {
         v.mirrored = model.mirrored && !model.tabletModeActive
         v.grid = model.tabletModeActive ? .off : model.grid
         v.gridCells = model.gridCells
+        v.gridSnap = model.gridSnap
         if model.settings.zoomMethod != .localView || model.localZoomResets != context.coordinator.zoomResets {
             context.coordinator.zoomResets = model.localZoomResets
             v.resetLocalZoom()

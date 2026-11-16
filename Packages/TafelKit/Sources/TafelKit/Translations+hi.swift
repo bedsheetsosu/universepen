@@ -302,6 +302,7 @@ extension Translations {
         "Warte auf das iPad …": "iPad की प्रतीक्षा …",
         "iPad-Akku: %d %%": "iPad बैटरी: %d %%",
         "Volle Mac-Auflösung senden": "Mac का पूरा रिज़ॉल्यूशन भेजें",
+        "Striche am Raster einrasten": "स्ट्रोक को ग्रिड पर स्नैप करें",
         "Undo/Redo-Knöpfe am Rand": "किनारे पर पूर्ववत/फिर से करें बटन",
         "Wiederholen": "फिर से करें",
         "WLAN ist gerade langsam (%d ms) – mit USB-Kabel ist es schneller und stabiler": "Wi-Fi अभी धीमा है (%d ms) – USB केबल ज़्यादा तेज़ और स्थिर है",
