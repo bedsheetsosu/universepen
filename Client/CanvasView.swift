@@ -92,6 +92,118 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
             if !rulerVisible { rulerTouches = []; rulerGrab = nil; rulerLine = nil }
         }
     }
+    // Perspective / ellipse aids (fingers move their knobs, the Pencil follows them).
+    let guideView = GuideView()
+    var guideKind: DrawingGuide = .none {
+        didSet { if guideKind != oldValue { applyGuideKind() } }
+    }
+    private var perspective: PerspectiveGuide?
+    private var ellipseGuide: EllipseGuide?
+    private enum GuideGrab {
+        case vanishingPoint(Int)
+        case axis(Int)
+        case body(EllipseGuide, [CGPoint])
+    }
+    private var guideTouches: [UITouch] = []
+    private var guideGrab: GuideGrab?
+    /// Perspective stroke waiting for its direction (start point).
+    private var perspectiveStart: CGPoint?
+    private var guideLine: SnapLine?
+    private var ellipseSnap = false
+
+    private func applyGuideKind() {
+        guideTouches = []; guideGrab = nil
+        switch guideKind {
+        case .perspective(let n):
+            if perspective?.points.count != n, bounds.width > 0 {
+                perspective = .defaultLayout(count: n, in: bounds.size)
+            }
+            guideView.content = perspective.map { .perspective($0) } ?? .none
+        case .ellipse:
+            if ellipseGuide == nil, bounds.width > 0 {
+                ellipseGuide = EllipseGuide(center: CGPoint(x: bounds.midX, y: bounds.midY),
+                                            rx: bounds.width * 0.22, ry: bounds.height * 0.16)
+            }
+            guideView.content = ellipseGuide.map { .ellipse($0) } ?? .none
+        default:
+            guideView.content = .none
+        }
+        guideView.isHidden = guideView.content == .none
+    }
+
+    /// Fingers on a vanishing point, an ellipse knob or inside the ellipse belong to the aid.
+    private func guideHit(_ p: CGPoint) -> Bool {
+        switch guideKind {
+        case .perspective: return perspective?.handle(at: p) != nil
+        case .ellipse: return ellipseGuide.map { $0.handle(at: p) != nil || $0.containsBody(p) } ?? false
+        default: return false
+        }
+    }
+
+    private func captureGuideTouches(_ touches: inout Set<UITouch>) {
+        for t in touches where t.type == .direct {
+            let p = t.location(in: self)
+            switch guideKind {
+            case .perspective:
+                if guideTouches.isEmpty, let i = perspective?.handle(at: p) {
+                    guideTouches = [t]; guideGrab = .vanishingPoint(i); touches.remove(t)
+                }
+            case .ellipse:
+                guard let e = ellipseGuide else { continue }
+                if guideTouches.isEmpty, let i = e.handle(at: p) {
+                    guideTouches = [t]; guideGrab = .axis(i); touches.remove(t)
+                } else if guideTouches.count < 2, e.containsBody(p) || !guideTouches.isEmpty && e.handle(at: p) == nil {
+                    if case .axis = guideGrab { continue }
+                    guideTouches.append(t); touches.remove(t)
+                    guideGrab = .body(e, guideTouches.map { $0.location(in: self) })
+                }
+            default:
+                break
+            }
+        }
+    }
+
+    private func moveGuide() {
+        guard let grab = guideGrab, !guideTouches.isEmpty else { return }
+        let now = guideTouches.map { $0.location(in: self) }
+        switch grab {
+        case .vanishingPoint(let i):
+            perspective?.points[i] = now[0]
+        case .axis(let i):
+            ellipseGuide?.drag(handle: i, to: now[0])
+        case .body(let start, let points):
+            var e = start
+            if now.count >= 2, points.count >= 2 {
+                let d0 = max(hypot(points[1].x - points[0].x, points[1].y - points[0].y), 1)
+                let d1 = hypot(now[1].x - now[0].x, now[1].y - now[0].y)
+                let s = d1 / d0
+                e.rx = max(start.rx * s, 20); e.ry = max(start.ry * s, 20)
+                let a0 = atan2(points[1].y - points[0].y, points[1].x - points[0].x)
+                let a1 = atan2(now[1].y - now[0].y, now[1].x - now[0].x)
+                e.angle = Ruler.snapped(start.angle + Double(a1 - a0))
+                let m0 = CGPoint(x: (points[0].x + points[1].x) / 2, y: (points[0].y + points[1].y) / 2)
+                let m1 = CGPoint(x: (now[0].x + now[1].x) / 2, y: (now[0].y + now[1].y) / 2)
+                e.center = CGPoint(x: start.center.x + m1.x - m0.x, y: start.center.y + m1.y - m0.y)
+            } else {
+                e.center = CGPoint(x: start.center.x + now[0].x - points[0].x, y: start.center.y + now[0].y - points[0].y)
+            }
+            ellipseGuide = e
+        }
+        guideView.content = guideKind == .ellipse ? ellipseGuide.map { .ellipse($0) } ?? .none
+                                                  : perspective.map { .perspective($0) } ?? .none
+    }
+
+    private func releaseGuide(_ touches: Set<UITouch>) {
+        let before = guideTouches.count
+        guideTouches.removeAll { touches.contains($0) }
+        guard guideTouches.count != before else { return }
+        if guideTouches.isEmpty {
+            guideGrab = nil
+        } else if case .body = guideGrab, let e = ellipseGuide {
+            guideGrab = .body(e, guideTouches.map { $0.location(in: self) })
+        }
+    }
+
     private var rotateSteps = StepAccumulator(stepSize: 15)
 
     init(renderer: VideoRenderer) {
@@ -108,6 +220,8 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         layer.addSublayer(videoLayer)
         addSubview(rulerView)
         rulerView.isHidden = true
+        addSubview(guideView)
+        guideView.isHidden = true
         addSubview(ink)
         addSubview(keys)
         keys.isHidden = true
@@ -248,6 +362,8 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         CATransaction.commit()
         ink.frame = bounds
         rulerView.frame = bounds
+        guideView.frame = bounds
+        if guideKind != .none, guideView.content == .none { applyGuideKind() }
         keys.frame = bounds
         let scale = traitCollection.displayScale
         onPixelSize?(Int((bounds.width * scale).rounded()), Int((bounds.height * scale).rounded()))
@@ -345,7 +461,9 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     }
 
     func gestureRecognizer(_ g: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
-        !(rulerVisible && touch.type == .direct && rulerView.ruler.contains(touch.location(in: self)))
+        guard touch.type == .direct else { return true }
+        let p = touch.location(in: self)
+        return !(rulerVisible && rulerView.ruler.contains(p)) && !guideHit(p)
     }
 
     /// Tablet keys ("ExpressKeys") above the surface in tablet mode.
@@ -375,6 +493,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
             }
             snapshotRuler()
         }
+        if guideKind != .none, guideKind != .ruler { captureGuideTouches(&touches) }
         fingersBegan(touches)
         if settings.trackpadAsMouse, pointerTouch == nil, let t = touches.first(where: { $0.type == .indirectPointer }) {
             pointerTouch = t
@@ -394,6 +513,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         if rulerTouches.contains(where: { touches.contains($0) }) { moveRuler() }
+        if guideTouches.contains(where: { touches.contains($0) }) { moveGuide() }
         if let f = trackedFinger, touches.contains(f) {
             for c in event?.coalescedTouches(for: f) ?? [f] {
                 emitFinger(oneFinger.move(c.location(in: self), at: c.timestamp))
@@ -411,6 +531,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         releaseRuler(touches)
+        releaseGuide(touches)
         fingersEnded(touches)
         endPointer(touches)
         endPencil(touches, phase: .up)
@@ -418,6 +539,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
         releaseRuler(touches)
+        releaseGuide(touches)
         for t in touches where t === trackedFinger { emitFinger(oneFinger.cancel()) }
         fingersEnded(touches)
         endPointer(touches)
@@ -565,7 +687,26 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         var loc = t.preciseLocation(in: self)
         if rawPhase == .down { rulerLine = rulerVisible ? rulerView.ruler.snapLine(for: loc) : nil }
         if let line = rulerLine { loc = line.project(loc) }
-        defer { if rawPhase == .up || rawPhase == .cancel { rulerLine = nil } }
+        // Perspective: the stroke picks its vanishing line after 10 pt; ellipse: strokes that
+        // start on the outline band stay on it.
+        if rawPhase == .down {
+            guideLine = nil
+            perspectiveStart = nil
+            ellipseSnap = false
+            if rulerLine == nil, case .perspective = guideKind, perspective != nil { perspectiveStart = loc }
+            if rulerLine == nil, guideKind == .ellipse, let e = ellipseGuide, e.snaps(loc) { ellipseSnap = true }
+        }
+        if let start = perspectiveStart, guideLine == nil, rawPhase == .move {
+            if hypot(loc.x - start.x, loc.y - start.y) < PerspectiveGuide.decideDistance { return }
+            guideLine = perspective?.snapLine(start: start, toward: loc)
+        }
+        if let line = guideLine { loc = line.project(loc) }
+        if ellipseSnap, let e = ellipseGuide { loc = e.project(loc) }
+        defer {
+            if rawPhase == .up || rawPhase == .cancel {
+                rulerLine = nil; guideLine = nil; perspectiveStart = nil; ellipseSnap = false
+            }
+        }
         // Pencil without hover: a touch only moves the pointer; touch again at once to click.
         if settings.doubleTapToClick {
             let at = loc
@@ -613,7 +754,7 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     // MARK: Shape recognition
 
     private func trackShape(_ loc: CGPoint, phase: PenPhase, pressure: Double, tilt: CGPoint) {
-        guard settings.shapeRecognition, !tabletMode, rulerLine == nil else { return }
+        guard settings.shapeRecognition, !tabletMode, rulerLine == nil, perspectiveStart == nil, !ellipseSnap else { return }
         switch phase {
         case .down:
             shapePoints = [loc]; shapePressures = [pressure]; shapeTilt = tilt
@@ -1011,8 +1152,11 @@ struct CanvasRepresentable: UIViewRepresentable {
             v.ink.lifetime = min(max((t.rttMs / 2 + (t.frameAgeMs ?? 40) + 45) / 1000, 0.06), 0.4)
         }
         v.radialOpen = model.radialCenter != nil
-        v.rulerVisible = model.rulerVisible && !model.tabletModeActive && !model.settings.viewOnly
+        let guidesAllowed = !model.tabletModeActive && !model.settings.viewOnly
+        v.rulerVisible = model.rulerVisible && guidesAllowed
         v.rulerView.accent = UIColor(Brand.mint)
+        v.guideView.accent = UIColor(Brand.mint)
+        v.guideKind = guidesAllowed ? model.guide : .none
         if model.settings.zoomMethod != .localView || model.localZoomResets != context.coordinator.zoomResets {
             context.coordinator.zoomResets = model.localZoomResets
             v.resetLocalZoom()

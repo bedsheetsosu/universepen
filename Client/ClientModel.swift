@@ -137,7 +137,12 @@ final class ClientModel: ObservableObject {
     /// Floating reference photo (iPad only, never sent to the Mac).
     let reference = ReferenceImage()
     /// Virtual ruler on the canvas (strokes near it stay straight).
-    @Published var rulerVisible = false
+    /// The drawing aid on screen (ruler, perspective, ellipse) – one at a time.
+    @Published var guide: DrawingGuide = .none
+    var rulerVisible: Bool {
+        get { guide == .ruler }
+        set { guide = newValue ? .ruler : .none }
+    }
     /// Local zoom of the picture (zoom method "only on the iPad"); bump `localZoomResets` to reset.
     @Published var localZoom: CGFloat = 1
     @Published var localZoomResets = 0

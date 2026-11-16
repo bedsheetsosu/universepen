@@ -298,6 +298,19 @@ private struct OverlayMenuPanel: View {
                         if model.rulerVisible { model.show(Toast(text: L("Lineal mit Fingern verschieben und drehen – Striche daran werden gerade"), seconds: 2.4)) }
                         close()
                     }
+                    ForEach([1, 2, 3], id: \.self) { n in
+                        row(n == 1 ? L("Perspektive: 1 Fluchtpunkt") : L("Perspektive: %d Fluchtpunkte", n), icon: "perspective",
+                            checked: model.guide == .perspective(n)) {
+                            withAnimation(Brand.spring) { model.guide = model.guide == .perspective(n) ? .none : .perspective(n) }
+                            if model.guide != .none { model.show(Toast(text: L("Fluchtpunkte mit dem Finger ziehen – jeder Strich folgt der passenden Fluchtlinie"), seconds: 2.6)) }
+                            close()
+                        }
+                    }
+                    row(L("Ellipsen-Schablone"), icon: "oval", checked: model.guide == .ellipse) {
+                        withAnimation(Brand.spring) { model.guide = model.guide == .ellipse ? .none : .ellipse }
+                        if model.guide == .ellipse { model.show(Toast(text: L("Innen verschieben, mit zwei Fingern drehen und skalieren, Knöpfe ändern die Achsen – Striche am Rand folgen der Ellipse"), seconds: 3)) }
+                        close()
+                    }
                 }
                 row(L("Laserpointer am Mac"), icon: "light.beacon.max", checked: model.laserMode) {
                     model.laserMode.toggle()
