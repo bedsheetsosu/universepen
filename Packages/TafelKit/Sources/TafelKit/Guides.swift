@@ -157,8 +157,8 @@ public enum GridStyle: String, Codable, CaseIterable, Sendable {
         }
     }
 
-    /// Line segments inside `rect`. Squares: 8 cells across the longer side.
-    public func lines(in rect: CGRect) -> [(CGPoint, CGPoint)] {
+    /// Line segments inside `rect`. Squares: `cells` across the longer side.
+    public func lines(in rect: CGRect, cells: Int = 8) -> [(CGPoint, CGPoint)] {
         func split(_ n: Int) -> [(CGPoint, CGPoint)] {
             (1..<n).flatMap { i -> [(CGPoint, CGPoint)] in
                 let x = rect.minX + rect.width * CGFloat(i) / CGFloat(n)
@@ -172,7 +172,7 @@ public enum GridStyle: String, Codable, CaseIterable, Sendable {
         case .thirds: return split(3)
         case .quarters: return split(4)
         case .squares:
-            let cell = max(rect.width, rect.height) / 8
+            let cell = max(rect.width, rect.height) / CGFloat(min(max(cells, 2), 64))
             guard cell > 0 else { return [] }
             var out: [(CGPoint, CGPoint)] = []
             var x = rect.minX + cell

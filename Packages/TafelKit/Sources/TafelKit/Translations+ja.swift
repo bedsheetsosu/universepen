@@ -302,6 +302,7 @@ extension Translations {
         "Warte auf das iPad …": "iPad を待っています …",
         "iPad-Akku: %d %%": "iPad のバッテリー：%d %%",
         "Volle Mac-Auflösung senden": "Mac のフル解像度で送信",
+        "Raster-Quadrate: %d": "グリッドのマス数：%d",
         "Linear": "リニア",
         "S-Kurve": "S字カーブ",
         "Tastenkürzel: ⌃⌥⌘T Tablett-Modus · ⌃⌥⌘P Palette wählen · ⌃⌥⌘I vorderstes Fenster aufs iPad": "ショートカット：⌃⌥⌘T タブレットモード · ⌃⌥⌘P パレット選択 · ⌃⌥⌘I 最前面のウインドウを iPad へ",

@@ -6,6 +6,8 @@ import TafelKit
 final class RulerView: UIView {
     var ruler = Ruler(center: .zero) { didSet { if ruler != oldValue { setNeedsDisplay() } } }
     var accent: UIColor = .systemTeal { didSet { setNeedsDisplay() } }
+    /// Edge the hovering Pencil would snap to (-1 / 1), drawn in the accent colour.
+    var highlightSide: Int? { didSet { if highlightSide != oldValue { setNeedsDisplay() } } }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -43,6 +45,15 @@ final class RulerView: UIView {
         UIColor.white.withAlphaComponent(0.7).setStroke()
         ticks.lineWidth = 1
         ticks.stroke()
+
+        if let side = highlightSide {
+            let y = CGFloat(side) * (h / 2 + 2)
+            let edge = UIBezierPath()
+            edge.move(to: CGPoint(x: -l / 2, y: y)); edge.addLine(to: CGPoint(x: l / 2, y: y))
+            accent.setStroke()
+            edge.lineWidth = 3
+            edge.stroke()
+        }
 
         // Angle label.
         let label = "\(ruler.degrees)°" as NSString

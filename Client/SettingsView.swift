@@ -45,6 +45,7 @@ struct SettingsView: View {
                     if model.settings.dimAfterMinutes > 0 {
                         Toggle(L("Nicht abdunkeln, solange sich das Bild ändert"), isOn: $model.settings.dimOnlyWhenStill)
                     }
+                    Stepper(L("Raster-Quadrate: %d", model.gridCells), value: $model.gridCells, in: 2...32)
                     Picker(L("Pausen-Erinnerung"), selection: $model.settings.breakReminderMinutes) {
                         Text(L("Nie")).tag(0.0)
                         Text("30 min").tag(30.0)

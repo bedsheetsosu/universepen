@@ -187,6 +187,7 @@ Bring one Mac panel (layers, colours, brushes …) onto the iPad as a small floa
 … menu → Tools, next to the ruler (one aid at a time, iPad only – nothing is drawn on the Mac):
 - **Perspective (1, 2 or 3 vanishing points):** drag the round knobs with a finger. Every Pencil stroke picks, after its first 10 pt, the line through its start point towards the vanishing point that best matches its direction (plus verticals with 1–2 points and horizontals with 1 point) and stays on it – like the drawing guides of iPad painting apps, but in any Mac app.
 - **Ellipse template:** drag inside to move it, two fingers turn (snaps to 0/45/90°) and scale it, the two knobs change each axis. Strokes that start on its outline band follow the ellipse.
+- **Hover preview:** while the Pencil hovers, the ruler edge or ellipse outline it would snap to lights up.
 - **Per app:** each Mac app keeps its own aid. Switching apps brings back the ruler/perspective/ellipse you last used there (none for apps where you never used one).
 
 ## Rope stabilizer, fixed pressure, tools on gestures
@@ -202,7 +203,7 @@ Bring one Mac panel (layers, colours, brushes …) onto the iPad as a small floa
 - **Turn the view** (zoom method "Only on the iPad"): two fingers turn the picture on the iPad like a sheet of paper (snaps to 0/90/180/270°); pinch and pan keep working, the pill shows angle and zoom and resets both. Pencil position and tilt are turned back, so the Mac gets upright input.
 - **Grayscale preview** (… menu → Tools): the picture in grey on the iPad only, to check light and dark values while painting in colour.
 - **Speed pressure** (Settings → Pencil, 0–100 %): faster strokes get lighter, slow ones stay full – like an ink nib.
-- **Composition grid** (… menu → Tools, tap again to cycle): thirds, quarters or squares over the picture on the iPad only; it zooms, turns and mirrors with the picture.
+- **Composition grid** (… menu → Tools, tap again to cycle): thirds, quarters or squares (2–32 across, Settings → General) over the picture on the iPad only; it zooms, turns and mirrors with the picture.
 - **Reference picture:** its bar now also flips it horizontally and shows it in grey; both are remembered.
 - **Break reminder** (Settings → General: 30/45/60/90 min): a gentle toast after that much drawing time; five minutes without input count as the break.
 

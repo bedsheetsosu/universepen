@@ -302,6 +302,7 @@ extension Translations {
         "Warte auf das iPad …": "Esperando al iPad …",
         "iPad-Akku: %d %%": "Batería del iPad: %d %%",
         "Volle Mac-Auflösung senden": "Enviar resolución completa del Mac",
+        "Raster-Quadrate: %d": "Cuadrados de la cuadrícula: %d",
         "Linear": "Lineal",
         "S-Kurve": "Curva S",
         "Tastenkürzel: ⌃⌥⌘T Tablett-Modus · ⌃⌥⌘P Palette wählen · ⌃⌥⌘I vorderstes Fenster aufs iPad": "Atajos: ⌃⌥⌘T modo tableta · ⌃⌥⌘P elegir paleta · ⌃⌥⌘I ventana delantera al iPad",

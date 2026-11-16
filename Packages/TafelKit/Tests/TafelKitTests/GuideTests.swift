@@ -65,4 +65,9 @@ final class GuideTests: XCTestCase {
             XCTAssertEqual(DrawingGuide(storageName: g.storageName), g)
         }
     }
+
+    func testGridCells() {
+        let r = CGRect(x: 0, y: 0, width: 400, height: 200)
+        XCTAssertEqual(GridStyle.squares.lines(in: r, cells: 4).count, 3 + 1)
+    }
 }

@@ -545,11 +545,12 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
     }()
 
     var grid: GridStyle = .off { didSet { if grid != oldValue { updateGrid() } } }
+    var gridCells = 8 { didSet { if gridCells != oldValue { updateGrid() } } }
 
     private func updateGrid() {
         if gridLayer.superlayer == nil { videoLayer.addSublayer(gridLayer) }
         let path = UIBezierPath()
-        for (a, b) in grid.lines(in: videoRect) { path.move(to: a); path.addLine(to: b) }
+        for (a, b) in grid.lines(in: videoRect, cells: gridCells) { path.move(to: a); path.addLine(to: b) }
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         gridLayer.frame = videoLayer.bounds
@@ -924,6 +925,10 @@ final class CanvasView: UIView, UIGestureRecognizerDelegate, UIPencilInteraction
         let gone = g.state == .ended || g.state == .cancelled || g.state == .failed
         if g.state == .began { onInput?() }
         lastHoverPoint = gone ? nil : g.location(in: self)
+        // Show which edge a stroke would snap to before the Pencil touches.
+        let hp = lastHoverPoint
+        rulerView.highlightSide = rulerVisible ? hp.flatMap { rulerView.ruler.snapSide(for: $0) } : nil
+        guideView.highlight = guideKind == .ellipse && hp.map { ellipseGuide?.snaps($0) ?? false } == true
         // While the radial menu is open nothing goes to the Mac, but the hover state must still
         // end – otherwise single-finger input stays blocked ("Pencil is hovering").
         if radialOpen { if gone { hovering = false }; return }
@@ -1287,6 +1292,7 @@ struct CanvasRepresentable: UIViewRepresentable {
         v.guideKind = guidesAllowed ? model.guide : .none
         v.mirrored = model.mirrored && !model.tabletModeActive
         v.grid = model.tabletModeActive ? .off : model.grid
+        v.gridCells = model.gridCells
         if model.settings.zoomMethod != .localView || model.localZoomResets != context.coordinator.zoomResets {
             context.coordinator.zoomResets = model.localZoomResets
             v.resetLocalZoom()

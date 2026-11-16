@@ -42,6 +42,12 @@ public struct Ruler: Equatable, Sendable {
         return SnapLine(origin: CGPoint(x: center.x + normal.x * off, y: center.y + normal.y * off), direction: dir)
     }
 
+    /// Which long edge a stroke at `p` would follow: -1 top, 1 bottom (ruler space), nil none.
+    public func snapSide(for p: CGPoint) -> Int? {
+        guard snapLine(for: p) != nil else { return nil }
+        return local(p).y >= 0 ? 1 : -1
+    }
+
     /// Angle in whole degrees 0…179 for the label; snaps to multiples of 45° within 2°.
     public static func snapped(_ angle: Double) -> Double {
         let deg = angle * 180 / .pi

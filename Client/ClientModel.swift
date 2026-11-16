@@ -183,6 +183,10 @@ final class ClientModel: ObservableObject {
         }
     }
     private var restoringGuide = false
+    /// Squares across the longer side for the "squares" grid.
+    @Published var gridCells: Int = UserDefaults.standard.object(forKey: "gridCells") as? Int ?? 8 {
+        didSet { UserDefaults.standard.set(gridCells, forKey: "gridCells") }
+    }
 
     /// Each Mac app keeps its own drawing aid: switching apps brings back the one used there.
     private func restoreGuide() {

@@ -345,6 +345,7 @@ enum Translations {
         "Warte auf das iPad …": "Waiting for the iPad …",
         "iPad-Akku: %d %%": "iPad battery: %d %%",
         "Volle Mac-Auflösung senden": "Send full Mac resolution",
+        "Raster-Quadrate: %d": "Grid squares: %d",
         "Linear": "Linear",
         "S-Kurve": "S-curve",
         "Tastenkürzel: ⌃⌥⌘T Tablett-Modus · ⌃⌥⌘P Palette wählen · ⌃⌥⌘I vorderstes Fenster aufs iPad": "Shortcuts: ⌃⌥⌘T tablet mode · ⌃⌥⌘P choose palette · ⌃⌥⌘I front window to the iPad",

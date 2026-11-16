@@ -12,6 +12,8 @@ final class GuideView: UIView {
 
     var content: Content = .none { didSet { if content != oldValue { setNeedsDisplay() } } }
     var accent: UIColor = .systemTeal { didSet { setNeedsDisplay() } }
+    /// The hovering Pencil is on the ellipse's band: its outline is drawn bolder.
+    var highlight = false { didSet { if highlight != oldValue { setNeedsDisplay() } } }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -85,8 +87,8 @@ final class GuideView: UIView {
         UIColor.white.withAlphaComponent(0.08).setFill()
         band.fill()
         let line = UIBezierPath(ovalIn: CGRect(x: -e.rx, y: -e.ry, width: 2 * e.rx, height: 2 * e.ry))
-        accent.withAlphaComponent(0.85).setStroke()
-        line.lineWidth = 1.5
+        accent.withAlphaComponent(highlight ? 1 : 0.85).setStroke()
+        line.lineWidth = highlight ? 3 : 1.5
         line.stroke()
         let axes = UIBezierPath()
         axes.move(to: CGPoint(x: -e.rx, y: 0)); axes.addLine(to: CGPoint(x: e.rx, y: 0))
