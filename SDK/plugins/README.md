@@ -93,6 +93,8 @@ A plugin runs inside UniversePen Host and has no network access, so it can't rea
 | Other app → UniversePen (links) | `universepen://…` ([docs/API.md](../../docs/API.md)) | works |
 | UniversePhoto → a plugin's switches | none | not built |
 
+**Planned, not built:** a channel that lets a plugin receive events from other apps (for example UniversePhoto) and send its own messages to them. It would be a new interface in UniversePen Host with its own permission switch, off by default. Until it exists, use the developer API or the `universepen://` links above.
+
 **What a plugin cannot do:** it can add actions, filters and workflows, but it cannot lock or unlock UniversePen's own features. A feature switch is only a value stored on the user's Mac, and UniversePen is open source (GPL-3.0), so any check in the app or in a plugin can be removed. If a paid tier or a licence key for UniversePhoto is wanted, that needs its own design (for example a signed licence checked on the Mac). Plugins can't enforce it.
 
 ## Examples
