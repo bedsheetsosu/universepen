@@ -130,6 +130,7 @@ final class HostServer {
     private func handleKeys(_ hello: Hello, _ fc: FramedConnection) {
         if let id = hello.keyID {
             keyStore.touch(id: id, name: hello.deviceName)
+            onDevicesChanged?()   // "last connected" in the list
             return
         }
         let issued = keyStore.issueForLegacy(name: hello.deviceName, deviceID: hello.deviceID)

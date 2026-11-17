@@ -244,6 +244,10 @@ final class PluginRuntime: @unchecked Sendable {
       display: { get: () => up.call("display.get"), setMode: (m) => up.call("display.setMode", { mode: m }) },
       frontApp: () => up.call("app.get"),
       status: () => up.call("status.get"),
+      profiles: {
+        get: () => up.call("control.getProfiles"),
+        activate: (idOrName) => up.call("control.activateProfile", { id: String(idOrName), name: String(idOrName) }),
+      },
     };
     const console = { log: up.log, info: up.log, warn: up.log, error: up.log };
     function setTimeout(fn, ms) { return __setTimer(fn, +ms || 0, false); }

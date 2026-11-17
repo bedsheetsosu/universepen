@@ -260,6 +260,8 @@ struct SettingsView: View {
             }
             if let id = model.hostInfo?.hostID, let p = model.paired.first(where: { $0.id == id }) {
                 LabeledContent(L("Schlüssel-Fingerabdruck"), value: p.fingerprint)
+                LabeledContent(L("Schlüssel"), value: p.keyID != nil ? L("Eigener Schlüssel dieses iPads")
+                                                                      : L("Gemeinsamer Schlüssel (ältere Kopplung)"))
             }
             LabeledContent(L("Kabel-Kandidat"), value: model.cableInterface?.name ?? L("keiner"))
             LabeledContent(L("Sichtbare Schnittstellen"), value: model.visibleInterfaces.isEmpty ? "–" : model.visibleInterfaces)

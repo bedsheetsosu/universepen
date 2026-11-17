@@ -38,7 +38,7 @@ struct HostView: View {
     @Environment(\.openWindow) private var openWindow
     @AppStorage("hostOnboardingDone") private var onboardingDone = false
     /// Every window starts on the overview: the state of the connection comes first.
-    @State private var page = HostPage.overview
+    @State private var page = HostPage(rawValue: UserDefaults.standard.string(forKey: "debugHostPage") ?? "") ?? .overview
     @Namespace private var sidebarSpace
     @State private var confirmUnpair = false
     @State private var confirmRemove: DeviceKeyStore.Device?

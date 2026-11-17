@@ -12,6 +12,7 @@ Nothing listens on the network for this; macOS only delivers these URLs from loc
 | `universepen://pair` | Show a pairing code |
 | `universepen://pair/stop` | Cancel pairing |
 | `universepen://show` | Bring the window to the front |
+| `universepen://profile/Drawing` | Switch the connected iPad to its profile "Drawing" (name, case-insensitive, or the profile's id; spaces as `%20`) |
 
 `tafel://…` works as an alias for older setups.
 

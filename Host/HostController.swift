@@ -593,6 +593,12 @@ final class HostController: ObservableObject {
         return try JSONSerialization.jsonObject(with: JSONEncoder().encode(btn))
     }
 
+    /// The iPad's profiles for the developer API and plugins.
+    private func profilesInfo() -> [String: Any] {
+        ["profiles": ipadProfiles.map { ["id": $0.id, "name": $0.name, "active": $0.id == ipadActiveProfile] },
+         "active": ipadActiveProfile ?? NSNull()]
+    }
+
     func handleAPI(_ method: String, _ p: [String: Any]) async throws -> Any {
         switch method {
         // Status / Display API
@@ -666,6 +672,18 @@ final class HostController: ObservableObject {
         case "control.setDefaultBar":
             guard let buttons = p["buttons"] as? [[String: Any]] else { throw DeveloperAPI.APIError("buttons is required") }
             return try patchIPad(["settings": ["shortcutBar": try buttons.map(buttonJSON)]])
+        case "control.getProfiles":
+            try requireSession()
+            return profilesInfo()
+        case "control.activateProfile":
+            try requireSession()
+            let id = p["id"] as? String
+            let name = p["name"] as? String
+            guard let target = ipadProfiles.first(where: { $0.id == id }) ?? ipadProfiles.first(where: { $0.name == name }) else {
+                throw DeveloperAPI.APIError("No profile with that id or name; see control.getProfiles")
+            }
+            activateIPadProfile(target.id)
+            return profilesInfo()
         case "api.info":
             return ["api": DeveloperAPI.apiVersion, "app": "UniversePen",
                     "topics": ["input", "gesture", "display", "status", "app"]]
@@ -682,6 +700,7 @@ final class HostController: ObservableObject {
     ///   universepen://pair            open the pairing code
     ///   universepen://pair/stop
     ///   universepen://show            bring the window to the front
+    ///   universepen://profile/<name>  switch the connected iPad's profile
     func handle(url: URL) {
         guard ["universepen", "tafel"].contains(url.scheme?.lowercased() ?? "") else { return }
         let parts = ([url.host ?? ""] + url.pathComponents.filter { $0 != "/" }).map { $0.lowercased() }
@@ -695,6 +714,12 @@ final class HostController: ObservableObject {
             NSApp.activate(ignoringOtherApps: true)
         case "show":
             NSApp.activate(ignoringOtherApps: true)
+        case "profile":
+            // universepen://profile/<name> (case-insensitive) or the profile's id.
+            let raw = url.pathComponents.filter { $0 != "/" }.first ?? ""
+            if let p = ipadProfiles.first(where: { $0.id == raw || $0.name.lowercased() == raw.lowercased() }) {
+                activateIPadProfile(p.id)
+            }
         default:
             NSLog("UniversePen: unknown URL %@", url.absoluteString)
         }

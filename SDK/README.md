@@ -60,6 +60,8 @@ Gestures still run their configured action; the event is additional.
 | `control.setDefaultBar` | `buttons` (as above) | `{sent: true}` |
 | `control.getSettings` | – | `{settings, quality}` exactly as stored on the iPad |
 | `control.patchSettings` | `settings` and/or `quality` objects, deep-merged | `{sent: true}` |
+| `control.getProfiles` | – | `{profiles: [{id, name, active}], active}` – the iPad's settings profiles |
+| `control.activateProfile` | `id` or `name` | profiles object; the iPad switches and shows its "Profile: …" toast |
 
 Settings live on the iPad; Control methods need a connected iPad (error `No iPad connected`).
 Per-app Pencil profiles (`settings.appPenProfiles[bundleID]` = {`pressure`, `positionSmoothing`,

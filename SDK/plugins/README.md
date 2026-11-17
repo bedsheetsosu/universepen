@@ -40,6 +40,7 @@ plugin as stopped (the Pencil keeps working unfiltered); reload it after fixing 
 | `up.settings.get()` / `up.settings.patch(obj)` | The iPad's settings (pressure curve, smoothing, tablet area, game apps, …). |
 | `up.display.get()` / `up.display.setMode(m)` | Source: `display`, `second-screen`, `region`, `window`. |
 | `up.frontApp()`, `up.status()` | Front app on the Mac, connection status. |
+| `up.profiles.get()` / `up.profiles.activate(idOrName)` | The iPad's settings profiles; switch one (e.g. "osu!" when a game starts). |
 | `up.storage.get(k)` / `up.storage.set(k, v)` | Small per-plugin storage (kept across restarts). |
 | `up.log(...)`, `console.log(...)` | Log lines in the Plugins window. |
 | `setTimeout`, `setInterval`, `clearTimeout`, `clearInterval`, `up.now()` | Timers; `up.now()` = milliseconds (monotonic). |
