@@ -9,7 +9,7 @@ Target hardware: iPad Air 11" M4 + Äbbl Pencil Pro, MacBook Air M5, Affinity.
 
 ---
 
-## Honest status (2026-11-15)
+## Honest status (1.0.0, 2026-11-17)
 
 | Area | Status | How it was checked |
 |---|---|---|

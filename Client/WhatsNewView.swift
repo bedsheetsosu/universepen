@@ -7,7 +7,7 @@ struct WhatsNewView: View {
     @ObservedObject var theme = Theme.shared
     @Environment(\.dismiss) private var dismiss
     @State private var shown = false
-    static let version = "0.8.0"
+    static let version = "1.0.0"
     static let seenKey = "whatsNewSeen"
 
     static var shouldShow: Bool {
