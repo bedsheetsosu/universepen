@@ -45,9 +45,9 @@ final class Hotkeys {
 
     /// Moves the focused window of the front app (not ours) into `area` (global points, top-left),
     /// centred, and shrinks it to fit if it is larger and resizable. Needs Accessibility.
-    static func moveFrontWindow(into area: CGRect) -> Bool {
-        guard let app = NSWorkspace.shared.frontmostApplication, app.processIdentifier != getpid() else { return false }
-        let axApp = AXUIElementCreateApplication(app.processIdentifier)
+    static func moveFrontWindow(of pid: pid_t, into area: CGRect) -> Bool {
+        guard pid != getpid() else { return false }
+        let axApp = AXUIElementCreateApplication(pid)
         var value: CFTypeRef?
         guard AXUIElementCopyAttributeValue(axApp, kAXFocusedWindowAttribute as CFString, &value) == .success,
               let win = value, CFGetTypeID(win) == AXUIElementGetTypeID() else { return false }

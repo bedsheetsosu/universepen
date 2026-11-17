@@ -3,6 +3,7 @@ import IOKit.pwr_mgt
 import AppKit
 import ServiceManagement
 import ScreenCaptureKit
+import SwiftUI
 import CoreGraphics
 import TafelKit
 import Combine
@@ -220,11 +221,34 @@ final class HostController: ObservableObject {
 
     /// Puts the front app's window where the iPad looks: the second screen, or the streamed
     /// display/region.
+    /// UI checks only (launch argument `-debugOpenMenuPanel YES`): the menu bar panel's content in
+    /// an ordinary window, so it can be captured like any window.
+    private var debugPanelWindow: NSWindow?
+
+    private func showMenuPanelForChecks() {
+        let view = NSHostingView(rootView: HostMenuPanel().environmentObject(self)
+            .background(Color.black.opacity(0.3)).background(.ultraThickMaterial).environment(\.colorScheme, .dark))
+        let w = NSWindow(contentRect: NSRect(origin: .zero, size: view.fittingSize), styleMask: [.titled, .closable],
+                         backing: .buffered, defer: false)
+        w.contentView = view
+        w.title = "Menu panel (check)"
+        w.isReleasedWhenClosed = false
+        w.center()
+        w.orderFront(nil)
+        debugPanelWindow = w
+    }
+
+    /// The app worked in last other than UniversePen: "front window to the iPad" from our own window
+    /// or the menu bar panel means that app's window.
+    private var lastOtherApp: pid_t?
+
     func moveFrontWindowToIPad() {
         guard sessionDevice != nil, mode != .window else { return }
         let area = injector.region
         guard area.width > 50, area.height > 50 else { return }
-        if !Hotkeys.moveFrontWindow(into: area) {
+        let front = NSWorkspace.shared.frontmostApplication.map(\.processIdentifier)
+        guard let pid = front != getpid() ? front : lastOtherApp else { return }
+        if !Hotkeys.moveFrontWindow(of: pid, into: area) {
             NSLog("Tafel: could not move the front window (Accessibility?)")
         }
     }
@@ -399,6 +423,14 @@ final class HostController: ObservableObject {
         }
         server.peerToPeer = peerToPeer
         server.start(key: hostKey)
+        if UserDefaults.standard.bool(forKey: "debugPairingCodePreview") {
+            // UI checks: shows a code without opening the pairing listener (nothing can pair with it).
+            pairingCode = PairingCode.generate()
+            pairingSecondsLeft = 87
+        }
+        if UserDefaults.standard.bool(forKey: "debugOpenMenuPanel") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in self?.showMenuPanelForChecks() }
+        }
         Task { await refreshSources() }
         permissionTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
             Task { @MainActor in
@@ -650,6 +682,7 @@ final class HostController: ObservableObject {
             let info = AppInfo(bundleID: id, name: app.localizedName ?? id)
             self?.server.sendAppInfo(info)
             self?.frontAppInfo = info
+            self?.lastOtherApp = app.processIdentifier
             self?.devAPI.emit("app", event: "app", data: ["bundleID": info.bundleID, "name": info.name])
             self?.plugins.emit("app", ["bundleID": info.bundleID, "name": info.name])
         }

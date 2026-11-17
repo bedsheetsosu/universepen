@@ -214,6 +214,9 @@ public struct ThemeChoice: View {
             }
             Toggle(L("Fließender Hintergrund"), isOn: $theme.flow.animation(Brand.spring))
                 .tint(Brand.mint)
+                #if os(macOS)
+                .toggleStyle(.switch)
+                #endif
             if theme.flow {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(L("Geschwindigkeit")).font(.caption).foregroundStyle(.secondary)

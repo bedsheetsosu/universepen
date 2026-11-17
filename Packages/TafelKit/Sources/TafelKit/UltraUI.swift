@@ -306,6 +306,68 @@ public struct UltraSegmented<Value: Hashable>: View {
     }
 }
 
+/// The main action of a screen: an accent capsule that glows.
+public struct UltraProminent: ButtonStyle {
+    var compact: Bool
+    public init(compact: Bool = false) { self.compact = compact }
+    public func makeBody(configuration: Configuration) -> some View {
+        UltraButtonBody(label: configuration.label, pressed: configuration.isPressed, prominent: true, compact: compact)
+    }
+}
+
+/// A quieter action next to a prominent one: a glass capsule.
+public struct UltraQuiet: ButtonStyle {
+    var compact: Bool
+    public init(compact: Bool = false) { self.compact = compact }
+    public func makeBody(configuration: Configuration) -> some View {
+        UltraButtonBody(label: configuration.label, pressed: configuration.isPressed, prominent: false, compact: compact)
+    }
+}
+
+private struct UltraButtonBody<Label: View>: View {
+    @ObservedObject private var theme = Theme.shared
+    @Environment(\.isEnabled) private var enabled
+    let label: Label
+    let pressed: Bool
+    let prominent: Bool
+    let compact: Bool
+
+    var body: some View {
+        label
+            .font((compact ? Font.callout : .body).weight(prominent ? .bold : .semibold))
+            .foregroundStyle(prominent ? Brand.slateDeep : Color.white.opacity(0.92))
+            .padding(.horizontal, compact ? 14 : 22).padding(.vertical, compact ? 7 : 11)
+            .background {
+                if prominent { Capsule().fill(Ultra.accentFill) } else { Capsule().fill(.white.opacity(pressed ? 0.16 : 0.1)) }
+            }
+            .overlay(Capsule().strokeBorder(prominent ? AnyShapeStyle(Color.white.opacity(0.35)) : AnyShapeStyle(Ultra.edgeLight), lineWidth: 1))
+            .shadow(color: prominent ? Brand.mint.opacity(pressed ? 0.25 : 0.45) : .clear, radius: compact ? 8 : 14, y: 3)
+            .contentShape(Capsule())
+            .scaleEffect(pressed ? 0.95 : 1)
+            .brightness(pressed ? 0.08 : 0)
+            .opacity(enabled ? 1 : 0.4)
+            .animation(Ultra.snappy, value: pressed)
+    }
+}
+
+/// Accent tile with a symbol: the face of a page or a step.
+public struct UltraBadge: View {
+    @ObservedObject private var theme = Theme.shared
+    let symbol: String
+    var size: CGFloat
+    public init(_ symbol: String, size: CGFloat = 68) { self.symbol = symbol; self.size = size }
+    public var body: some View {
+        Image(systemName: symbol)
+            .font(.system(size: size * 0.44, weight: .semibold))
+            .foregroundStyle(Brand.slateDeep)
+            .frame(width: size, height: size)
+            .background(Ultra.accentFill, in: Ultra.shape(size * 0.3))
+            .overlay(Ultra.shape(size * 0.3).strokeBorder(.white.opacity(0.4), lineWidth: 1))
+            .shadow(color: Brand.mint.opacity(0.5), radius: size * 0.26, y: size * 0.07)
+            .accessibilityHidden(true)
+    }
+}
+
 /// Round floating button (the dock handle, undo/redo, close).
 public struct UltraRoundButton: View {
     let symbol: String
