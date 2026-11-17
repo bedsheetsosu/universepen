@@ -82,10 +82,10 @@ struct StatTiles: View {
     var body: some View {
         let s = live.stats
         HStack(spacing: 10) {
-            StatTile(value: String(format: "%.0f", s.fps), unit: L("Bilder/s"), symbol: "film")
+            StatTile(value: String(format: "%.0f", s.fps), unit: L("Bilder/s"), symbol: "film", history: live.fpsHistory)
             StatTile(value: String(format: "%.1f", s.mbps),
                      unit: s.targetMbps > 0 ? L("Mbit/s · Ziel %.0f", s.targetMbps) : "Mbit/s",
-                     symbol: "arrow.up.right")
+                     symbol: "arrow.up.right", history: live.mbpsHistory)
             StatTile(value: "\(s.dropped)", unit: L("verworfen"), symbol: "tray.and.arrow.down")
         }
     }
@@ -97,6 +97,7 @@ private struct StatTile: View {
     let value: String
     let unit: String
     let symbol: String
+    var history: [Double] = []
 
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
@@ -107,8 +108,39 @@ private struct StatTile: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
+        .background(alignment: .bottom) {
+            // The last minute as a soft line along the bottom (drawn once per update, no animation).
+            if history.count > 2 { Sparkline(values: history).frame(height: 30).padding(.bottom, 6).allowsHitTesting(false) }
+        }
         .background(.black.opacity(0.18), in: Ultra.shape(14))
         .overlay(Ultra.shape(14).strokeBorder(.white.opacity(0.06), lineWidth: 1))
+        .clipShape(Ultra.shape(14))
+    }
+}
+
+/// A minute of values as a line with a soft fill below, scaled to its own maximum.
+private struct Sparkline: View {
+    @ObservedObject var theme = Theme.shared
+    let values: [Double]
+
+    var body: some View {
+        Canvas { ctx, size in
+            let top = max(values.max() ?? 1, 0.001) * 1.15
+            let step = size.width / CGFloat(max(values.count - 1, 1))
+            var line = Path()
+            for (i, v) in values.enumerated() {
+                let p = CGPoint(x: CGFloat(i) * step, y: size.height - CGFloat(v / top) * size.height)
+                if i == 0 { line.move(to: p) } else { line.addLine(to: p) }
+            }
+            var fill = line
+            fill.addLine(to: CGPoint(x: CGFloat(values.count - 1) * step, y: size.height))
+            fill.addLine(to: CGPoint(x: 0, y: size.height))
+            fill.closeSubpath()
+            ctx.fill(fill, with: .linearGradient(Gradient(colors: [Brand.mint.opacity(0.22), Brand.mint.opacity(0)]),
+                                                 startPoint: .zero, endPoint: CGPoint(x: 0, y: size.height)))
+            ctx.stroke(line, with: .color(Brand.mint.opacity(0.55)), style: StrokeStyle(lineWidth: 1.4, lineCap: .round, lineJoin: .round))
+        }
+        .accessibilityHidden(true)
     }
 }
 

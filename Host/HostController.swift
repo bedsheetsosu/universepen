@@ -65,7 +65,9 @@ final class HostController: ObservableObject {
     @Published var clientDiagnostics = ""
     /// iPad battery 0…1 and charging state, as reported by the iPad (nil = unknown / not connected).
     // Time-lapse recording
-    @Published var timelapseRunning = false
+    @Published var timelapseRunning = false {
+        didSet { if menuIcon.recording != timelapseRunning { menuIcon.recording = timelapseRunning } }
+    }
     @Published var timelapseFrames: Int64 = 0
     @Published var timelapseStarted: Date?
     @Published var timelapseLastFile: URL?
@@ -1375,19 +1377,48 @@ final class HostController: ObservableObject {
     /// CGWindowList API (bounds only, no window contents).
     private func trackWindow(_ id: CGWindowID) {
         windowTracker?.invalidate()
+        trackedWindowSize = nil
+        pendingWindowSize = nil
         let injector = self.injector
-        windowTracker = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
+        windowTracker = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
             guard let info = CGWindowListCopyWindowInfo([.optionIncludingWindow], id) as? [[String: Any]],
                   let b = info.first?[kCGWindowBounds as String] as? NSDictionary,
                   let rect = CGRect(dictionaryRepresentation: b) else { return }
             if injector.region != rect { injector.region = rect }
+            MainActor.assumeIsolated { self?.windowSizeTick(rect.size) }
+        }
+    }
+
+    private var trackedWindowSize: CGSize?
+    private var pendingWindowSize: CGSize?
+
+    /// The captured window was resized: once its size has held still for one tick, capture it
+    /// again at the new shape (the stream keeps its size otherwise and the picture is squeezed).
+    private func windowSizeTick(_ size: CGSize) {
+        guard let base = trackedWindowSize else { trackedWindowSize = size; return }
+        guard abs(size.width - base.width) > 2 || abs(size.height - base.height) > 2 else { pendingWindowSize = nil; return }
+        if pendingWindowSize == size {
+            trackedWindowSize = size
+            pendingWindowSize = nil
+            Task { await refreshSources(); restartStream() }
+        } else {
+            pendingWindowSize = size
         }
     }
 }
 
 @MainActor
 final class LiveStats: ObservableObject {
-    @Published var stats = StreamStats()
+    @Published var stats = StreamStats() {
+        didSet {
+            // The last minute, one sample per update (about one per second), for the sparklines.
+            fpsHistory.append(stats.fps); mbpsHistory.append(stats.mbps)
+            if fpsHistory.count > 60 { fpsHistory.removeFirst(fpsHistory.count - 60) }
+            if mbpsHistory.count > 60 { mbpsHistory.removeFirst(mbpsHistory.count - 60) }
+        }
+    }
+    private(set) var fpsHistory: [Double] = []
+    private(set) var mbpsHistory: [Double] = []
 }
 
 @MainActor
@@ -1395,6 +1426,8 @@ final class MenuIconState: ObservableObject {
     @Published var connected = false
     /// The connected iPad is below 15 % and not charging.
     @Published var lowBattery = false
+    /// A time-lapse is being recorded.
+    @Published var recording = false
 }
 
 final class LockedRect: @unchecked Sendable {

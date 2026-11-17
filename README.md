@@ -346,7 +346,7 @@ Confirmed on real hardware (2026-11-15).
 ## Other known limits
 
 - **Mirroring, not an extended display**, in all modes except the experimental "Second screen" (see above).
-- **Window mode:** the position is tracked every 0.5 s; if the window is resized, restart the stream (switch the mode briefly).
+- **Window mode:** the position is tracked every 0.5 s; when the window is resized, the capture restarts at the new shape once the size holds still (about a second, with a short pause in the picture).
 - **Tilt direction** hasn't been checked on real hardware → invert switches for X and Y.
 - **Zoom mapping in Affinity:** whether ⌘+scroll or ⌥+scroll zooms depends on Affinity's settings → selectable.
 - **Latency display:** "RTT" is the real network round-trip time. "Frame" is the age of a frame on arrival (capture + encoding + network), estimated via a clock sync over ping; decoding and display (typically a few ms) are not included.

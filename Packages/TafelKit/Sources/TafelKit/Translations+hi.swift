@@ -297,6 +297,7 @@ extension Translations {
         "Warte auf das iPad …": "iPad की प्रतीक्षा …",
         "iPad-Akku: %d %%": "iPad बैटरी: %d %%",
         "Volle Mac-Auflösung senden": "Mac का पूरा रिज़ॉल्यूशन भेजें",
+        "UniversePen – Zeitraffer läuft": "UniversePen – टाइम-लैप्स रिकॉर्ड हो रहा है",
         "Kopplungscode": "पेयरिंग कोड",
         "Menüleisten-Panel": "मेनू बार पैनल",
         "Neues Fenster": "नई विंडो",

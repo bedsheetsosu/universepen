@@ -297,6 +297,7 @@ extension Translations {
         "Warte auf das iPad …": "正在等待 iPad …",
         "iPad-Akku: %d %%": "iPad 电量：%d %%",
         "Volle Mac-Auflösung senden": "发送 Mac 完整分辨率",
+        "UniversePen – Zeitraffer läuft": "UniversePen – 正在录制延时摄影",
         "Kopplungscode": "配对码",
         "Menüleisten-Panel": "菜单栏面板",
         "Neues Fenster": "全新窗口",

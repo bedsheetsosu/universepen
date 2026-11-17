@@ -57,7 +57,11 @@ struct TafelHostApp: App {
 private struct MenuBarIcon: View {
     @ObservedObject var state: MenuIconState
     var body: some View {
-        Image(systemName: state.lowBattery ? "battery.0percent" : state.connected ? "pencil.tip.crop.circle.fill" : "pencil.tip")
-            .accessibilityLabel(state.connected ? L("UniversePen – verbunden") : "UniversePen")
+        // While a time-lapse records, the icon carries a record mark (like the screen recording
+        // indicator), so a forgotten recording is visible.
+        Image(systemName: state.recording ? "record.circle"
+              : state.lowBattery ? "battery.0percent" : state.connected ? "pencil.tip.crop.circle.fill" : "pencil.tip")
+            .accessibilityLabel(state.recording ? L("UniversePen – Zeitraffer läuft")
+                                : state.connected ? L("UniversePen – verbunden") : "UniversePen")
     }
 }

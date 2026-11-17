@@ -340,6 +340,7 @@ enum Translations {
         "Warte auf das iPad …": "Waiting for the iPad …",
         "iPad-Akku: %d %%": "iPad battery: %d %%",
         "Volle Mac-Auflösung senden": "Send full Mac resolution",
+        "UniversePen – Zeitraffer läuft": "UniversePen – time-lapse recording",
         "Kopplungscode": "Pairing code",
         "Menüleisten-Panel": "Menu bar panel",
         "Neues Fenster": "New window",
