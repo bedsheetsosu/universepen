@@ -29,6 +29,7 @@ Target hardware: iPad Air 11" M4 + Äbbl Pencil Pro, MacBook Air M5, Affinity.
 | Squeeze radial menu, per-app Pencil profiles, Mac menu bar (status, iPad battery, mode) | **runs on real hardware** (2026-11-15) | radial menu with hover + squeeze, Affinity profile switching with the front app, battery shown in the menu bar |
 | Second screen (like Sidecar) | **runs on real hardware**, experimental | the only private API (`CGVirtualDisplay`), used only in this mode |
 | USB cable | **runs on real hardware** (2026-11-15, iPad Air M4 ↔ MacBook Air M5) | all three connections over the USB Ethernet interface (Mac `en8`); falls back to Wi-Fi. Undocumented, see limits |
+| UltraUI (new design of both apps: iPad menu with four tabs, settings with search, start screen, Mac window with sidebar, menu bar panel) | **runs on real hardware** (2026-11-17) | screenshots from the iPad and the Mac; the tablet-area animation and the code boxes of the pairing sheet are built but **not yet seen on the iPad** |
 | Sound from the Mac | **data flows** (listening test pending) | ScreenCaptureKit audio → 16-bit PCM → iPad, buffer max. ~100 ms; the Mac keeps playing the sound itself |
 
 Confirmed so far on one setup (iPad Air M4, Pencil Pro, MacBook Air M5, Affinity). Other apps, devices and macOS versions are untested.
@@ -72,13 +73,27 @@ xcodebuild -project Tafel.xcodeproj -scheme PipelineTests -derivedDataPath build
 
 ## Getting started
 
-On first launch both apps walk you through a short **setup**. On the iPad it is an assistant: it asks what you use UniversePen for (drawing, gaming/aiming with tablet mode, or both) and which Pencil you have (Pro, with hover, without hover), then only shows the pages that fit – drawing extras, tablet area / key pad / tip threshold, colours – and creates "Drawing" and "Gaming" profiles if you pick both. On the Mac: permissions, source, pairing. You can run it again from iPad → Settings, or at the bottom of the UniversePen window on the Mac.
+On first launch both apps walk you through a short **setup**. On the iPad it is an assistant: it asks what you use UniversePen for (drawing, gaming/aiming with tablet mode, or both) and which Pencil you have (Pro, with hover, without hover), then only shows the pages that fit – drawing extras, tablet area / key pad / tip threshold, colours – and creates "Drawing" and "Gaming" profiles if you pick both. On the Mac: permissions, source, pairing. You can run it again from iPad → Settings, or in the Mac window → General.
 
 1. Start UniversePen Host. Allow **Screen Recording** and **Accessibility** (buttons in the app). Without Accessibility, macOS silently drops all input.
    Note: with ad-hoc signed builds macOS may forget the permissions after a rebuild – then remove the old entry in System Settings and allow it again.
-2. On the Mac, click **"Pair iPad …"** → a 12-character code appears (valid for 2 minutes).
+2. On the Mac, click **"Pair iPad …"** (Mac window or menu bar) → a 12-character code appears (valid for 2 minutes).
 3. Open UniversePen on the iPad → tap the Mac under "Pair new" → enter the code. From then on the iPad connects automatically whenever the Mac is reachable.
 4. Pick a source on the Mac: **Full display** (default, the choice is remembered; 16:10 Macs get thin bars at the top and bottom), **iPad region** (fills the iPad edge to edge), a single **Window**, or the experimental **Second screen**.
+
+---
+
+## Design (UltraUI)
+
+Both apps are built from one small design system (`Packages/TafelKit/Sources/TafelKit/UltraUI.swift`):
+
+- **iPad menu:** while connected, the round button at the top right opens a control centre with four tabs – **Tools** (drawing aids, stroke, view, Mac), **Source** (what the Mac sends, tablet mode, view only, finger mode, per-app game mode), **Clipboard** (both directions, reference picture, keyboard, text snippets) and **More** (profiles, plugin actions, gestures & shortcuts, settings, disconnect). The next touch on the picture closes it; a Pencil stroke goes on to the Mac.
+- **Settings** on the iPad: a sidebar with search (by page or setting) instead of one long list.
+- **Start screen and setup:** glass cards for your Macs, the pairing code in twelve boxes (a hidden text field underneath is there for paste, dictation and hardware keyboards), setup pages that arrive with a short staggered entrance.
+- **Mac window:** a Liquid Glass sidebar and six pages – Overview, Source, Pairing, Streaming, General, Developer (⌘1–⌘6). The pairing code floats over the window.
+- **Menu bar:** a panel with the connection, the source and quick actions (window to the iPad, palette, time-lapse, heat guard) as tiles.
+- Real Liquid Glass (iPadOS/macOS 26) only on still backgrounds. Over the live Mac picture the panels use a calm frosted material instead: Liquid Glass adapts to what is behind it, and over moving video that looks like pulsing. Older systems get the material everywhere.
+- "Reduce Motion" turns the springs into short fades.
 
 ---
 
@@ -180,17 +195,17 @@ UniversePen does not change profiles, restrictions or MDM settings and does not 
 
 ## Palette window
 
-Bring one Mac panel (layers, colours, brushes …) onto the iPad as a small floating live window – handy in "iPad region" mode, where the panel itself is outside the streamed area. Choose the area on the Mac (Mac window → Source → "Choose palette for the iPad …", or iPad … menu → "Palette from the Mac …", then drag out a rectangle on the Mac; Esc cancels). On the iPad, drag the window by its bar, resize it at the corner, fold it up, or close it (which forgets the area). Taps and drags on it are clicks and drags at that spot on the Mac. Up to 10 JPEG frames per second at ≤ 900 px, and only when the panel changes; they share the video connection, so pen input is never delayed. The area is remembered on the Mac.
+Bring one Mac panel (layers, colours, brushes …) onto the iPad as a small floating live window – handy in "iPad region" mode, where the panel itself is outside the streamed area. Choose the area on the Mac (Mac window → Source → Palette → "Choose", or iPad menu → Tools → "Palette", then drag out a rectangle on the Mac; Esc cancels). On the iPad, drag the window by its bar, resize it at the corner, fold it up, or close it (which forgets the area). Taps and drags on it are clicks and drags at that spot on the Mac. Up to 10 JPEG frames per second at ≤ 900 px, and only when the panel changes; they share the video connection, so pen input is never delayed. The area is remembered on the Mac.
 
 ## Perspective and ellipse guides
 
-… menu → Tools, next to the ruler (one aid at a time, iPad only – nothing is drawn on the Mac):
+iPad menu → Tools, next to the ruler (one aid at a time, iPad only – nothing is drawn on the Mac):
 - **Perspective (1, 2 or 3 vanishing points):** drag the round knobs with a finger. Every Pencil stroke picks, after its first 10 pt, the line through its start point towards the vanishing point that best matches its direction (plus verticals with 1–2 points and horizontals with 1 point) and stays on it – like the drawing guides of iPad painting apps, but in any Mac app.
 - **Ellipse template:** drag inside to move it, two fingers turn (snaps to 0/45/90°) and scale it, the two knobs change each axis (it snaps to a circle when both are within 6 pt). Strokes that start on its outline band follow the ellipse.
 - **Hover preview:** while the Pencil hovers, the ruler edge or ellipse outline it would snap to lights up.
 - The Pencil Pro gives a haptic tick when a stroke locks onto the ruler, a vanishing line, the ellipse or a grid line.
 - While drawing in perspective, the vanishing line the stroke follows is drawn bright.
-- **Lock the aid** (… menu, below the active perspective/ellipse): its knobs and body ignore fingers, so nothing moves by accident.
+- **Lock the aid** (menu → Tools, below the drawing aids): its knobs and body ignore fingers, so nothing moves by accident.
 - **Per app:** each Mac app keeps its own aid. Switching apps brings back the ruler/perspective/ellipse you last used there (none for apps where you never used one).
 
 ## Rope stabilizer, fixed pressure, tools on gestures
@@ -203,11 +218,11 @@ Bring one Mac panel (layers, colours, brushes …) onto the iPad as a small floa
 
 ## Mirror view, break reminder
 
-- **Mirror view** (… menu → Tools, or as an iPad tool on a gesture): flips the picture on the iPad only, to check proportions the way painters look at a drawing in a mirror. The Mac stays as it is; Pencil input and tilt are mirrored back, so strokes land where they should. Works together with the local zoom.
+- **Mirror view** (menu → Tools, or as an iPad tool on a gesture): flips the picture on the iPad only, to check proportions the way painters look at a drawing in a mirror. The Mac stays as it is; Pencil input and tilt are mirrored back, so strokes land where they should. Works together with the local zoom.
 - **Turn the view** (zoom method "Only on the iPad"): two fingers turn the picture on the iPad like a sheet of paper (snaps to 0/90/180/270°); pinch and pan keep working, the pill shows angle and zoom and resets both. Pencil position and tilt are turned back, so the Mac gets upright input.
-- **Grayscale preview** (… menu → Tools): the picture in grey on the iPad only, to check light and dark values while painting in colour.
+- **Grayscale preview** (menu → Tools): the picture in grey on the iPad only, to check light and dark values while painting in colour.
 - **Speed pressure** (Settings → Pencil, 0–100 %): faster strokes get lighter, slow ones stay full – like an ink nib.
-- **Composition grid** (… menu → Tools, tap again to cycle): thirds, quarters or squares (2–32 across and opacity in Settings → General) over the picture on the iPad only; it zooms, turns and mirrors with the picture. With "Snap strokes to the grid" (Settings → General) a stroke that starts within 24 pt of a grid line follows it.
+- **Composition grid** (menu → Tools, style below the tiles): thirds, quarters or squares (2–32 across and opacity in Settings → General) over the picture on the iPad only; it zooms, turns and mirrors with the picture. With "Snap strokes to the grid" (Settings → General) a stroke that starts within 24 pt of a grid line follows it.
 - **Reference picture:** its bar now also flips it horizontally and shows it in grey; both are remembered.
 - **Session summary:** disconnecting shows how long you drew and how many strokes went to the Mac.
 - **Pressure meter** (Settings → Pencil): a small bar bottom left shows the pressure that reaches the Mac, handy for tuning the curve.
@@ -223,10 +238,10 @@ iPad → Settings → Pencil → "Shape recognition" (off by default). Hold the 
 ## Small things
 
 - **Hover tilt** (Settings → Pencil, with the hover dot): a short line from the dot shows which way and how far the Pencil leans – useful before a tilt-shaded stroke.
-- **Connect sound** (Mac window → Stream): a short system sound when an iPad connects or goes away.
-- **Open at login** (Mac window → Stream), via the system's login items (the app should be in Applications).
-- **View only** and the **finger mode** (tap to cycle off / mouse / pen / pointer) are also in the iPad … menu; palette and heat guard are also in the Mac menu bar menu.
-- **Text snippets** (Settings → Text snippets): saved texts in the … menu under Clipboard; one tap types them on the Mac.
+- **Connect sound** (Mac window → General): a short system sound when an iPad connects or goes away.
+- **Open at login** (Mac window → General), via the system's login items (the app should be in Applications).
+- **View only** and the **finger mode** (off / mouse / pen / pointer) are in the iPad menu → Source; palette, time-lapse and heat guard are also tiles in the Mac menu bar panel.
+- **Text snippets** (Settings → Text snippets): saved texts in the menu → Clipboard; one tap types them on the Mac.
 
 ## iPad battery warning
 
@@ -237,26 +252,26 @@ When the connected iPad drops to 15 % and is not charging, the Mac's menu bar ic
 The laser pointer colour (red, green, yellow, blue, magenta) is chosen in the Mac window → Source.
 
 
-System-wide, from any app: **⌃⌥⌘T** switches the iPad into or out of tablet mode, **⌃⌥⌘P** lets you drag out the palette area, **⌃⌥⌘I** moves the front app's window to where the iPad looks (the second screen, or the centre of the streamed display/region), shrinking it to fit if needed (uses Accessibility). Also in the menu bar menu.
+System-wide, from any app: **⌃⌥⌘T** switches the iPad into or out of tablet mode, **⌃⌥⌘P** lets you drag out the palette area, **⌃⌥⌘I** moves the front app's window to where the iPad looks (the second screen, or the centre of the streamed display/region), shrinking it to fit if needed (uses Accessibility). Also in the menu bar panel.
 
 ## Heat guard (Mac)
 
-On by default (Mac window → Stream). macOS reports how hot the Mac is (`ProcessInfo.thermalState`). At "serious" UniversePen streams at most 30 fps, ≤ 25 Mbit/s and without full source resolution; at "critical" also ≤ 15 Mbit/s and ≤ 75 % resolution. When the Mac has cooled off, the iPad's own settings apply again. It only ever lowers settings. Made for the fanless MacBook Air.
+On by default (Mac window → Streaming, or a tile in the menu bar panel). macOS reports how hot the Mac is (`ProcessInfo.thermalState`). At "serious" UniversePen streams at most 30 fps, ≤ 25 Mbit/s and without full source resolution; at "critical" also ≤ 15 Mbit/s and ≤ 75 % resolution. When the Mac has cooled off, the iPad's own settings apply again. It only ever lowers settings. Made for the fanless MacBook Air.
 
 While the iPad is dimmed (Settings → "Dim after"), the Mac stops capturing and encoding altogether and starts again the moment you touch the iPad.
 
 ## Gestures & shortcuts page
 
-iPad … menu → "Gestures & shortcuts": one page with what double-tap, squeeze, every finger gesture and the Mac hot keys do right now (for the app in front on the Mac).
+iPad menu → More → "Gestures & shortcuts": one page with what double-tap, squeeze, every finger gesture and the Mac hot keys do right now (for the app in front on the Mac).
 
 ## Automatic tablet mode
 
-… menu (or Settings → Image) → "Tablet mode automatically for <app>": while that Mac app is in front (e.g. osu!), the iPad switches into tablet mode by itself and back to the picture when another app comes to the front. Several apps can be on the list.
+Menu → Source (or Settings → Image) → "Tablet mode automatically" (listed under the app in front): while that Mac app is in front (e.g. osu!), the iPad switches into tablet mode by itself and back to the picture when another app comes to the front. Several apps can be on the list.
 
 ## Quick tools, orientation lock
 
-- The … menu shows the last four iPad tools you used as big buttons at the top of "Tools" (lit while on).
-- **Lock orientation** (… menu): keeps the current orientation, so an iPad lying flat on the desk does not turn by itself.
+- The menu's Tools tab shows every iPad tool as a tile in four groups (drawing aids, stroke, view, Mac), lit while it is on.
+- **Lock orientation** (menu → Tools → "Orientation"): keeps the current orientation, so an iPad lying flat on the desk does not turn by itself.
 
 ## Shortcuts, Siri, Control Center
 
@@ -284,27 +299,27 @@ The iPad app offers actions in the Shortcuts app: **Connect to Mac** (optionally
 - **Radial menu:** set squeeze (or double-tap) to "Radial menu". 2–8 round buttons appear on an open arc around the Pencil tip (where it hovers), like the squeeze palettes of drawing apps; the arc opens upwards and turns away from screen edges. Hover over a button (its name shows beside it) and squeeze again, or tap it; tap the tip or outside to close. Highlight and pick give a haptic tick on the Pencil Pro. Items: iPad → Settings → Radial menu. While the ring is open, nothing is sent to the Mac.
 - **Per-app Pencil profiles:** pressure curve, smoothing, double-tap and squeeze can have their own values per Mac app (iPad → Settings → Pencil → "Settings for"). They switch automatically with the app in front on the Mac, like the per-app shortcut bars.
 - **Full Mac resolution (on by default):** with a "more space" second screen or a region, the Mac sends all captured pixels unscaled and the iPad scales them down when showing them – noticeably sharper than scaling on the Mac (confirmed 2026-11-15). Costs more bitrate; iPad → Settings → Image to switch off. The second screen offers five sharp HiDPI steps (1180×820 to 1888×1312 points); the default step is 1:1 with the iPad's pixels and the sharpest.
-- **Switch the source from the iPad:** … menu → Source: full display, iPad region, second screen, or a window from the Mac's window list – no trip to the Mac.
+- **Switch the source from the iPad:** menu → Source: full display, iPad region, second screen, or a window from the Mac's window list – no trip to the Mac.
 - **Undo scrub:** rest two fingers briefly, then drag left (undo) or right (redo), one step per 40 pt (adjustable). A pill shows the count. iPads have no haptic engine for fingers, so the feedback is visual only.
-- **Game mode** (e.g. osu!): … menu → "Game mode for <app>". While that app is in front on the Mac: 60 fps, full resolution, ≥ 60 Mbit/s, no adaptive bitrate, no smoothing. The iPad Air's display is 60 Hz, so more than 60 fps isn't possible.
-- **Colours:** pick an accent (presets or the system colour wheel) on iPad → Settings → Colours or in the Mac window; it runs through buttons, rings, the radial menu and the bar. "Flowing background" turns the still gradient into a slowly moving mesh whose hues drift (speed adjustable). Only behind menus and setup, never over the streamed picture.
+- **Game mode** (e.g. osu!): menu → Source → "Game mode" (listed under the app in front). While that app is in front on the Mac: 60 fps, full resolution, ≥ 60 Mbit/s, no adaptive bitrate, no smoothing. The iPad Air's display is 60 Hz, so more than 60 fps isn't possible.
+- **Colours:** pick an accent (presets or the system colour wheel) on iPad → Settings → Appearance or in the Mac window → General; it runs through buttons, rings, the radial menu and the bar. "Flowing background" turns the still gradient into a slowly moving mesh whose hues drift (speed adjustable). Only behind menus and setup, never over the streamed picture.
 - **Instant ink:** the stroke appears on the iPad right away as a thin trail in the accent colour and fades after about the measured picture delay – when the Mac's real stroke arrives underneath. Hides most of the stream latency while drawing. iPad → Settings → Pencil.
 - **Hover dot:** a small ring under the hovering Pencil tip, drawn on the iPad (the Mac cursor in the video lags behind). Its size (4–40 pt) and an own instant-ink colour can be set in Settings → Pencil.
-- **Time-lapse (Mac):** records the streamed picture as an HEVC time-lapse (10×–120×) to Movies → UniversePen. ScreenCaptureKit only delivers frames when the screen changes, so idle time is skipped. Start/stop in the Mac window or the menu bar; a change of picture size (other source/resolution) closes the file. From the iPad: … menu → "Start/stop time-lapse on the Mac".
-- **Tablet mode** (like a screenless pen tablet, e.g. for osu! without a tablet): … menu → "Tablet mode (no picture)". The Mac stops capturing; the iPad turns black with a fine dot grid and corner marks for the active area, which maps absolutely onto the whole selected Mac display. Outside the area the cursor stays at the edge. A built-in "Full area" preset (the whole iPad) is the default. Move/resize the area with "Adjust active area" or type width, height and offset in mm (size shown live, saved as named presets for quick switching from the … menu – a preset can be bound to a Mac app (e.g. osu!) and is used automatically while that app is in front, optionally locked to the Mac display's aspect ratio). Fingers are off in this mode so the hand can rest on the glass – except on the optional **key pad** (like ExpressKeys): big touch keys at the edge (default Z and X; on any edge – left, right, top or bottom – or each key dragged to any spot in the area editor), held on the Mac as long as a finger rests on them. The area can be **rotated** (degrees, saved with presets), and a **tip threshold** (Settings → Tablet mode) makes light touches stay hover. **osu!:** switch off "High precision mouse" / raw input (Settings → Input → Mouse), otherwise osu! mixes relative and absolute movement and the cursor jumps (confirmed 2026-11-15).
-- **Plugins:** small JavaScript plugins run by the Mac app (JavaScriptCore, no file/network access): Pencil filters (smoothing, custom mappings – like OpenTabletDriver), reactions to gestures and the squeeze phases, actions for the iPad (… menu, squeeze, bar, radial menu), toasts on the iPad and full control via the developer API. Plugins window with switches, editor, log and examples. See [`SDK/plugins`](SDK/plugins/README.md).
-- **Profiles:** complete sets of iPad settings plus picture quality (e.g. "Drawing" and "osu!"), switched in Settings → Profiles or the … menu; changes go into the active profile automatically. Language, colours and pairings stay per device.
+- **Time-lapse (Mac):** records the streamed picture as an HEVC time-lapse (10×–120×) to Movies → UniversePen. ScreenCaptureKit only delivers frames when the screen changes, so idle time is skipped. Start/stop in the Mac window (Overview or Streaming) or the menu bar panel; a change of picture size (other source/resolution) closes the file. From the iPad: menu → Tools → "Time-lapse".
+- **Tablet mode** (like a screenless pen tablet, e.g. for osu! without a tablet): menu → Source → "Tablet mode". The Mac stops capturing; the iPad turns black with a fine dot grid and corner marks for the active area, which maps absolutely onto the whole selected Mac display. Outside the area the cursor stays at the edge. A built-in "Full area" preset (the whole iPad) is the default. Move/resize the area with "Adjust active area" or type width, height and offset in mm (size shown live, saved as named presets for quick switching from the menu → Source – a preset can be bound to a Mac app (e.g. osu!) and is used automatically while that app is in front, optionally locked to the Mac display's aspect ratio). Fingers are off in this mode so the hand can rest on the glass – except on the optional **key pad** (like ExpressKeys): big touch keys at the edge (default Z and X; on any edge – left, right, top or bottom – or each key dragged to any spot in the area editor), held on the Mac as long as a finger rests on them. The area can be **rotated** (degrees, saved with presets), and a **tip threshold** (Settings → Tablet mode) makes light touches stay hover. **osu!:** switch off "High precision mouse" / raw input (Settings → Input → Mouse), otherwise osu! mixes relative and absolute movement and the cursor jumps (confirmed 2026-11-15).
+- **Plugins:** small JavaScript plugins run by the Mac app (JavaScriptCore, no file/network access): Pencil filters (smoothing, custom mappings – like OpenTabletDriver), reactions to gestures and the squeeze phases, actions for the iPad (menu → More, squeeze, bar, radial menu), toasts on the iPad and full control via the developer API. Plugins window with switches, editor, log and examples. See [`SDK/plugins`](SDK/plugins/README.md).
+- **Profiles:** complete sets of iPad settings plus picture quality (e.g. "Drawing" and "osu!"), switched in Settings → Profiles or the menu → More; changes go into the active profile automatically. Language, colours and pairings stay per device.
 - **Pencils without hover** (Apple Pencil 1, USB-C, iPads without hover): "Double-tap to click" – a touch only moves the pointer, touch again at once at the same spot to click or draw; or finger mode "Pointer" (aim with a finger, draw with the Pencil); or the tip threshold (light = pointer, firm = click).
-- **Monitor only** (… menu or Settings, per profile): the iPad just shows the picture – no Pencil, touch, gestures, squeeze or keyboard reach the Mac, so a resting hand can't trigger anything. Switching it on ends a stroke or held keys cleanly.
+- **Monitor only** (menu → Source → "View only", or Settings, per profile): the iPad just shows the picture – no Pencil, touch, gestures, squeeze or keyboard reach the Mac, so a resting hand can't trigger anything. Switching it on ends a stroke or held keys cleanly.
 - **Several iPads:** the first iPad shows the picture; every further iPad that connects becomes a tablet without a picture (tablet mode, its active area mapped onto the selected display) – e.g. one iPad as display and one as pen tablet. A second iPad with its own picture is not supported (it would need a stream and virtual display per iPad).
 - **Keep awake & dim:** while connected the iPad never sleeps; optionally it dims after 1–10 minutes without input (not while the picture keeps changing, if you like) and is bright again at the first touch.
 - **Share profiles:** export one or all profiles as a `.universepen.json` file (AirDrop, Files, …) and import them on another iPad – e.g. to pass on an osu! area.
-- **Clipboard:** … menu → "Copy iPad → Mac" / "Get Mac → iPad" copies text or an image between the two clipboards over the encrypted connection. Only when you tap it, never in the background.
-- **Reference picture:** … menu → "Reference picture …" floats a photo from your library over the picture, on the iPad only (it never goes to the Mac). Drag to move, pinch to scale, slider for transparency; lock it and the Pencil and fingers pass straight through to the Mac, e.g. for tracing.
+- **Clipboard:** menu → Clipboard → "iPad → Mac" / "Mac → iPad" copies text or an image between the two clipboards over the encrypted connection. Only when you tap it, never in the background.
+- **Reference picture:** menu → Clipboard → "Reference picture" floats a photo from your library over the picture, on the iPad only (it never goes to the Mac). Drag to move, pinch to scale, slider for transparency; lock it and the Pencil and fingers pass straight through to the Mac, e.g. for tracing.
 - **Magnifier follows the pen:** in the "iPad section" mode (Mac window → size slider, now down to 20 %), switch on "Magnifier follows the pen": the zoomed section pans when the pen hovers near the iPad's edge and jumps to the pointer when you move it elsewhere with the trackpad or mouse. It never moves while the tip is down.
-- **Ruler:** … menu → "Ruler" lays a ruler over the picture. Move it with one finger, turn it with two (snaps to 0°, 45°, 90° …). Pencil strokes that start on or near it stay on its edge (its label shows the stroke's length in cm on the glass) – straight lines in any Mac app.
-- **Laser pointer:** … menu → "Laser pointer on the Mac": the Pencil draws glowing red marks over the Mac screen that fade after about two seconds, and a red dot follows it. Nothing is clicked or drawn in the app; the marks are a click-through window, so they also show in screen sharing.
-- **Screenshot:** … menu → "Screenshot" takes a picture of exactly what is streamed, at the Mac's full resolution (not the stream size). Drag to crop, then save it to Photos or share it.
+- **Ruler:** menu → Tools → "Ruler" lays a ruler over the picture. Move it with one finger, turn it with two (snaps to 0°, 45°, 90° …). Pencil strokes that start on or near it stay on its edge (its label shows the stroke's length in cm on the glass) – straight lines in any Mac app.
+- **Laser pointer:** menu → Tools → "Laser": the Pencil draws glowing red marks over the Mac screen that fade after about two seconds, and a red dot follows it. Nothing is clicked or drawn in the app; the marks are a click-through window, so they also show in screen sharing.
+- **Screenshot:** menu → Tools → "Shot" takes a picture of exactly what is streamed, at the Mac's full resolution (not the stream size). Drag to crop, then save it to Photos or share it.
 - **Local zoom:** iPad → Settings → Zoom → "Only on the iPad": pinching enlarges the picture on the iPad only (up to 800 %), two fingers move it, and Pencil strokes still land in the right place on the Mac. The pill at the top shows the zoom; tap it to reset.
 - **Demo mode** (iPad → Settings → Demo, or "Try without a Mac" on the connect screen): runs only on the iPad, clearly labelled – a simulated desktop with a drawing window (your pressure curve, tilt, a pointer following the hovering Pencil, clickable buttons, click ripples) and tablet mode with a small monitor and targets to hit. For showing UniversePen without a Mac.
 - **Menu bar (Mac):** connected iPad, path (USB/Wi-Fi), fps and bitrate, iPad battery, source switch, pairing, quit.
@@ -325,7 +340,7 @@ Confirmed on real hardware (2026-11-15).
 - iPadOS keeps some shortcuts for itself (⌘-Tab, ⌘-Space, Globe key, ⌘-H …); those never reach UniversePen.
 - Some ISO keyboards report `^` and `<` swapped → Settings → Keyboard → "Swap the ^ and < keys".
 - **Trackpad / mouse on the iPad** (confirmed on real hardware, Logi Combo Touch) controls the Mac pointer: absolute position (where the iPad pointer is over the image), click, two-finger click = right-click, double/triple click, drag, two-finger scroll, pinch/rotate like the finger gestures. The iPad pointer is hidden (the Mac cursor is visible in the video) – can be turned off. Keyboard modifiers also apply to clicks (e.g. ⌥-drag).
-- **On-screen keyboard** (… menu): sends typed text as Unicode (independent of the Mac layout), without autocorrect.
+- **On-screen keyboard** (menu → Clipboard → "Keyboard"): sends typed text as Unicode (independent of the Mac layout), without autocorrect.
 - Held keys are released on disconnect and when opening settings, so nothing gets "stuck" on the Mac.
 
 ## Other known limits
@@ -344,9 +359,9 @@ Confirmed on real hardware (2026-11-15).
 
 Please go through in order and note each result:
 
-1. **Connection:** pair, connect. Status display (… → "Show status"): RTT on Wi-Fi typically < 10 ms, 60 fps while moving.
+1. **Connection:** pair, connect. Status display (menu → Tools → "Status"): RTT on Wi-Fi typically < 10 ms, 60 fps while moving.
 2. **Image:** "iPad region" mode → no black bars, sharp? The encoder line on the Mac should say "Hardware · Low-Latency-RC".
-3. **Pen test window** (Mac: "Open Pen Test …", move it into the region) – this is the decisive check whether macOS gets the data:
+3. **Pen test window** (Mac window → Overview → "Pen Test", move it into the region) – this is the decisive check whether macOS gets the data:
    - hover → `tabletProximity: in`, then `hover` lines
    - draw with varying pressure → `subtype=tabletPoint`, `pressure` changes, line width varies
    - tilt the pen → `tilt` changes; check the direction, use the invert switch if needed
