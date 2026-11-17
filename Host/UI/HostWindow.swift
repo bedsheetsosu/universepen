@@ -393,7 +393,7 @@ struct HostView: View {
         }
         UltraSection(title: L("Tastenkürzel")) {
             ForEach(Hotkeys.shortcuts, id: \.0) { action, _, keys in
-                SettingRow(symbol: Self.symbol(action), title: Self.title(action)) { KeyCaps(keys: keys) }
+                SettingRow(symbol: Self.symbol(action), title: Self.title(action)) { UltraKeyCaps(keys) }
             }
         }
     }

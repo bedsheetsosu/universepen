@@ -292,7 +292,7 @@ struct SettingsView: View {
         } header: {
             Text(L("Textbausteine"))
         } footer: {
-            Text(L("Erscheinen im …-Menü unter Zwischenablage; antippen tippt den Text am Mac (z. B. Ebenennamen, Signatur)."))
+            Text(L("Erscheinen im Menü oben rechts unter „Zwischenablage“; antippen tippt den Text am Mac (z. B. Ebenennamen, Signatur)."))
         }
     }
 
@@ -304,7 +304,7 @@ struct SettingsView: View {
         } header: {
             Text(L("Tastatur & Trackpad"))
         } footer: {
-            Text(L("Eine angeschlossene Tastatur (z. B. Logi Combo Touch) tippt direkt auf dem Mac – Taste für Taste, mit dem Tastaturlayout des Mac. Nicht übertragbar sind Kurzbefehle, die iPadOS selbst belegt (z. B. ⌘-Tab, ⌘-Leertaste, Globus-Taste). Trackpad: Zeigen, Klicken, Zwei-Finger-Klick = Rechtsklick, Zwei-Finger-Scrollen, Pinch = Zoom (Methode wie bei den Finger-Gesten). Die Bildschirmtastatur gibt es im …-Menü."))
+            Text(L("Eine angeschlossene Tastatur (z. B. Logi Combo Touch) tippt direkt auf dem Mac – Taste für Taste, mit dem Tastaturlayout des Mac. Nicht übertragbar sind Kurzbefehle, die iPadOS selbst belegt (z. B. ⌘-Tab, ⌘-Leertaste, Globus-Taste). Trackpad: Zeigen, Klicken, Zwei-Finger-Klick = Rechtsklick, Zwei-Finger-Scrollen, Pinch = Zoom (Methode wie bei den Finger-Gesten). Die Bildschirmtastatur gibt es im Menü oben rechts unter „Zwischenablage“."))
         }
     }
 
@@ -557,7 +557,7 @@ struct SettingsView: View {
         } footer: {
             Text(model.profiles.isEmpty
                  ? L("Profile sind komplette Einstellungs-Sätze (z. B. „Zeichnen“ und „osu!“). Lege eins an, dann landen Änderungen automatisch im aktiven Profil.")
-                 : L("Änderungen landen automatisch im aktiven Profil. Gedrückt halten: umbenennen, duplizieren, löschen. Wechseln geht auch im …-Menü."))
+                 : L("Änderungen landen automatisch im aktiven Profil. Gedrückt halten: umbenennen, duplizieren, löschen. Wechseln geht auch im Menü oben rechts unter „Mehr“."))
         }
         .fileImporter(isPresented: $importing, allowedContentTypes: [.json]) { result in
             guard case .success(let url) = result else { return }

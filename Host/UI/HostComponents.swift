@@ -280,20 +280,3 @@ struct PairingCodeView: View {
         }
     }
 }
-
-/// Keyboard shortcut drawn as keycaps.
-struct KeyCaps: View {
-    let keys: String
-    var body: some View {
-        HStack(spacing: 3) {
-            ForEach(Array(keys.enumerated()), id: \.offset) { _, k in
-                Text(String(k))
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .frame(minWidth: 22, minHeight: 22)
-                    .background(.white.opacity(0.1), in: Ultra.shape(6))
-                    .overlay(Ultra.shape(6).strokeBorder(.white.opacity(0.12), lineWidth: 1))
-            }
-        }
-        .accessibilityLabel(keys)
-    }
-}

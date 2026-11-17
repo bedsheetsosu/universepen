@@ -368,6 +368,25 @@ public struct UltraBadge: View {
     }
 }
 
+/// A keyboard shortcut drawn as keycaps (⌃ ⌥ ⌘ T).
+public struct UltraKeyCaps: View {
+    let keys: String
+    public init(_ keys: String) { self.keys = keys }
+    public var body: some View {
+        HStack(spacing: 3) {
+            ForEach(Array(keys.enumerated()), id: \.offset) { _, k in
+                Text(String(k))
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .frame(minWidth: 22, minHeight: 22)
+                    .background(.white.opacity(0.1), in: Ultra.shape(6))
+                    .overlay(Ultra.shape(6).strokeBorder(.white.opacity(0.12), lineWidth: 1))
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(keys)
+    }
+}
+
 /// Round floating button (the dock handle, undo/redo, close).
 public struct UltraRoundButton: View {
     let symbol: String

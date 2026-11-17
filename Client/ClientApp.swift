@@ -33,8 +33,9 @@ struct RootView: View {
     @ObservedObject private var l10n = L10n.shared
     /// `-debugOpenSettings YES` opens the settings at launch (for screenshots).
     @State private var showSettings = UserDefaults.standard.bool(forKey: "debugOpenSettings")
-    @State private var showCheatSheet = false
-    @State private var showWhatsNew = WhatsNewView.shouldShow
+    /// `-debugOpenCheatSheet YES` / `-debugShowWhatsNew YES`: open those sheets at launch (UI checks).
+    @State private var showCheatSheet = UserDefaults.standard.bool(forKey: "debugOpenCheatSheet")
+    @State private var showWhatsNew = WhatsNewView.shouldShow || UserDefaults.standard.bool(forKey: "debugShowWhatsNew")
     @State private var showStatus = false
 
     private var reconnecting: Bool {
@@ -102,10 +103,13 @@ struct RootView: View {
                 .presentationBackground { ThemeBackground() }
         }
         .sheet(isPresented: $showWhatsNew, onDismiss: WhatsNewView.markSeen) {
-            WhatsNewView().presentationBackground { ThemeBackground() }
+            WhatsNewView()
+                .presentationSizing(.page)
+                .presentationBackground { ThemeBackground() }
         }
         .sheet(isPresented: $showCheatSheet) {
             CheatSheetView().environmentObject(model)
+                .presentationSizing(.page)
                 .presentationBackground { ThemeBackground() }
         }
     }

@@ -3,7 +3,10 @@ import TafelKit
 
 /// Shown once after updating to a version with new features.
 struct WhatsNewView: View {
+    /// Redraw when the colours change.
+    @ObservedObject var theme = Theme.shared
     @Environment(\.dismiss) private var dismiss
+    @State private var shown = false
     static let version = "0.8.0"
     static let seenKey = "whatsNewSeen"
 
@@ -19,6 +22,7 @@ struct WhatsNewView: View {
     static func markSeen() { UserDefaults.standard.set(version, forKey: seenKey) }
 
     private let items: [(String, String, String)] = [
+        ("square.grid.2x2", L("Neues Design"), L("Kontrollzentrum mit vier Bereichen, Einstellungen mit Suche, Liquid Glass – auf iPad und Mac.")),
         ("paintpalette", L("Farbtreue"), L("10-Bit-Farbe und die richtige Tonkurve – Schatten und Verläufe wie am Mac.")),
         ("perspective", L("Zeichenhilfen"), L("Perspektive mit 1–3 Fluchtpunkten, Ellipsen-Schablone, Raster – jede App merkt sich ihre.")),
         ("scribble.variable", L("Formerkennung"), L("Am Strichende kurz halten: Linie, Pfeil, Kreis, Rechteck werden sauber.")),
@@ -32,25 +36,71 @@ struct WhatsNewView: View {
     ]
 
     var body: some View {
-        NavigationStack {
+        ZStack(alignment: .bottom) {
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    Text(L("Neu in %@", Self.version)).font(.largeTitle.bold())
-                    ForEach(items, id: \.1) { icon, title, text in
-                        HStack(alignment: .top, spacing: 14) {
-                            Image(systemName: icon).font(.title2).foregroundStyle(Brand.mint).frame(width: 34)
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text(title).font(.headline)
-                                Text(text).foregroundStyle(.secondary)
-                            }
+                VStack(alignment: .leading, spacing: 22) {
+                    UltraBadge("sparkles", size: 64)
+                        .symbolEffect(.bounce, value: shown)
+                        .scaleEffect(shown ? 1 : 0.6)
+                    Text(L("Neu in %@", Self.version))
+                        .font(.system(size: 40, weight: .bold, design: .rounded))
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 300), spacing: 14, alignment: .top)], alignment: .leading, spacing: 14) {
+                        ForEach(Array(items.enumerated()), id: \.offset) { i, item in
+                            card(item)
+                                .opacity(shown ? 1 : 0)
+                                .offset(y: shown ? 0 : 16)
+                                .animation(Ultra.bouncy.delay(0.08 + Double(i) * 0.035), value: shown)
                         }
                     }
-                    Text(L("Alles Weitere: … → Gesten & Kürzel und die Einstellungen."))
+                    Text(L("Alles Weitere steht im Menü oben rechts unter „Mehr“: Gesten & Kürzel und die Einstellungen."))
                         .font(.footnote).foregroundStyle(.secondary)
                 }
-                .padding(28)
+                .padding(.horizontal, 32).padding(.top, 36).padding(.bottom, 110)
             }
-            .toolbar { Button(L("Los geht's")) { Self.markSeen(); dismiss() } }
+            .scrollIndicators(.hidden)
+            .mask {
+                // Cards fade out under the button instead of running into it.
+                VStack(spacing: 0) {
+                    Rectangle()
+                    LinearGradient(colors: [.black, .black.opacity(0)], startPoint: .top, endPoint: .bottom).frame(height: 130)
+                }
+                .ignoresSafeArea()
+            }
+            Button {
+                Self.markSeen()
+                dismiss()
+            } label: {
+                HStack(spacing: 8) {
+                    Text(L("Los geht's"))
+                    Image(systemName: "arrow.right")
+                }
+            }
+            .buttonStyle(UltraProminent())
+            .padding(.bottom, 30)
         }
+        .preferredColorScheme(.dark)
+        .onAppear { withAnimation(Ultra.bouncy) { shown = true } }
+        .onDisappear { Self.markSeen() }   // swiped away counts as seen too
+    }
+
+    private func card(_ item: (String, String, String)) -> some View {
+        HStack(alignment: .top, spacing: 14) {
+            Image(systemName: item.0)
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(Brand.slateDeep)
+                .frame(width: 40, height: 40)
+                .background(Ultra.accentFill, in: Circle())
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(item.1).font(.headline)
+                Text(item.2).font(.callout).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .ultraGlass(Ultra.shape(Ultra.cardRadius))
+        .accessibilityElement(children: .combine)
     }
 }

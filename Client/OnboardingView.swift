@@ -178,7 +178,7 @@ struct OnboardingView: View {
                       text: L("Tablett-Modus wie ein Intuos: schwarze Fläche mit aktivem Bereich, kein Bild, minimale Latenz – z. B. für osu!."),
                       on: use == .tablet) { use = .tablet }
             BigChoice(symbol: "square.split.2x1", title: L("Beides"),
-                      text: L("Zwei Profile „Zeichnen“ und „Spielen“, im …-Menü mit einem Tipp umschaltbar."),
+                      text: L("Zwei Profile „Zeichnen“ und „Spielen“, im Menü unter „Mehr“ mit einem Tipp umschaltbar."),
                       on: use == .both) { use = .both }
         }
     }
@@ -287,7 +287,7 @@ struct OnboardingView: View {
                 (L("Mittel"), "rectangle.inset.filled", AreaSize.medium),
                 (L("Klein"), "smallcircle.filled.circle", AreaSize.small),
             ], selected: areaSize) { areaSize = $0 }
-            Text(L("Kleiner Bereich = kurze Wege für schnelles Zielen (typisch für osu!). Genau einstellen und als Preset speichern kannst du später im …-Menü."))
+            Text(L("Kleiner Bereich = kurze Wege für schnelles Zielen (typisch für osu!). Genau einstellen und als Preset speichern kannst du später im Menü unter „Quelle“."))
                 .font(.callout).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
             FeatureToggle(symbol: "keyboard", title: L("Tasten-Feld Z / X"),
                           text: L("Große Touch-Tasten am Rand, mit der anderen Hand halten – wie ExpressKeys."), on: $keysOn)
@@ -327,10 +327,10 @@ struct OnboardingView: View {
             }
             if use == .both {
                 InfoRow(symbol: "person.crop.square", title: L("Umschalten"),
-                        text: L("Im …-Menü oben rechts unter „Profil“. Änderungen landen automatisch im aktiven Profil."))
+                        text: L("Im Menü oben rechts unter „Mehr“ → „Profil“. Änderungen landen automatisch im aktiven Profil."))
             }
             InfoRow(symbol: "gearshape", title: L("Alles änderbar"),
-                    text: L("Jede Einstellung findest du später unter …-Menü → Einstellungen. Die Einrichtung kannst du dort auch neu starten."))
+                    text: L("Jede Einstellung findest du später im Menü oben rechts unter „Mehr“ → „Einstellungen …“, ohne Verbindung über das Zahnrad. Die Einrichtung kannst du dort auch neu starten."))
         }
     }
 

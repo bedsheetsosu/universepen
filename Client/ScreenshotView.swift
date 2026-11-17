@@ -32,7 +32,8 @@ struct ScreenshotView: View {
                             }
                             .fill(Color.black.opacity(0.55), style: FillStyle(eoFill: true))
                             Rectangle()
-                                .strokeBorder(Brand.mint, style: StrokeStyle(lineWidth: 2, dash: [8, 5]))
+                                .strokeBorder(Brand.mintBright, style: StrokeStyle(lineWidth: 2, dash: [8, 5]))
+                                .shadow(color: Brand.mint.opacity(0.6), radius: 6)
                                 .frame(width: sel.width, height: sel.height)
                                 .offset(x: sel.minX, y: sel.minY)
                         }
@@ -56,33 +57,38 @@ struct ScreenshotView: View {
                     .onChange(of: g.size) { _, _ in displayRect = Geometry.aspectFit(content: image.size, in: CGRect(origin: .zero, size: g.size)) }
                 }
                 Text(selection == nil ? L("Zum Zuschneiden einen Bereich aufziehen") : L("%d × %d Pixel", Int(cropRect.width), Int(cropRect.height)))
-                    .font(.callout.monospacedDigit())
-                    .foregroundStyle(.secondary)
-                HStack(spacing: 12) {
-                    Button(L("Abbrechen")) { withAnimation(Brand.spring) { model.screenshot = nil } }
-                        .buttonStyle(.bordered)
+                    .font(.callout.monospacedDigit().weight(.medium))
+                    .foregroundStyle(.white.opacity(0.8))
+                    .padding(.horizontal, 14).padding(.vertical, 7)
+                    .ultraPanel(Capsule(), shadow: false)
+                    .contentTransition(.numericText())
+                HStack(spacing: 8) {
+                    Button(L("Abbrechen")) { withAnimation(Ultra.smooth) { model.screenshot = nil } }
+                        .buttonStyle(UltraQuiet(compact: true))
                     if selection != nil {
-                        Button(L("Ganzes Bild")) { withAnimation(Brand.spring) { selection = nil } }
-                            .buttonStyle(.bordered)
+                        Button(L("Ganzes Bild")) { withAnimation(Ultra.snappy) { selection = nil } }
+                            .buttonStyle(UltraQuiet(compact: true))
+                            .transition(.scale.combined(with: .opacity))
                     }
                     Button {
                         UIImageWriteToSavedPhotosAlbum(output(), nil, nil, nil)
                         model.show(Toast(text: L("In Fotos gesichert"), seconds: 1.6))
-                        withAnimation(Brand.spring) { model.screenshot = nil }
+                        withAnimation(Ultra.smooth) { model.screenshot = nil }
                     } label: { Label(L("In Fotos sichern"), systemImage: "photo.on.rectangle.angled") }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(UltraQuiet(compact: true))
                     Button {
                         model.copyToMac(output())
-                        withAnimation(Brand.spring) { model.screenshot = nil }
+                        withAnimation(Ultra.smooth) { model.screenshot = nil }
                     } label: { Label(L("Auf den Mac kopieren"), systemImage: "doc.on.clipboard") }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(UltraQuiet(compact: true))
                     Button {
                         shareItem = ShareImage(image: output())
                     } label: { Label(L("Teilen …"), systemImage: "square.and.arrow.up") }
-                        .buttonStyle(.borderedProminent)
-                        .tint(Brand.mint)
-                        .foregroundStyle(Brand.slateDeep)
+                        .buttonStyle(UltraProminent(compact: true))
                 }
+                .padding(7)
+                .ultraPanel(Capsule())
+                .animation(Ultra.snappy, value: selection == nil)
             }
             .padding(28)
         }

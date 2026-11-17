@@ -296,15 +296,17 @@ struct TabletAreaEditor: View {
                         }
                     }
                 }
+                .buttonStyle(UltraQuiet(compact: true))
             }
             Button(L("Zurücksetzen")) {
                 area = nil
                 model.setTabletArea(TabletArea())
             }
+            .buttonStyle(UltraQuiet(compact: true))
             Button(L("Fertig")) {
                 withAnimation(Brand.spring) { model.tabletEditing = false }
             }
-            .buttonStyle(.borderedProminent).tint(Brand.mint).foregroundStyle(Brand.slateDeep)
+            .buttonStyle(UltraProminent(compact: true))
         }
         .padding(.horizontal, 18).padding(.vertical, 10)
         .tafelOverlayGlass(Capsule())
@@ -358,8 +360,9 @@ struct TabletAreaEditor: View {
             Divider().frame(height: 22)
             field(L("Drehung"), .r, unit: "°")
             Button(L("Zentrieren")) { apply(size, center: true) }
+                .buttonStyle(UltraQuiet(compact: true))
             Button(L("Übernehmen")) { apply(size, center: false) }
-                .buttonStyle(.borderedProminent).tint(Brand.mint).foregroundStyle(Brand.slateDeep)
+                .buttonStyle(UltraProminent(compact: true))
         }
         .font(.callout)
         .padding(.horizontal, 18).padding(.vertical, 8)
@@ -432,7 +435,9 @@ struct TabletAreaEditor: View {
                         }
                         .foregroundStyle(on ? Brand.slateDeep : .primary)
                         .padding(.horizontal, 12).padding(.vertical, 6)
-                        .background(on ? AnyShapeStyle(Brand.mint) : AnyShapeStyle(Color.white.opacity(0.1)), in: Capsule())
+                        .background(on ? AnyShapeStyle(Ultra.accentFill) : AnyShapeStyle(Color.white.opacity(0.1)), in: Capsule())
+                        .overlay(Capsule().strokeBorder(.white.opacity(on ? 0.35 : 0.06), lineWidth: 1))
+                        .animation(Ultra.snappy, value: on)
                     }
                 }
             }
@@ -446,8 +451,9 @@ struct TabletAreaEditor: View {
                     .padding(.horizontal, 8).padding(.vertical, 5)
                     .background(.white.opacity(0.14), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                 Button(L("Speichern"), action: save)
-                    .buttonStyle(.borderedProminent).tint(Brand.mint).foregroundStyle(Brand.slateDeep)
+                    .buttonStyle(UltraProminent(compact: true))
                 Button(L("Abbrechen")) { naming = false; presetName = "" }
+                    .buttonStyle(UltraQuiet(compact: true))
             } else {
                 Button {
                     commit()
@@ -456,6 +462,7 @@ struct TabletAreaEditor: View {
                 } label: {
                     Label(L("Als Preset speichern"), systemImage: "plus")
                 }
+                .buttonStyle(UltraQuiet(compact: true))
             }
         }
         .font(.callout)

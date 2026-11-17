@@ -22,25 +22,24 @@ struct DemoView: View {
             }
             .ignoresSafeArea()
             .transition(.opacity)
+            .animation(Ultra.smooth, value: mode)
             // Always visible: this is a demo, not a Mac connection.
             HStack(spacing: 12) {
                 Label(L("Demo – kein Mac verbunden"), systemImage: "sparkles")
                     .font(.callout.weight(.semibold))
-                Picker("", selection: $mode.animation(Brand.spring)) {
-                    Text(L("Display")).tag(Mode.display)
-                    Text(L("Tablett")).tag(Mode.tablet)
-                }
-                .pickerStyle(.segmented)
-                .frame(width: 220)
+                    .padding(.leading, 8)
+                UltraSegmented([(Mode.display, L("Display"), "display"), (Mode.tablet, L("Tablett"), "rectangle.dashed")],
+                               selection: $mode)
+                    .frame(width: 260)
                 Button {
-                    withAnimation(Brand.spring) { model.demoMode = false }
+                    withAnimation(Ultra.smooth) { model.demoMode = false }
                 } label: {
                     Label(L("Demo beenden"), systemImage: "xmark")
                 }
-                .buttonStyle(.borderedProminent).tint(Brand.mint).foregroundStyle(Brand.slateDeep)
+                .buttonStyle(UltraProminent(compact: true))
             }
-            .padding(.horizontal, 16).padding(.vertical, 8)
-            .tafelOverlayGlass(Capsule())
+            .padding(6)
+            .ultraPanel(Capsule())
             .padding(.top, 10)
         }
         .preferredColorScheme(.dark)

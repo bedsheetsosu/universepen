@@ -337,17 +337,15 @@ private struct PairingSheet: View {
             }
             HStack(spacing: 12) {
                 Button(L("Abbrechen")) { dismiss() }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(UltraQuiet())
                 Button(action: submit) {
                     HStack(spacing: 8) {
                         if model.pairingBusy { ProgressView().tint(Brand.slateDeep) }
-                        Text(L("Koppeln")).fontWeight(.semibold)
+                        Text(L("Koppeln"))
                     }
-                    .frame(minWidth: 120)
+                    .frame(minWidth: 110)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(Brand.mint)
-                .foregroundStyle(Brand.slateDeep)
+                .buttonStyle(UltraProminent())
                 .disabled(normalized == nil || model.pairingBusy)
             }
             .controlSize(.large)

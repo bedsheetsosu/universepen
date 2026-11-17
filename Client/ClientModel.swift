@@ -398,6 +398,8 @@ final class ClientModel: ObservableObject {
         // UI check from the Mac: `-debugOpenCommandCenter YES` as a launch argument opens the
         // control centre right away (screenshots are taken with devicectl; nothing can tap remotely).
         commandOpen = UserDefaults.standard.bool(forKey: "debugOpenCommandCenter")
+        // `-debugDemo YES` starts in the demo (UI checks; use with -debugNoAutoConnect).
+        if UserDefaults.standard.bool(forKey: "debugDemo") { demoMode = true }
     }
 
     // MARK: Battery (shown in the Mac menu bar)
