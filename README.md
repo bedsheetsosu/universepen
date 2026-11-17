@@ -29,7 +29,7 @@ Target hardware: iPad Air 11" M4 + Äbbl Pencil Pro, MacBook Air M5, Affinity.
 | Squeeze radial menu, per-app Pencil profiles, Mac menu bar (status, iPad battery, mode) | **runs on real hardware** (2026-11-15) | radial menu with hover + squeeze, Affinity profile switching with the front app, battery shown in the menu bar |
 | Second screen (like Sidecar) | **runs on real hardware**, experimental | the only private API (`CGVirtualDisplay`), used only in this mode |
 | USB cable | **runs on real hardware** (2026-11-15, iPad Air M4 ↔ MacBook Air M5) | all three connections over the USB Ethernet interface (Mac `en8`); falls back to Wi-Fi. Undocumented, see limits |
-| UltraUI (new design of both apps: iPad menu with four tabs, settings with search, start screen, Mac window with sidebar, menu bar panel) | **runs on real hardware** (2026-11-17) | screenshots from the iPad and the Mac; the tablet-area animation and the code boxes of the pairing sheet are built but **not yet seen on the iPad** |
+| UltraUI (new design of both apps: iPad menu with four tabs, settings with search, start screen, Mac window with sidebar, menu bar panel) | **runs on real hardware** (2026-11-17) | screenshots from the iPad and the Mac (incl. the pairing sheet's code boxes); the tablet-area animation is built but **not yet seen on the iPad** |
 | Sound from the Mac | **data flows** (listening test pending) | ScreenCaptureKit audio → 16-bit PCM → iPad, buffer max. ~100 ms; the Mac keeps playing the sound itself |
 
 Confirmed so far on one setup (iPad Air M4, Pencil Pro, MacBook Air M5, Affinity). Other apps, devices and macOS versions are untested.

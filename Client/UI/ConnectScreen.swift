@@ -71,6 +71,15 @@ struct ConnectView: View {
             PairingSheet(host: host).environmentObject(model)
         }
         .onAppear { withAnimation(Ultra.bouncy.delay(0.05)) { appeared = true } }
+        .task {
+            // `-debugPairingSheet YES` (with -debugNoAutoConnect) opens the code entry for the first
+            // Mac found, for UI checks. Nothing is sent until a code is typed and confirmed.
+            guard UserDefaults.standard.bool(forKey: "debugPairingSheet") else { return }
+            for _ in 0..<20 where pairTarget == nil {
+                if let h = model.discovered.first { pairTarget = h; break }
+                try? await Task.sleep(for: .milliseconds(500))
+            }
+        }
     }
 
     // MARK: Hero
