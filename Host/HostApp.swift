@@ -35,6 +35,7 @@ struct TafelHostApp: App {
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentMinSize)
         .defaultSize(width: 860, height: 660)
+        .commands { HostCommands(host: host) }
 
         Window(L("Stifttest"), id: "pentest") {
             PenTestView()

@@ -231,11 +231,17 @@ public struct ClientConfig: Codable, Equatable, Sendable {
     public var laser: Bool?
     /// The iPad is dimmed (nobody looks): the Mac stops capturing until it is not.
     public var paused: Bool?
+    /// The iPad's settings profiles and the active one, so the Mac can switch them
+    /// (settings patch `{"activateProfile": id}`). Never part of the stream decision.
+    public var profiles: [ProfileSummary]?
+    public var activeProfile: String?
 
     public init(viewPixelWidth: Int, viewPixelHeight: Int, quality: StreamQuality, diagnostics: String? = nil,
                 batteryLevel: Double? = nil, batteryCharging: Bool? = nil, tabletMode: Bool? = nil, laser: Bool? = nil,
-                paused: Bool? = nil) {
+                paused: Bool? = nil, profiles: [ProfileSummary]? = nil, activeProfile: String? = nil) {
         self.paused = paused
+        self.profiles = profiles
+        self.activeProfile = activeProfile
         self.tabletMode = tabletMode
         self.laser = laser
         self.viewPixelWidth = viewPixelWidth
@@ -252,6 +258,13 @@ public struct ClientConfig: Codable, Equatable, Sendable {
         return viewPixelWidth == other.viewPixelWidth && viewPixelHeight == other.viewPixelHeight && quality == other.quality
             && (tabletMode ?? false) == (other.tabletMode ?? false) && (paused ?? false) == (other.paused ?? false)
     }
+}
+
+/// One settings profile of the iPad as the Mac sees it.
+public struct ProfileSummary: Codable, Equatable, Hashable, Sendable {
+    public var id: String
+    public var name: String
+    public init(id: String, name: String) { self.id = id; self.name = name }
 }
 
 /// A recognised gesture on the iPad, reported in addition to its configured action.

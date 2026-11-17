@@ -127,6 +127,17 @@ final class TabletAreaTests: XCTestCase {
         XCTAssertTrue(TabletPreset.fullArea.isBuiltIn)
     }
 
+    func testProfilesTravelButNeverRestartTheStream() throws {
+        let a = ClientConfig(viewPixelWidth: 10, viewPixelHeight: 10, quality: StreamQuality())
+        var b = a
+        b.profiles = [ProfileSummary(id: "1", name: "Drawing"), ProfileSummary(id: "2", name: "osu!")]
+        b.activeProfile = "2"
+        XCTAssertTrue(b.sameStream(as: a))
+        XCTAssertEqual(try JSONWire.decode(ClientConfig.self, JSONWire.encode(b)), b)
+        // An older iPad sends no profiles at all.
+        XCTAssertNil(try JSONWire.decode(ClientConfig.self, JSONWire.encode(a)).profiles)
+    }
+
     func testTabletModeRestartsStream() {
         let a = ClientConfig(viewPixelWidth: 10, viewPixelHeight: 10, quality: StreamQuality())
         var b = a; b.tabletMode = true

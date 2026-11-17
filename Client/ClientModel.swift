@@ -236,9 +236,21 @@ final class ClientModel: ObservableObject {
 
     // MARK: Profiles (named sets of all settings; changes go into the active one)
 
-    @Published var profiles: [SettingsProfile] { didSet { save(profiles, "profiles") } }
+    @Published var profiles: [SettingsProfile] { didSet { save(profiles, "profiles"); profilesChangedForMac() } }
     @Published var activeProfileID: UUID? {
-        didSet { UserDefaults.standard.set(activeProfileID?.uuidString, forKey: "activeProfile") }
+        didSet { UserDefaults.standard.set(activeProfileID?.uuidString, forKey: "activeProfile"); profilesChangedForMac() }
+    }
+
+    /// Names and ids of the profiles as the Mac sees them (it can switch them from its menu bar).
+    private var profileSummaries: [ProfileSummary] { profiles.map { ProfileSummary(id: $0.id.uuidString, name: $0.name) } }
+    private var sentProfiles: [ProfileSummary]?
+    private var sentActiveProfile: String?
+
+    /// Every settings change is stored in the active profile, so only tell the Mac when names, the
+    /// list or the active one really changed.
+    private func profilesChangedForMac() {
+        guard profileSummaries != sentProfiles || activeProfileID?.uuidString != sentActiveProfile else { return }
+        sendConfig()
     }
     var activeProfile: SettingsProfile? { profiles.first { $0.id == activeProfileID } }
     private var switchingProfile = false
@@ -792,7 +804,11 @@ final class ClientModel: ObservableObject {
         session.send(config: ClientConfig(viewPixelWidth: viewPixelSize.0, viewPixelHeight: viewPixelSize.1, quality: effectiveQuality,
                                           diagnostics: diagnostics, batteryLevel: b.level, batteryCharging: b.charging,
                                           tabletMode: tabletModeActive, laser: laserMode && !settings.viewOnly,
-                                          paused: savedBrightness != nil))
+                                          paused: savedBrightness != nil,
+                                          profiles: profileSummaries.isEmpty ? nil : profileSummaries,
+                                          activeProfile: activeProfileID?.uuidString))
+        sentProfiles = profileSummaries
+        sentActiveProfile = activeProfileID?.uuidString
     }
 
     // MARK: Developer API (settings live on the iPad; the Mac reads and patches them)
@@ -812,6 +828,11 @@ final class ClientModel: ObservableObject {
         }
         if s != settings { settings = s }
         if let qp = patch["quality"] as? [String: Any], let q = applyPatch(quality, qp), q != quality { quality = q }
+        // From the Mac's menu bar panel or window.
+        if let id = patch["activateProfile"] as? String, let p = profiles.first(where: { $0.id.uuidString == id }),
+           p.id != activeProfileID {
+            switchProfile(p)
+        }
     }
 
     func report(_ gesture: GestureEvent) { session?.send(gesture) }

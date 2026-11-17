@@ -41,6 +41,9 @@ struct HostView: View {
     @State private var page = HostPage.overview
     @Namespace private var sidebarSpace
     @State private var confirmUnpair = false
+    @AppStorage(HostWhatsNew.seenKey) private var whatsNewSeen = ""
+    /// `-debugHostWhatsNew YES` shows it at launch (UI checks).
+    @State private var showWhatsNew = UserDefaults.standard.bool(forKey: "debugHostWhatsNew")
     @State private var pairedToast: String?
     @State private var toastHide: DispatchWorkItem?
 
@@ -91,6 +94,12 @@ struct HostView: View {
         .onChange(of: host.lastPaired) { _, name in if let name, onboardingDone { showPaired(name) } }
         .sheet(isPresented: Binding(get: { !onboardingDone }, set: { if !$0 { onboardingDone = true } })) {
             HostOnboarding(done: $onboardingDone).environmentObject(host)
+        }
+        .sheet(isPresented: $showWhatsNew) { HostWhatsNew() }
+        .onAppear {
+            // A fresh install gets the setup, which explains everything; updates get "What's new" once.
+            if !onboardingDone { whatsNewSeen = HostWhatsNew.version }
+            else if whatsNewSeen != HostWhatsNew.version { showWhatsNew = true }
         }
         .confirmationDialog(L("Alle Kopplungen aufheben?"), isPresented: $confirmUnpair) {
             Button(L("Aufheben"), role: .destructive) { host.unpairAll() }
@@ -190,6 +199,33 @@ struct HostView: View {
     @ViewBuilder private var overview: some View {
         hero
         if !allGranted { permissions.transition(.move(edge: .top).combined(with: .opacity)) }
+        if connected && !host.ipadProfiles.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+                UltraHeader(L("Profil")).padding(.leading, 6)
+                ScrollView(.horizontal) {
+                    HStack(spacing: 8) {
+                        ForEach(host.ipadProfiles, id: \.id) { p in
+                            let on = p.id == host.ipadActiveProfile
+                            Button { host.activateIPadProfile(p.id) } label: {
+                                Label(p.name, systemImage: on ? "checkmark" : "person.crop.square")
+                                    .font(.callout.weight(.semibold))
+                                    .padding(.horizontal, 14).padding(.vertical, 8)
+                                    .foregroundStyle(on ? Brand.slateDeep : Color.white.opacity(0.9))
+                                    .background { if on { Capsule().fill(Ultra.accentFill) } else { Capsule().fill(.white.opacity(0.08)) } }
+                                    .overlay(Capsule().strokeBorder(.white.opacity(on ? 0.35 : 0.08), lineWidth: 1))
+                                    .contentShape(Capsule())
+                            }
+                            .buttonStyle(UltraPress(scale: 0.95))
+                            .accessibilityAddTraits(on ? .isSelected : [])
+                        }
+                    }
+                    .padding(.horizontal, 2).padding(.vertical, 2)
+                }
+                .scrollIndicators(.hidden)
+                .animation(Ultra.snappy, value: host.ipadActiveProfile)
+            }
+            .transition(.opacity)
+        }
         VStack(alignment: .leading, spacing: 8) {
             UltraHeader(L("Aktionen")).padding(.leading, 6)
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {

@@ -49,6 +49,16 @@ struct HostMenuPanel: View {
                     .font(.caption).foregroundStyle(.orange)
                     .padding(.horizontal, 4)
             }
+            if connected && !host.ipadProfiles.isEmpty {
+                UltraHeader(L("Profil"))
+                VStack(spacing: 0) {
+                    ForEach(host.ipadProfiles, id: \.id) { p in
+                        UltraRow(p.name, symbol: "person.crop.square", checked: p.id == host.ipadActiveProfile) {
+                            host.activateIPadProfile(p.id)
+                        }
+                    }
+                }
+            }
             Rectangle().fill(.white.opacity(0.08)).frame(height: 1)
             VStack(spacing: 0) {
                 UltraRow(L("iPad koppeln …"), symbol: "ipad.and.arrow.forward") {
@@ -92,8 +102,5 @@ struct HostMenuPanel: View {
         .padding(.bottom, 2)
     }
 
-    private func openMain() {
-        openWindow(id: "main")
-        NSApp.activate()
-    }
+    private func openMain() { showMainWindow(openWindow) }
 }

@@ -81,6 +81,15 @@ final class HostController: ObservableObject {
     private let tabletDisplay = LockedDisplayID()
 
     @Published var ipadBattery: Double? { didSet { checkBattery() } }
+    /// The connected iPad's settings profiles and the active one (switchable from the Mac).
+    @Published private(set) var ipadProfiles: [ProfileSummary] = []
+    @Published private(set) var ipadActiveProfile: String?
+
+    /// Makes `id` the iPad's active profile; the iPad confirms with its next config.
+    func activateIPadProfile(_ id: String) {
+        guard id != ipadActiveProfile, server.sendSettingsPatch(["activateProfile": id]) else { return }
+        ipadActiveProfile = id
+    }
     @Published var ipadCharging: Bool? { didSet { checkBattery() } }
     private var batteryWarned = false
 
@@ -816,6 +825,9 @@ final class HostController: ObservableObject {
                     NSLog("Tafel iPad-Diagnose: %@", d)
                 }
                 if self.ipadBattery != cfg.batteryLevel { self.ipadBattery = cfg.batteryLevel }
+                let profiles = cfg.profiles ?? []
+                if self.ipadProfiles != profiles { self.ipadProfiles = profiles }
+                if self.ipadActiveProfile != cfg.activeProfile { self.ipadActiveProfile = cfg.activeProfile }
                 if self.ipadCharging != cfg.batteryCharging { self.ipadCharging = cfg.batteryCharging }
                 let restart = !cfg.sameStream(as: self.clientConfig)
                 self.clientConfig = cfg
@@ -841,6 +853,8 @@ final class HostController: ObservableObject {
                     await self.paletteCapture.stop()
                     self.ipadBattery = nil
                     self.ipadCharging = nil
+                    self.ipadProfiles = []
+                    self.ipadActiveProfile = nil
                     await self.stopStream()
                 }
             }
