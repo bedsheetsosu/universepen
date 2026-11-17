@@ -277,6 +277,8 @@ Menu → Source (or Settings → Image) → "Tablet mode automatically" (listed 
 
 The iPad app offers actions in the Shortcuts app: **Connect to Mac** (optionally a specific paired Mac), **Disconnect from Mac**, **Tablet Mode** and **Laser Pointer** (on / off / toggle) and **Take Mac Screenshot**. They also work with Siri and Spotlight (e.g. "Connect UniversePen"). For Control Center or the Lock Screen, add the system "Shortcut" control and pick one of them. All actions are translated into the 7 app languages.
 
+The Mac app has its own actions: **Pair iPad**, **Set Source** (full display, second screen, iPad region, window), **Time-lapse** (on / off / toggle), **Switch iPad Profile** (the profiles of the connected iPad) and **Move Front Window to iPad** – for Shortcuts, Spotlight and keyboard shortcuts assigned there. They act on the running UniversePen Host, so the window, the menu bar and the iPad change right away.
+
 ## Accessibility
 
 - VoiceOver: all icon buttons have labels; selected menu entries and the active profile are announced as selected. The Mac picture is a single element with *direct interaction*, so the Pencil and fingers keep working with VoiceOver on.

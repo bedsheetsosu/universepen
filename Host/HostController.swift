@@ -395,6 +395,9 @@ final class HostController: ObservableObject {
 
     private static let hostKeyAccount = "host-key"
 
+    /// The running controller, for Shortcuts actions (there is exactly one per app).
+    private(set) static weak var current: HostController?
+
     init() {
         let defaults = UserDefaults.standard
         if let id = defaults.string(forKey: "hostID") {
@@ -410,6 +413,7 @@ final class HostController: ObservableObject {
             hostKey = HostKey.generate()
             Keychain.set(hostKey, account: Self.hostKeyAccount)
         }
+        Self.current = self
         wireServer()
         setupDevAPI()
         observeFrontApp()
