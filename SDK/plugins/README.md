@@ -65,6 +65,36 @@ plugin as stopped (the Pencil keeps working unfiltered); reload it after fixing 
 If the Pencil touched the glass while squeezed, `pencil.squeezeEnded` has `value: 1` and the iPad
 does **not** run the squeeze's own action (radial menu, undo, …): the squeeze was used as a modifier.
 
+## Template
+
+[`template/`](template/) is a commented starting point. Copy the folder into your plugins folder, change `id` and `name` in `manifest.json`, then edit `main.js`. It shows the parts most plugins are made of:
+
+1. **Feature switches**: on/off values saved in `up.storage` and read once at start. They keep optional parts of a plugin switchable.
+2. **iPad actions** that flip those switches.
+3. **A Pencil filter** that uses the switches. It runs for every sample, so it only reads values already in memory.
+4. **An app hook** (`up.on("app")`) and a **gesture hook** (`up.on("gesture")`).
+5. **A call to the Mac side** (`up.display`, `up.call`) inside try/catch, because errors are thrown.
+
+Before you share a plugin:
+
+- `id` is unique and `main` names the file.
+- `up.filter` stays well under 20 ms and never calls `up.call`.
+- Storage keys have a prefix (`feature.` or your own) so plugins don't overwrite each other.
+- It works with the plugin switched off and on (switch it off and reload to check).
+
+## Plugins and other apps (UniversePhoto)
+
+A plugin runs inside UniversePen Host and has no network access, so it can't reach another app by itself. What exists today:
+
+| Direction | How | Status |
+|---|---|---|
+| Plugin → UniversePen | `up.*` above | works |
+| Other app → UniversePen (requests) | developer API on `127.0.0.1` (see the [SDK README](../README.md)) | works; **off by default**, switch it on in the Mac app |
+| Other app → UniversePen (links) | `universepen://…` ([docs/API.md](../../docs/API.md)) | works |
+| UniversePhoto → a plugin's switches | none | not built |
+
+**What a plugin cannot do:** it can add actions, filters and workflows, but it cannot lock or unlock UniversePen's own features. A feature switch is only a value stored on the user's Mac, and UniversePen is open source (GPL-3.0), so any check in the app or in a plugin can be removed. If a paid tier or a licence key for UniversePhoto is wanted, that needs its own design (for example a signed licence checked on the Mac). Plugins can't enforce it.
+
 ## Examples
 
 - [`squeeze-scroll`](examples/squeeze-scroll/main.js) – hold the squeeze, put the Pencil down and drag to scroll.
