@@ -7,6 +7,8 @@ struct PairedHost: Codable, Identifiable, Hashable {
     var id: String      // host ID from the Mac
     var name: String
     var fingerprint: String
+    /// This iPad's own key on that Mac (nil = the shared key of a pairing made before).
+    var keyID: String?
 }
 
 struct DiscoveredHost: Identifiable, Hashable {
@@ -622,7 +624,8 @@ final class ClientModel: ObservableObject {
                     }
                     Keychain.set(key, account: "host-\(grant.hostID)")
                     self.paired.removeAll { $0.id == grant.hostID }
-                    self.paired.append(PairedHost(id: grant.hostID, name: grant.hostName, fingerprint: HostKey.fingerprint(key)))
+                    self.paired.append(PairedHost(id: grant.hostID, name: grant.hostName, fingerprint: HostKey.fingerprint(key),
+                                                  keyID: grant.keyID))
                     self.save(self.paired, "pairedHosts")
                     self.lastHostID = grant.hostID
                     if let h = self.discovered.first(where: { $0.hostID == grant.hostID }) { self.connect(h) }
@@ -631,6 +634,18 @@ final class ClientModel: ObservableObject {
                 }
             }
         }
+    }
+
+    /// The Mac moved this iPad from the shared key of an old pairing to its own key. The running
+    /// connection stays; the next one uses the new key.
+    private func adoptOwnKey(_ grant: PairGrant, hostID: String) {
+        guard grant.hostID == hostID, let keyID = grant.keyID,
+              let key = Data(base64Encoded: grant.keyBase64), key.count == 32,
+              let i = paired.firstIndex(where: { $0.id == hostID }) else { return }
+        Keychain.set(key, account: "host-\(hostID)")
+        paired[i].keyID = keyID
+        paired[i].fingerprint = HostKey.fingerprint(key)
+        save(paired, "pairedHosts")
     }
 
     func forget(_ host: PairedHost) {
@@ -660,8 +675,9 @@ final class ClientModel: ObservableObject {
             videoSize = .zero
             phase = .connecting(host.name)
         }
-        let s = Session(endpoint: host.endpoint, key: key, deviceID: deviceID, deviceName: deviceName, renderer: renderer,
-                        audioPlayer: audioPlayer)
+        let keyID = paired.first { $0.id == host.hostID }?.keyID
+        let s = Session(endpoint: host.endpoint, key: key, keyID: keyID, deviceID: deviceID, deviceName: deviceName,
+                        renderer: renderer, audioPlayer: audioPlayer)
         s.cableInterfaces = host.cableInterfaces
         s.peerToPeer = peerToPeer
         s.onCableFallback = { [weak self] in Task { @MainActor in self?.lastCableFailure = Date() } }
@@ -692,6 +708,7 @@ final class ClientModel: ObservableObject {
             }
         }
         s.onSettingsPatch = { [weak self] patch in Task { @MainActor in self?.applySettingsPatch(patch) } }
+        s.onRekey = { [weak self] grant in Task { @MainActor in self?.adoptOwnKey(grant, hostID: host.hostID) } }
         s.onTiming = { [weak self] t in
             Task { @MainActor in
                 guard let self else { return }

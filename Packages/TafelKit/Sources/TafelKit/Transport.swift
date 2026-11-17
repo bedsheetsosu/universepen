@@ -32,10 +32,18 @@ public enum TafelNetwork {
     }
 
     public static func parameters(psk: Data, identity: String, channel: Channel, link: Link = .any) -> NWParameters {
+        parameters(psks: [(psk, identity)], channel: channel, link: link)
+    }
+
+    /// Several keys, each with its own identity (a listener that accepts every paired iPad with
+    /// that iPad's own key; the TLS layer picks the key by the identity the client sends).
+    public static func parameters(psks: [(key: Data, identity: String)], channel: Channel, link: Link = .any) -> NWParameters {
         let tls = NWProtocolTLS.Options()
-        let pskData = psk.withUnsafeBytes { DispatchData(bytes: $0) }
-        let idData = Data(identity.utf8).withUnsafeBytes { DispatchData(bytes: $0) }
-        sec_protocol_options_add_pre_shared_key(tls.securityProtocolOptions, pskData as __DispatchData, idData as __DispatchData)
+        for (psk, identity) in psks {
+            let pskData = psk.withUnsafeBytes { DispatchData(bytes: $0) }
+            let idData = Data(identity.utf8).withUnsafeBytes { DispatchData(bytes: $0) }
+            sec_protocol_options_add_pre_shared_key(tls.securityProtocolOptions, pskData as __DispatchData, idData as __DispatchData)
+        }
         sec_protocol_options_append_tls_ciphersuite(
             tls.securityProtocolOptions,
             tls_ciphersuite_t(rawValue: UInt16(TLS_PSK_WITH_AES_128_GCM_SHA256))!)

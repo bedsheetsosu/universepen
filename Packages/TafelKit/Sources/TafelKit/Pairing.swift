@@ -56,6 +56,9 @@ public enum PairingCode {
 public enum HostKey {
     public static let pskIdentity = "tafel-host"
 
+    /// TLS identity of one iPad's own key.
+    public static func deviceIdentity(_ keyID: String) -> String { "tafel-dev-" + keyID }
+
     public static func generate() -> Data {
         SymmetricKey(size: .bits256).withUnsafeBytes { Data($0) }
     }

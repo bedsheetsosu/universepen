@@ -54,6 +54,10 @@ final class HostServer {
     /// Device name (nil = session ended) and the path it uses ("USB-Kabel (en8)", …).
     var onSession: ((String?, String) -> Void)?
     var onPaired: ((String) -> Void)?
+    /// The list of paired iPads changed (pairing, an older pairing got its own key).
+    var onDevicesChanged: (() -> Void)?
+    /// Keys the main listener accepts (one per iPad plus the shared key of older pairings).
+    var keyStore: DeviceKeyStore!
     var onStatus: ((String) -> Void)?
     /// Listener ready (true) or not (false) – a state, independent of the shown language.
     var onReady: ((Bool) -> Void)?
@@ -76,11 +80,12 @@ final class HostServer {
 
     // MARK: Main listener
 
-    func start(key: Data) {
+    /// (Re)starts the main listener with the current keys. Open connections are not affected.
+    func start() {
         queue.async { [self] in
             listener?.cancel()
             do {
-                let l = try NWListener(using: TafelNetwork.parameters(psk: key, identity: HostKey.pskIdentity, channel: .control,
+                let l = try NWListener(using: TafelNetwork.parameters(psks: keyStore.psks(), channel: .control,
                                                                     link: peerToPeer ? .any : .noPeerToPeer))
                 if advertise {
                     l.service = NWListener.Service(name: hostName, type: TafelNetwork.serviceType,
@@ -107,6 +112,31 @@ final class HostServer {
                 onStatus?(L("Listener konnte nicht starten: %@", error.localizedDescription))
             }
         }
+    }
+
+    /// Ends the connections of one iPad (after unpairing it).
+    func disconnect(deviceID: String) {
+        queue.async { [self] in
+            if sessionDeviceID == deviceID {
+                control?.cancel()
+                currentVideo()?.cancel()
+                currentAudio()?.cancel()
+            }
+            for e in extras.values where e.deviceID == deviceID { e.fc.cancel() }
+        }
+    }
+
+    /// An iPad said hello on the main listener: note it, or move it off the shared key (queue).
+    private func handleKeys(_ hello: Hello, _ fc: FramedConnection) {
+        if let id = hello.keyID {
+            keyStore.touch(id: id, name: hello.deviceName)
+            return
+        }
+        let issued = keyStore.issueForLegacy(name: hello.deviceName, deviceID: hello.deviceID)
+        fc.sendJSON(.rekey, PairGrant(hostID: hostID, hostName: hostName, keyBase64: issued.key.base64EncodedString(), keyID: issued.id))
+        onDevicesChanged?()
+        // The listener learns the new key a moment later; open connections are not affected.
+        queue.asyncAfter(deadline: .now() + 2) { [weak self] in self?.start() }
     }
 
     /// Drop the current session (e.g. after unpairing).
@@ -157,6 +187,7 @@ final class HostServer {
             if let old = control, old !== fc { old.onClose = nil; old.cancel(); currentVideo()?.cancel(); currentAudio()?.cancel() }
             control = fc
             sessionDeviceID = hello.deviceID
+            handleKeys(hello, fc)
             fc.onFrame = { [weak self] f in self?.handleControl(f, from: fc) }
             fc.onClose = { [weak self, weak fc] _ in
                 guard let self, self.control === fc else { return }
@@ -200,6 +231,7 @@ final class HostServer {
         for (k, e) in extras where e.deviceID == hello.deviceID { e.fc.onClose = nil; e.fc.cancel(); extras[k] = nil }
         let id = ObjectIdentifier(fc)
         extras[id] = (fc, hello.deviceID, hello.deviceName)
+        handleKeys(hello, fc)
         fc.onFrame = { [weak self] f in self?.handleControl(f, from: fc, extra: true) }
         fc.onClose = { [weak self] _ in
             guard let self else { return }
@@ -377,7 +409,9 @@ final class HostServer {
 
     // MARK: Pairing
 
-    func startPairing(code: String, hostKey: Data) {
+    /// Opens the pairing listener; a right code gets `grantKey` (prepared in the key store and
+    /// already accepted by the main listener).
+    func startPairing(code: String, grantKey: Data, keyID: String) {
         queue.async { [self] in
             pairingListener?.cancel()
             do {
@@ -388,7 +422,7 @@ final class HostServer {
                     l.service = NWListener.Service(name: hostName, type: TafelNetwork.pairingServiceType,
                                                    txtRecord: NWTXTRecord([TafelNetwork.txtHostIDKey: hostID]))
                 }
-                l.newConnectionHandler = { [weak self] c in self?.acceptPairing(c, hostKey: hostKey) }
+                l.newConnectionHandler = { [weak self] c in self?.acceptPairing(c, key: grantKey, keyID: keyID) }
                 l.start(queue: queue)
                 pairingListener = l
             } catch {
@@ -404,7 +438,7 @@ final class HostServer {
         }
     }
 
-    private func acceptPairing(_ c: NWConnection, hostKey: Data) {
+    private func acceptPairing(_ c: NWConnection, key: Data, keyID: String) {
         let fc = FramedConnection(c, queue: queue)
         let id = ObjectIdentifier(fc)
         pending[id] = fc
@@ -414,10 +448,12 @@ final class HostServer {
             guard frame.type == .hello, let hello = try? JSONWire.decode(Hello.self, frame.payload), hello.role == .pair else {
                 fc.cancel(); return
             }
-            fc.sendJSON(.pairGrant, PairGrant(hostID: self.hostID, hostName: self.hostName, keyBase64: hostKey.base64EncodedString()))
+            fc.sendJSON(.pairGrant, PairGrant(hostID: self.hostID, hostName: self.hostName, keyBase64: key.base64EncodedString(), keyID: keyID))
+            self.keyStore.completePairing(id: keyID, name: hello.deviceName, deviceID: hello.deviceID)
             self.pairingListener?.cancel()
             self.pairingListener = nil
             self.onPaired?(hello.deviceName)
+            self.onDevicesChanged?()
             self.queue.asyncAfter(deadline: .now() + 2) { fc.cancel(); self.pending[id] = nil }
         }
         fc.onClose = { [weak self] _ in self?.pending[id] = nil }

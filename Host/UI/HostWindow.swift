@@ -41,6 +41,8 @@ struct HostView: View {
     @State private var page = HostPage.overview
     @Namespace private var sidebarSpace
     @State private var confirmUnpair = false
+    @State private var confirmRemove: DeviceKeyStore.Device?
+    @State private var confirmLegacy = false
     @AppStorage(HostWhatsNew.seenKey) private var whatsNewSeen = ""
     /// `-debugHostWhatsNew YES` shows it at launch (UI checks).
     @State private var showWhatsNew = UserDefaults.standard.bool(forKey: "debugHostWhatsNew")
@@ -105,6 +107,20 @@ struct HostView: View {
             Button(L("Aufheben"), role: .destructive) { host.unpairAll() }
         } message: {
             Text(L("Jedes iPad muss danach neu gekoppelt werden."))
+        }
+        .confirmationDialog(L("„%@“ entfernen?", confirmRemove?.name ?? ""),
+                            isPresented: Binding(get: { confirmRemove != nil }, set: { if !$0 { confirmRemove = nil } })) {
+            Button(L("Entfernen"), role: .destructive) {
+                if let d = confirmRemove { withAnimation(Ultra.smooth) { host.unpair(d) } }
+                confirmRemove = nil
+            }
+        } message: {
+            Text(L("Dieses iPad kann sich sofort nicht mehr verbinden und muss neu gekoppelt werden. Andere iPads bleiben gekoppelt."))
+        }
+        .confirmationDialog(L("Ältere Kopplungen aufheben?"), isPresented: $confirmLegacy) {
+            Button(L("Aufheben"), role: .destructive) { withAnimation(Ultra.smooth) { host.retireLegacyPairings() } }
+        } message: {
+            Text(L("iPads, die sich seit dem Update noch nicht verbunden haben, müssen neu gekoppelt werden. iPads in der Liste bleiben gekoppelt."))
         }
     }
 
@@ -474,24 +490,37 @@ struct HostView: View {
                 UltraSwitch(label: L("Peer-to-Peer-WLAN (ohne Router)"), isOn: $host.peerToPeer)
             }
         }
-        UltraSection(title: L("Sicherheit")) {
-            HStack(spacing: 12) {
-                Image(systemName: "key.horizontal")
-                    .font(.system(size: 13, weight: .semibold))
-                    .frame(width: 30, height: 30)
-                    .background(.white.opacity(0.09), in: Ultra.shape(9))
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(L("Schlüssel-Fingerabdruck")).font(.body.weight(.medium))
-                    Text(host.keyFingerprint).font(.caption.monospaced()).foregroundStyle(.secondary).textSelection(.enabled)
-                }
-                Spacer()
+        UltraSection(title: L("Gekoppelte iPads")) {
+            if host.pairedIPads.isEmpty && !host.legacyPairings {
+                SettingRow(symbol: "ipad", title: L("Noch kein iPad gekoppelt"))
             }
-            .padding(.vertical, 6)
+            ForEach(host.pairedIPads) { d in
+                SettingRow(symbol: "ipad", title: d.name, detail: pairedDetail(d)) {
+                    Button(L("Entfernen")) { confirmRemove = d }.buttonStyle(UltraQuiet(compact: true))
+                }
+            }
+            if host.legacyPairings {
+                SettingRow(symbol: "key.horizontal", title: L("Ältere Kopplungen"),
+                           detail: L("iPads, die vor Version 0.8 gekoppelt wurden, nutzen noch einen gemeinsamen Schlüssel (%@). Sobald sich eins verbindet, bekommt es automatisch einen eigenen.", host.keyFingerprint)) {
+                    Button(L("Aufheben")) { confirmLegacy = true }.buttonStyle(UltraQuiet(compact: true))
+                }
+            }
+        }
+        UltraSection(title: L("Sicherheit")) {
+            SettingRow(symbol: "lock.shield", title: L("Jedes iPad hat seinen eigenen Schlüssel"),
+                       detail: L("Ein entferntes iPad kann sich sofort nicht mehr verbinden; die anderen bleiben gekoppelt. Der Fingerabdruck steht auch auf dem iPad unter Einstellungen → Verbindung."))
             SettingRow(symbol: "link.badge.plus", title: L("Alle Kopplungen aufheben …"),
                        detail: L("Jedes iPad muss danach neu gekoppelt werden.")) {
                 Button(L("Aufheben")) { confirmUnpair = true }.buttonStyle(UltraQuiet(compact: true))
             }
         }
+    }
+
+    private func pairedDetail(_ d: DeviceKeyStore.Device) -> String {
+        let locale = Locale(identifier: L10n.shared.language.systemCode)
+        let paired = d.pairedAt.formatted(.dateTime.day().month().year().locale(locale))
+        let seen = d.lastSeen.map { $0.formatted(.relative(presentation: .named).locale(locale)) } ?? "–"
+        return L("Gekoppelt am %@ · zuletzt verbunden %@", paired, seen) + "\n" + L("Fingerabdruck %@", host.fingerprint(of: d))
     }
 
     // MARK: Stream

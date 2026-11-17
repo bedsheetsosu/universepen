@@ -16,6 +16,8 @@ final class Session: @unchecked Sendable {
     let queue = DispatchQueue(label: "tafel.client.net", qos: .userInteractive)
     let endpoint: NWEndpoint
     private let key: Data
+    /// TLS identity that goes with the key (the iPad's own key, or the shared one of old pairings).
+    private let identity: String
     private let hello: Hello
     private let renderer: VideoRenderer
     private let audioPlayer: AudioPlayer?
@@ -30,6 +32,8 @@ final class Session: @unchecked Sendable {
     /// Palette JPEG (empty = removed), on the network queue.
     var onPalette: ((Data) -> Void)?
     var onSettingsPatch: (([String: Any]) -> Void)?
+    /// The Mac gave this iPad its own key (moving an older pairing off the shared key).
+    var onRekey: ((PairGrant) -> Void)?
     var onConnected: (() -> Void)?
     var onClosed: ((String?) -> Void)?
     var onTiming: ((Timing) -> Void)?
@@ -54,10 +58,12 @@ final class Session: @unchecked Sendable {
     private var framesThisSecond = 0
     private var lastConfig: ClientConfig?
 
-    init(endpoint: NWEndpoint, key: Data, deviceID: String, deviceName: String, renderer: VideoRenderer, audioPlayer: AudioPlayer? = nil) {
+    init(endpoint: NWEndpoint, key: Data, keyID: String?, deviceID: String, deviceName: String, renderer: VideoRenderer,
+         audioPlayer: AudioPlayer? = nil) {
         self.endpoint = endpoint
         self.key = key
-        self.hello = Hello(role: .control, deviceID: deviceID, deviceName: deviceName)
+        self.identity = keyID.map(HostKey.deviceIdentity) ?? HostKey.pskIdentity
+        self.hello = Hello(role: .control, deviceID: deviceID, deviceName: deviceName, keyID: keyID)
         self.renderer = renderer
         self.audioPlayer = audioPlayer
     }
@@ -102,7 +108,7 @@ final class Session: @unchecked Sendable {
 
     private func connectControl(link: TafelNetwork.Link, next: (() -> Void)?) {
         let canFallBack = next != nil
-        let c = FramedConnection(NWConnection(to: endpoint, using: TafelNetwork.parameters(psk: key, identity: HostKey.pskIdentity, channel: .control, link: link)), queue: queue)
+        let c = FramedConnection(NWConnection(to: endpoint, using: TafelNetwork.parameters(psk: key, identity: identity, channel: .control, link: link)), queue: queue)
         control = c
         var ready = false
         let fallBack: () -> Void = { [weak self, weak c] in
@@ -145,7 +151,7 @@ final class Session: @unchecked Sendable {
 
     private func startVideo() {
         guard video == nil else { return }
-        let v = FramedConnection(NWConnection(to: endpoint, using: TafelNetwork.parameters(psk: key, identity: HostKey.pskIdentity, channel: .video, link: dataLink)), queue: queue)
+        let v = FramedConnection(NWConnection(to: endpoint, using: TafelNetwork.parameters(psk: key, identity: identity, channel: .video, link: dataLink)), queue: queue)
         video = v
         var vh = hello
         vh.role = .video
@@ -167,7 +173,7 @@ final class Session: @unchecked Sendable {
     /// Sound is optional: if this connection fails, the session keeps running without it.
     private func startAudio() {
         guard audio == nil, let player = audioPlayer else { return }
-        let a = FramedConnection(NWConnection(to: endpoint, using: TafelNetwork.parameters(psk: key, identity: HostKey.pskIdentity, channel: .audio, link: dataLink)), queue: queue)
+        let a = FramedConnection(NWConnection(to: endpoint, using: TafelNetwork.parameters(psk: key, identity: identity, channel: .audio, link: dataLink)), queue: queue)
         audio = a
         var ah = hello
         ah.role = .audio
@@ -185,6 +191,8 @@ final class Session: @unchecked Sendable {
         switch f.type {
         case .settingsPatch:
             if let o = try? JSONSerialization.jsonObject(with: f.payload) as? [String: Any] { onSettingsPatch?(o) }
+        case .rekey:
+            if let g = try? JSONWire.decode(PairGrant.self, f.payload), g.keyID != nil { onRekey?(g) }
         case .appInfo:
             if let a = try? JSONWire.decode(AppInfo.self, f.payload) { onAppInfo?(a) }
         case .pluginActions:

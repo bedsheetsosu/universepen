@@ -125,7 +125,7 @@ final class HostController: ObservableObject {
             guard peerToPeer != oldValue else { return }
             UserDefaults.standard.set(peerToPeer, forKey: "peerToPeer")
             server.peerToPeer = peerToPeer
-            server.start(key: hostKey)
+            server.start()
         }
     }
     @Published var streamDescription = ""
@@ -185,6 +185,12 @@ final class HostController: ObservableObject {
     let hostID: String
     let hostName: String
     private(set) var hostKey: Data
+    /// One key per paired iPad (see DeviceKeyStore).
+    private let keyStore: DeviceKeyStore
+    /// Paired iPads for the window's list.
+    @Published private(set) var pairedIPads: [DeviceKeyStore.Device] = []
+    /// iPads paired before every iPad got its own key may still use the shared key.
+    @Published private(set) var legacyPairings = false
 
     private let server = HostServer()
     private let injector = InputInjector()
@@ -407,12 +413,19 @@ final class HostController: ObservableObject {
             defaults.set(hostID, forKey: "hostID")
         }
         hostName = Host.current().localizedName ?? "Mac"
+        let upgraded: Bool
         if let k = Keychain.get(account: Self.hostKeyAccount), k.count == 32 {
             hostKey = k
+            upgraded = true
         } else {
             hostKey = HostKey.generate()
             Keychain.set(hostKey, account: Self.hostKeyAccount)
+            upgraded = false
         }
+        keyStore = DeviceKeyStore(legacyKey: hostKey, upgraded: upgraded)
+        pairedIPads = keyStore.all
+        legacyPairings = keyStore.hasLegacyPairings
+        server.keyStore = keyStore
         Self.current = self
         wireServer()
         setupDevAPI()
@@ -437,7 +450,7 @@ final class HostController: ObservableObject {
             sink.recorder?.stopAndWait()
         }
         server.peerToPeer = peerToPeer
-        server.start(key: hostKey)
+        server.start()
         if UserDefaults.standard.bool(forKey: "debugPairingCodePreview") {
             // UI checks: shows a code without opening the pairing listener (nothing can pair with it).
             pairingCode = PairingCode.generate()
@@ -865,6 +878,7 @@ final class HostController: ObservableObject {
                 }
             }
         }
+        server.onDevicesChanged = { [weak self] in Task { @MainActor in self?.refreshPairedIPads() } }
         server.onPaired = { [weak self] name in
             Task { @MainActor in
                 self?.lastPaired = name
@@ -892,7 +906,10 @@ final class HostController: ObservableObject {
         let code = PairingCode.generate()
         pairingCode = code
         pairingSecondsLeft = 120
-        server.startPairing(code: code, hostKey: hostKey)
+        // The iPad's own key, accepted by the main listener before the code is even typed.
+        let grant = keyStore.preparePairing()
+        server.start()
+        server.startPairing(code: code, grantKey: grant.key, keyID: grant.id)
         pairingTimer?.invalidate()
         pairingTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             Task { @MainActor in
@@ -908,14 +925,41 @@ final class HostController: ObservableObject {
         pairingTimer = nil
         pairingCode = nil
         server.stopPairing()
+        // Ended without an iPad: the prepared key must not stay valid.
+        if keyStore.cancelPairing() { server.start() }
     }
 
     /// Generates a new host key: every paired iPad must pair again.
     func unpairAll() {
-        hostKey = HostKey.generate()
+        hostKey = keyStore.removeAll()
         Keychain.set(hostKey, account: Self.hostKeyAccount)
         server.disconnectSession()
-        server.start(key: hostKey)
+        server.start()
+        refreshPairedIPads()
+    }
+
+    /// Unpairs one iPad: its key stops working at once and its connection ends.
+    func unpair(_ device: DeviceKeyStore.Device) {
+        guard let deviceID = keyStore.remove(device.id) else { return }
+        server.disconnect(deviceID: deviceID)
+        server.start()
+        refreshPairedIPads()
+    }
+
+    /// Retires the shared key of pairings made before every iPad got its own key.
+    func retireLegacyPairings() {
+        hostKey = keyStore.retireLegacy()
+        Keychain.set(hostKey, account: Self.hostKeyAccount)
+        server.start()
+        refreshPairedIPads()
+    }
+
+    func fingerprint(of device: DeviceKeyStore.Device) -> String { keyStore.fingerprint(of: device.id) ?? "–" }
+
+    private func refreshPairedIPads() {
+        let list = keyStore.all
+        if pairedIPads != list { pairedIPads = list }
+        if legacyPairings != keyStore.hasLegacyPairings { legacyPairings = keyStore.hasLegacyPairings }
     }
 
     // MARK: Sources

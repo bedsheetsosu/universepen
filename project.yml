@@ -104,6 +104,7 @@ targets:
       - Host/VideoEncoder.swift
       - Host/InputInjector.swift
       - Host/HostServer.swift
+      - Host/DeviceKeyStore.swift
       - Client/VideoRenderer.swift
       - Client/Session.swift
       - Client/AudioPlayer.swift

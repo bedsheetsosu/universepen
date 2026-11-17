@@ -172,9 +172,9 @@ iPad (UniversePen)                                 Mac (UniversePen Host)
 ### Security
 
 - Connections only with paired devices: without the key the TLS handshake fails (tested).
-- Pairing: 12 characters of Crockford Base32 (60 bits); the pairing listener is open for only 2 minutes and closes after the first pairing. A TLS PSK is derived from it via HKDF. Over that, the random 256-bit host key is handed over and stored in the keychain (this device only).
-- Encryption: TLS 1.2 with `TLS_PSK_WITH_AES_128_GCM_SHA256` (as in Äbbl's peer-to-peer sample code). Limitation: **no forward secrecy** – anyone who later gets hold of the host key could decrypt previously recorded traffic.
-- One host key for all paired iPads. "Unpair all" creates a new one; individual iPads can't be revoked separately on the Mac (they can on the iPad: remove the Mac).
+- Pairing: 12 characters of Crockford Base32 (60 bits); the pairing listener is open for only 2 minutes and closes after the first pairing. A TLS PSK is derived from it via HKDF. Over that, the iPad gets **its own** random 256-bit key, stored in the keychain on both sides (this device only).
+- Encryption: TLS 1.2 with `TLS_PSK_WITH_AES_128_GCM_SHA256` (as in Äbbl's peer-to-peer sample code). Limitation: **no forward secrecy** – anyone who later gets hold of an iPad's key could decrypt that iPad's previously recorded traffic.
+- **One key per iPad** (since 0.8): the Mac's listener holds every paired iPad's key and TLS picks it by the identity the iPad sends. Mac window → Pairing lists the iPads with their key fingerprints (the iPad shows its own under Settings → Connection); "Remove" stops one iPad at once, the others stay paired. iPads paired before 0.8 used one shared key; the next time such an iPad connects, the Mac hands it its own key over the encrypted connection, and "Older pairings → Remove" retires the shared key. "Unpair all" removes every key.
 - No external servers, no telemetry. Local network only.
 
 ### School-managed devices
@@ -379,7 +379,6 @@ Please go through in order and note each result:
 - Video over UDP/DTLS instead of TCP (no waiting for lost packets).
 - Adapt the bitrate automatically to RTT/backlog.
 - Dirty-region detection to save bandwidth on still images (ScreenCaptureKit hardly delivers frames when nothing changes anyway).
-- Per-device keys for revoking devices individually.
 
 ## External control & protocol
 

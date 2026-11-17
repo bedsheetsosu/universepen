@@ -31,6 +31,7 @@ public enum MessageType: UInt8, Sendable {
     case paletteMouse = 0x19   // client -> host: MouseEvent, x/y normalised inside the palette area
     case paletteCommand = 0x1A // client -> host: u8 PaletteCommand
     case hostCommand = 0x1B    // client -> host: u8 HostCommand
+    case rekey = 0x24          // host -> client: JSON PairGrant with the iPad's own key (moves an older pairing off the shared key)
     case shortcut = 0x20
     case key = 0x21            // hardware keyboard key down/up (HID usage)
     case text = 0x22           // on-screen keyboard text (UTF-8)
@@ -106,11 +107,16 @@ public struct Hello: Codable, Equatable, Sendable {
     public var role: ConnectionRole
     public var deviceID: String
     public var deviceName: String
-    public init(protocolVersion: Int = tafelProtocolVersion, role: ConnectionRole, deviceID: String, deviceName: String) {
+    /// Which key the iPad connects with (nil = the shared host key of pairings made before
+    /// every iPad got its own key).
+    public var keyID: String?
+    public init(protocolVersion: Int = tafelProtocolVersion, role: ConnectionRole, deviceID: String, deviceName: String,
+                keyID: String? = nil) {
         self.protocolVersion = protocolVersion
         self.role = role
         self.deviceID = deviceID
         self.deviceName = deviceName
+        self.keyID = keyID
     }
 }
 
@@ -386,13 +392,20 @@ public struct AppInfo: Codable, Equatable, Sendable {
 public struct PairGrant: Codable, Equatable, Sendable {
     public var hostID: String
     public var hostName: String
-    /// Base64 of the 32-byte long-term host key used as TLS PSK for regular connections.
+    /// Base64 of the 32-byte long-term key used as TLS PSK for regular connections.
     public var keyBase64: String
-    public init(hostID: String, hostName: String, keyBase64: String) {
+    /// This iPad's own key: connect with the identity `HostKey.deviceIdentity(keyID)`. Without it
+    /// the key is the shared host key (identity `HostKey.pskIdentity`).
+    public var keyID: String?
+    public init(hostID: String, hostName: String, keyBase64: String, keyID: String? = nil) {
         self.hostID = hostID
         self.hostName = hostName
         self.keyBase64 = keyBase64
+        self.keyID = keyID
     }
+
+    /// TLS identity that goes with this key.
+    public var identity: String { keyID.map(HostKey.deviceIdentity) ?? HostKey.pskIdentity }
 }
 
 public struct ErrorMessage: Codable, Equatable, Sendable {
