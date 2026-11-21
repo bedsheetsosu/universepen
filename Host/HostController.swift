@@ -1139,7 +1139,12 @@ final class HostController: ObservableObject {
                 var size = Geometry.streamSize(sourceAspect: Double(rect.width / rect.height),
                                                targetWidth: cfg.viewPixelWidth, targetHeight: cfg.viewPixelHeight,
                                                scale: cfg.quality.resolutionScale)
-                if cfg.quality.fullSource, let full = Self.sourcePixelSize(rect, display: display.displayID, codec: cfg.quality.codec),
+                // Full source pixels help when the iPad zooms into a mirrored Mac screen. The second
+                // screen is always shown whole, so anything above the iPad's panel ("more space"
+                // modes render at up to 1.6× its pixels) is only encoded to be thrown away again:
+                // up to 2.5× the encoder and decoder work, heat on the Mac and dropped frames.
+                if cfg.quality.fullSource, mode != .virtual,
+                   let full = Self.sourcePixelSize(rect, display: display.displayID, codec: cfg.quality.codec),
                    full.width > size.width {
                     size = full
                 }
